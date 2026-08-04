@@ -1,0 +1,21 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCloudStackRequest
+metadata:
+  name: replacewithunique03
+  namespace: grafana-vending
+spec:
+  displayName: SSO create-only example
+  slug: replacewithunique03
+  region: prod-us-central-0
+  usage: development
+  profile: standard
+  reconciliation:
+    dashboards: createOnly
+    homePreference: createOnly
+  sso:
+    mode: createOnly
+    profile: example-oidc
+  monthlyReport:
+    enabled: false
+  incidentIntegration:
+    enabled: false

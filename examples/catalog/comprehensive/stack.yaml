@@ -1,0 +1,35 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCloudStackRequest
+metadata:
+  # Replace this globally unique slug in metadata.name and spec.slug.
+  name: replacewithunique02
+  namespace: grafana-vending
+spec:
+  displayName: Comprehensive Grafana Cloud example
+  slug: replacewithunique02
+  region: prod-us-central-0
+  usage: production
+  profile: regulated
+  changeReference: CHANGE-EXAMPLE-001
+  configurationItemReference: CONFIG-EXAMPLE-001
+  baselineDashboards:
+    enabled: true
+  telemetryAccess:
+    enabled: true
+  plugins:
+    - slug: grafana-clock-panel
+      version: latest
+  reconciliation:
+    dashboards: enforced
+    homePreference: enforced
+  sso:
+    mode: enforced
+    profile: example-oidc
+  monthlyReport:
+    enabled: true
+    recipients:
+      - observability@example.com
+    replyTo: observability@example.com
+  incidentIntegration:
+    enabled: true
+    profile: example-relay

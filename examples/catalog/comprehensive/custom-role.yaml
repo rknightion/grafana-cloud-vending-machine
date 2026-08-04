@@ -1,0 +1,20 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCustomRoleBinding
+metadata:
+  name: example-dashboard-readers
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique02
+  team:
+    name: Example dashboard readers
+    groups:
+      - idp-example-dashboard-readers
+  role:
+    name: example-dashboard-reader
+    uid: example-dashboard-reader
+    displayName: Example dashboard reader
+    description: Read dashboards in folders selected by this reference role.
+    permissions:
+      - action: dashboards:read
+        scope: folders:*

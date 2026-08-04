@@ -1,0 +1,381 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanacloudstackrequests.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaCloudStackRequest
+    plural: grafanacloudstackrequests
+    singular: grafanacloudstackrequest
+    shortNames:
+      - gcstackrequest
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-cloud-stack-request-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: A request for a reconciled Grafana Cloud stack, baseline content, access, and optional platform features.
+          required:
+            - spec
+          x-kubernetes-validations:
+            - rule: self.metadata.name == self.spec.slug
+              message: metadata.name must match spec.slug
+            - rule: self.spec.slug == oldSelf.spec.slug
+              message: spec.slug is immutable
+            - rule: '!self.spec.monthlyReport.enabled || (size(self.spec.monthlyReport.recipients) > 0 && size(self.spec.monthlyReport.replyTo) > 0)'
+              message: enabled monthlyReport requires recipients and replyTo
+            - rule: 'self.spec.sso.mode == "disabled" || size(self.spec.sso.profile) > 0'
+              message: enabled or observed SSO requires a platform profile
+            - rule: '!self.spec.incidentIntegration.enabled || size(self.spec.incidentIntegration.profile) > 0'
+              message: enabled incidentIntegration requires a platform profile
+          properties:
+            spec:
+              type: object
+              required:
+                - displayName
+                - slug
+                - region
+                - usage
+              properties:
+                displayName:
+                  type: string
+                  minLength: 1
+                  maxLength: 128
+                  description: Human-readable Grafana Cloud stack name.
+                slug:
+                  type: string
+                  minLength: 3
+                  maxLength: 32
+                  pattern: ^[a-z0-9]+$
+                  description: Immutable Grafana Cloud stack slug and external identity.
+                region:
+                  type: string
+                  pattern: ^prod-[a-z0-9-]+-[0-9]+$
+                  description: Grafana Cloud region slug.
+                usage:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                  pattern: ^[a-z0-9-]+$
+                  description: Generic usage classification and output-secret path segment.
+                profile:
+                  type: string
+                  default: standard
+                  minLength: 1
+                  maxLength: 32
+                  pattern: ^[a-z0-9-]+$
+                  description: Platform-owned configuration profile selected by the request.
+                changeReference:
+                  type: string
+                  maxLength: 128
+                  description: Optional generic request or change reference published in the output document.
+                configurationItemReference:
+                  type: string
+                  maxLength: 128
+                  description: Optional generic configuration-item reference published in the output document.
+                baselineDashboards:
+                  type: object
+                  default:
+                    enabled: true
+                  properties:
+                    enabled:
+                      type: boolean
+                      default: true
+                telemetryAccess:
+                  type: object
+                  default:
+                    enabled: true
+                  description: Creates a stack-scoped, rotating telemetry publisher access policy and mirrors its token to a derived AWS Secrets Manager path.
+                  properties:
+                    enabled:
+                      type: boolean
+                      default: true
+                plugins:
+                  type: array
+                  default: []
+                  maxItems: 30
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - slug
+                  description: Optional Grafana Cloud plugin installations owned by this stack request.
+                  items:
+                    type: object
+                    required:
+                      - slug
+                    properties:
+                      slug:
+                        type: string
+                        minLength: 1
+                        maxLength: 128
+                        pattern: ^[a-z0-9][a-z0-9-]*$
+                      version:
+                        type: string
+                        default: latest
+                        minLength: 1
+                        maxLength: 64
+                        pattern: ^[a-zA-Z0-9._+-]+$
+                reconciliation:
+                  type: object
+                  default:
+                    dashboards: createOnly
+                    homePreference: createOnly
+                  properties:
+                    dashboards:
+                      type: string
+                      default: createOnly
+                      enum:
+                        - enforced
+                        - createOnly
+                    homePreference:
+                      type: string
+                      default: createOnly
+                      enum:
+                        - enforced
+                        - createOnly
+                sso:
+                  type: object
+                  default:
+                    mode: disabled
+                    profile: ""
+                  properties:
+                    mode:
+                      type: string
+                      default: disabled
+                      enum:
+                        - enforced
+                        - createOnly
+                        - observeOnly
+                        - disabled
+                    profile:
+                      type: string
+                      maxLength: 32
+                      pattern: ^$|^[a-z0-9-]+$
+                      description: Selects platform-owned SSO settings and a Secret reference; it cannot supply an endpoint or credential.
+                monthlyReport:
+                  type: object
+                  default:
+                    enabled: false
+                    recipients: []
+                    replyTo: ""
+                  properties:
+                    enabled:
+                      type: boolean
+                      default: false
+                    recipients:
+                      type: array
+                      maxItems: 20
+                      items:
+                        type: string
+                        minLength: 3
+                        maxLength: 254
+                    replyTo:
+                      type: string
+                      maxLength: 254
+                incidentIntegration:
+                  type: object
+                  default:
+                    enabled: false
+                    profile: ""
+                  properties:
+                    enabled:
+                      type: boolean
+                      default: false
+                    profile:
+                      type: string
+                      maxLength: 32
+                      pattern: ^$|^[a-z0-9-]+$
+                      description: Selects a platform-owned relay URL and Secret reference.
+            status:
+              type: object
+              properties:
+                outputSecretPath:
+                  type: string
+                telemetrySecretPath:
+                  type: string
+                stack:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    url:
+                      type: string
+---
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanacustomrolebindings.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaCustomRoleBinding
+    plural: grafanacustomrolebindings
+    singular: grafanacustomrolebinding
+    shortNames:
+      - gcrole
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-custom-role-binding-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: A Grafana team synchronized from directory groups and bound to a custom role.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - team
+                - role
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: GrafanaCloudStack name and per-stack ProviderConfig name in this namespace.
+                team:
+                  type: object
+                  required:
+                    - name
+                    - groups
+                  properties:
+                    name:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                    groups:
+                      type: array
+                      minItems: 1
+                      maxItems: 50
+                      x-kubernetes-list-type: set
+                      items:
+                        type: string
+                        minLength: 1
+                        maxLength: 256
+                role:
+                  type: object
+                  required:
+                    - name
+                    - uid
+                    - permissions
+                  properties:
+                    name:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                    uid:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                      pattern: ^[a-zA-Z0-9._-]+$
+                    displayName:
+                      type: string
+                      maxLength: 190
+                    description:
+                      type: string
+                      maxLength: 1024
+                    permissions:
+                      type: array
+                      minItems: 1
+                      maxItems: 200
+                      items:
+                        type: object
+                        required:
+                          - action
+                        properties:
+                          action:
+                            type: string
+                            minLength: 1
+                            maxLength: 190
+                          scope:
+                            type: string
+                            maxLength: 190
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-cloud-stack-request-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaCloudStackRequest
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-vending-stack
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          organizationProviderConfigName: grafana-cloud-org
+          outputSecretPrefix: /platform/grafana-cloud/stacks
+          secretStoreRef:
+            name: grafana-vending-secrets
+            kind: SecretStore
+          ssoProfiles:
+            - name: example-oidc
+              providerName: generic_oauth
+              oauth2Settings:
+                name: Example SSO
+                enabled: true
+                allowSignUp: true
+                authUrl: https://identity.example.com/oauth2/authorize
+                tokenUrl: https://identity.example.com/oauth2/token
+                apiUrl: https://identity.example.com/oauth2/userinfo
+                clientId: grafana-example
+                scopes: openid profile email
+                emailAttributeName: email
+                groupsAttributePath: groups
+                roleAttributePath: contains(groups[*], 'grafana-admins') && 'Admin' || 'Viewer'
+                roleAttributeStrict: true
+                clientSecretSecretRef:
+                  name: grafana-sso-example-oidc
+                  key: clientSecret
+          incidentProfiles:
+            - name: example-relay
+              url: https://incident-relay.example.com/grafana/events
+              authorizationSecretRef:
+                name: grafana-incident-example-relay
+                key: authorization
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-custom-role-binding-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaCustomRoleBinding
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-custom-role-binding
+      functionRef:
+        name: function-grafana-vending

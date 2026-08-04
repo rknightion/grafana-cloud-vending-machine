@@ -1,0 +1,7 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - rbac/composition-rbac.yaml
+  - provider/provider-grafana.yaml
+  - function/install.yaml
+  - apis/v1beta1.yaml

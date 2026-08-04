@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: grafana-cloud-stack-requests
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - git:
+        repoURL: https://github.com/rknightion/grafana-cloud-vending-machine
+        revision: main
+        directories:
+          - path: examples/enabled/*
+  template:
+    metadata:
+      name: 'grafana-stack-{{.path.basenameNormalized}}'
+      namespace: argocd
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: platform
+      destination:
+        namespace: grafana-vending
+        server: https://kubernetes.default.svc
+      source:
+        repoURL: https://github.com/rknightion/grafana-cloud-vending-machine
+        targetRevision: main
+        path: '{{.path.path}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+          - SkipDryRunOnMissingResource=true
+        retry:
+          limit: 20
+          backoff:
+            duration: 10s
+            factor: 2
+            maxDuration: 2m

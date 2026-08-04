@@ -1,0 +1,31 @@
+replicas: 2
+
+args:
+  - --enable-provider-deletion-protection
+
+provider:
+  # provider-grafana currently ships hundreds of CRDs. SafeStart plus the
+  # ManagedResourceActivationPolicy in platform/provider activates only the
+  # resource kinds used by this reference.
+  defaultActivations: []
+
+metrics:
+  enabled: true
+
+resourcesCrossplane:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 768Mi
+
+rbacManager:
+  deploy: true
+  replicas: 2
+
+resourcesRBACManager:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 384Mi

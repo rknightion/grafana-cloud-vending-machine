@@ -1,0 +1,51 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: function-grafana-vending-runtime
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: 2
+      selector: {}
+      template:
+        spec:
+          containers:
+            - name: package-runtime
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            seccompProfile:
+              type: RuntimeDefault
+  serviceAccountTemplate:
+    metadata:
+      name: function-grafana-vending
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Function
+metadata:
+  name: function-grafana-vending
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  # The bootstrap tag is replaced with a signed immutable digest before release.
+  package: ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending:main
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 1
+  runtimeConfigRef:
+    name: function-grafana-vending-runtime

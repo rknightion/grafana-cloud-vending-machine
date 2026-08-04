@@ -1,0 +1,24 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: crossplane-compose-grafana-vending-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    rbac.crossplane.io/aggregate-to-crossplane: "true"
+rules:
+  - apiGroups:
+      - external-secrets.io
+    resources:
+      - pushsecrets
+      - pushsecrets/status
+      - externalsecrets
+      - externalsecrets/status
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete

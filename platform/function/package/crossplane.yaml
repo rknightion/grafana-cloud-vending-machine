@@ -1,0 +1,9 @@
+apiVersion: meta.pkg.crossplane.io/v1
+kind: Function
+metadata:
+  name: function-grafana-vending
+  annotations:
+    meta.crossplane.io/description: Renders the generic Grafana Cloud vending platform APIs.
+    meta.crossplane.io/maintainer: grafana-cloud-vending-machine maintainers
+    meta.crossplane.io/source: https://github.com/rknightion/grafana-cloud-vending-machine
+spec: {}

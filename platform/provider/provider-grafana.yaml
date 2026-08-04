@@ -1,0 +1,120 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: verify-provider-grafana-signature
+  namespace: crossplane-system
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  activeDeadlineSeconds: 180
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: verify-provider-grafana-signature
+        app.kubernetes.io/part-of: grafana-cloud-vending-machine
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: cosign
+          image: ghcr.io/sigstore/cosign/cosign:v3.1.2@sha256:d91bc4e7e95e8d2f549c747a72dc174f90579e410a1695f57f686674f84ce849
+          imagePullPolicy: IfNotPresent
+          args:
+            - verify
+            - --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+            - --certificate-identity=https://github.com/grafana/crossplane-provider-grafana/.github/workflows/ci_tag.yaml@refs/tags/v2.13.0
+            - xpkg.upbound.io/grafana/provider-grafana@sha256:0a2666019348807b05ce1a96cb5b99e8c422b7a12beaa9713d3e051576e3ec3e
+          env:
+            - name: HOME
+              value: /tmp
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: grafana-provider-runtime
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: 1
+      selector: {}
+      template:
+        spec:
+          containers:
+            - name: package-runtime
+              args:
+                - --safe-start
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+  serviceAccountTemplate:
+    metadata:
+      name: provider-grafana
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  package: xpkg.upbound.io/grafana/provider-grafana@sha256:0a2666019348807b05ce1a96cb5b99e8c422b7a12beaa9713d3e051576e3ec3e
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 1
+  runtimeConfigRef:
+    name: grafana-provider-runtime
+---
+apiVersion: apiextensions.crossplane.io/v1alpha1
+kind: ManagedResourceActivationPolicy
+metadata:
+  name: grafana-cloud-vending-machine
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  activate:
+    - stacks.cloud.grafana.m.crossplane.io
+    - stackserviceaccounts.cloud.grafana.m.crossplane.io
+    - stackserviceaccountrotatingtokens.cloud.grafana.m.crossplane.io
+    - accesspolicies.cloud.grafana.m.crossplane.io
+    - accesspolicyrotatingtokens.cloud.grafana.m.crossplane.io
+    - plugininstallations.cloud.grafana.m.crossplane.io
+    - folders.oss.grafana.m.crossplane.io
+    - dashboards.oss.grafana.m.crossplane.io
+    - organizationpreferences.oss.grafana.m.crossplane.io
+    - ssosettings.oss.grafana.m.crossplane.io
+    - reports.enterprise.grafana.m.crossplane.io
+    - outgoingwebhooks.oncall.grafana.m.crossplane.io
+    - contactpoints.alerting.grafana.m.crossplane.io
+    - teams.oss.grafana.m.crossplane.io
+    - roles.enterprise.grafana.m.crossplane.io
+    - roleassignments.enterprise.grafana.m.crossplane.io

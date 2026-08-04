@@ -1,0 +1,27 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCloudStackRequest
+metadata:
+  # Grafana Cloud stack slugs are globally unique. Replace this value in both
+  # metadata.name and spec.slug before enabling the request.
+  name: replacewithunique01
+  namespace: grafana-vending
+spec:
+  displayName: Example Grafana Cloud stack
+  slug: replacewithunique01
+  region: prod-us-central-0
+  usage: development
+  profile: standard
+  baselineDashboards:
+    enabled: true
+  telemetryAccess:
+    enabled: true
+  plugins: []
+  reconciliation:
+    dashboards: createOnly
+    homePreference: createOnly
+  sso:
+    mode: disabled
+  monthlyReport:
+    enabled: false
+  incidentIntegration:
+    enabled: false
