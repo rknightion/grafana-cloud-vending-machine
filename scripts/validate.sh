@@ -28,4 +28,18 @@ kubectl kustomize deploy/aws >/dev/null
 kubectl kustomize examples/catalog/comprehensive >/dev/null
 kubectl kustomize examples/catalog/minimal >/dev/null
 
+test -f examples/README.md
+for example_dir in examples/catalog/*; do
+  if [[ -d "$example_dir" && ! -f "$example_dir/README.md" ]]; then
+    echo "Missing example README: $example_dir/README.md" >&2
+    exit 1
+  fi
+done
+
+ruby -ryaml -e '
+  document = YAML.safe_load(File.read("deploy/argocd/requests-applicationset.yaml"))
+  directories = document.dig("spec", "generators", 0, "git", "directories")
+  abort "ApplicationSet must watch only top-level enabled/*" unless directories == [{"path" => "enabled/*"}]
+'
+
 echo "Validation passed."

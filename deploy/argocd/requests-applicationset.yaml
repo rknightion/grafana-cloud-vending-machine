@@ -14,7 +14,7 @@ spec:
         repoURL: https://github.com/rknightion/grafana-cloud-vending-machine
         revision: main
         directories:
-          - path: examples/enabled/*
+          - path: enabled/*
   template:
     metadata:
       name: 'grafana-stack-{{.path.basenameNormalized}}'

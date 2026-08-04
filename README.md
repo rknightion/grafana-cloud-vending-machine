@@ -4,7 +4,7 @@ This repository is a portable reference architecture for vending Grafana Cloud s
 
 It is deliberately more than a minimal stack example. The baseline includes rotating administrator and telemetry credentials, deletion protection, stack-local provider configuration, starter content, configurable drift behavior, OAuth and SAML SSO, reports, plugins, incident relay resources, teams, basic-role ACLs, fixed-role assignments, custom roles, and role assignments.
 
-Nothing under examples/catalog is applied by the supplied ApplicationSet. The examples/enabled directory starts empty. A user must copy, edit, review, and commit a request before it can create a stack.
+Nothing under examples/catalog is applied by the supplied ApplicationSet. The top-level enabled directory starts empty. A user must copy, edit, review, and commit a request before it can create a stack.
 
 > Important: platform.example.org is a documentation placeholder, not a production API group. Replace it with a domain your organization controls before adopting this API.
 
@@ -36,8 +36,9 @@ ESO issue [external-secrets/external-secrets#6593](https://github.com/external-s
 │   ├── rbac/                 minimum extra composition RBAC for ESO resources
 │   └── kustomization.yaml
 ├── examples/
-│   ├── catalog/              inert stack, SSO, Teams, RBAC, and content-ACL examples
-│   └── enabled/              watched by the example ApplicationSet; empty by default
+│   ├── README.md             catalog index and safe enablement workflow
+│   └── catalog/              inert stack, SSO, Teams, RBAC, and content-ACL examples
+├── enabled/                  only path watched by the example ApplicationSet; empty by default
 ├── deploy/
 │   ├── argocd/               controller, platform, and per-request GitOps examples
 │   ├── aws/                  SecretStore, ExternalSecrets, ProviderConfig, IAM policy
@@ -162,7 +163,7 @@ The comprehensive request can be consumed the same way from `examples/catalog/co
 6. disable the report unless the recipients are intentional and the stack has the required capability;
 7. retain the plugin only after approving its slug/version and entitlement.
 
-Do not put the patched live request under this public repository's `examples/enabled` directory. That would publish a real cloud-resource identity and couple a production deployment to mutable public data. Keep the live patches private and pin both public Argo sources to the same reviewed commit. Updating that pin is the platform upgrade event.
+Do not put a patched live request in this public repository's `enabled/` directory. That would publish a real cloud-resource identity and couple a production deployment to mutable public data. In a production deployment, keep the enabled requests or overlays in a private GitOps repository and pin public platform and catalog sources to reviewed commits. Updating a pin is the platform upgrade event.
 
 ## SSO patterns and ownership
 
@@ -314,7 +315,7 @@ These steps are suitable for a disposable or evaluation cluster. Review every ma
 
 Fork or copy the repository, choose an API group under a domain you control, and update platform.example.org everywhere. Change the repository URLs and function package path to your fork.
 
-Keep examples/enabled empty until the controllers, provider, secret store, and organization ProviderConfig are healthy.
+Keep `enabled/` empty until the controllers, provider, secret store, and organization ProviderConfig are healthy.
 
 ### 2. Install Crossplane
 
@@ -369,10 +370,11 @@ The optional profile secrets are intentionally excluded from deploy/aws/kustomiz
 
 ### 5. Enable one request
 
-Copy one catalog directory into examples/enabled, edit the slug in both places, select a real Grafana Cloud region, and review every optional feature. Apply it directly for an evaluation:
+Copy the minimal catalog directory into `enabled/`, edit every placeholder, select a real Grafana Cloud region, and review every optional feature. Apply it directly for an evaluation:
 
 ~~~bash
-kubectl apply -f examples/enabled/my-stack/
+cp -R examples/catalog/minimal enabled/my-stack
+kubectl apply -k enabled/my-stack
 ~~~
 
 For GitOps, commit the enabled directory and let the ApplicationSet create one Argo CD Application for it.
@@ -396,7 +398,7 @@ deploy/argocd contains four building blocks:
 1. crossplane.yaml installs Crossplane 2.3.4 with the reference values.
 2. external-secrets.yaml installs the version-gated ESO release.
 3. platform.yaml installs platform/ plus the environment-specific AWS SecretStore and ProviderConfig.
-4. requests-applicationset.yaml creates one Application for each directory under examples/enabled.
+4. requests-applicationset.yaml creates one Application for each directory under `enabled/`.
 
 The examples assume an Argo CD AppProject named platform and a repository that Argo CD can read. While a fork is private, configure repository access through Argo CD's credential mechanism rather than placing credentials in an Application. A consumer of this public repository should pin `targetRevision` to an audited commit SHA, not `main`, and update the pin only after rendering and testing the new revision.
 
