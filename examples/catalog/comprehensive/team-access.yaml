@@ -1,0 +1,59 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaTeamAccess
+metadata:
+  name: example-observability-engineers
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique02
+  team:
+    name: Example observability engineers
+    email: observability-engineers@example.com
+    # Direct members must already exist in Grafana. Remove this field when a
+    # consumer has not provisioned the example identity.
+    members:
+      - engineer@example.com
+    externalGroups:
+      - idp-example-observability-engineers
+    ignoreExternallySyncedMembers: true
+    preferences:
+      homeDashboardUid: vending-home
+      theme: system
+      timezone: browser
+      weekStart: monday
+  customRoles:
+    - name: example-alert-rule-editor
+      uid: example-alert-rule-editor
+      displayName: Example alert rule editor
+      description: Manage alert rules without organization administration.
+      group: Example access
+      permissions:
+        - action: alert.rules:read
+          scope: folders:*
+        - action: alert.rules:create
+          scope: folders:*
+        - action: alert.rules:write
+          scope: folders:*
+        - action: folders:read
+          scope: folders:*
+        - action: datasources:query
+          scope: datasources:*
+    - name: example-dashboard-writer
+      uid: example-dashboard-writer
+      displayName: Example dashboard writer
+      description: Create and edit dashboards in approved folders.
+      group: Example access
+      permissions:
+        - action: dashboards:read
+          scope: folders:*
+        - action: dashboards:create
+          scope: folders:*
+        - action: dashboards:write
+          scope: folders:*
+        - action: folders:read
+          scope: folders:*
+  # Fixed-role UIDs vary by version, edition, entitlement, and stack. Verify
+  # each UID against the target stack before enabling its assignment.
+  fixedRoleUids:
+    # fixed:datasources:reader in the reviewed Grafana role catalog.
+    - fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ

@@ -128,13 +128,41 @@ Nothing in examples/catalog is live. Each directory demonstrates one ownership d
 | Directory | What it demonstrates | What an adopter changes |
 | --- | --- | --- |
 | minimal | Safe stack baseline, rotating credentials, create-only content, no SSO | Slug, region, usage, API group, secret backend |
-| comprehensive | Enforced content and OAuth SSO, report, plugin, incident relay, compact custom role | All profile names, endpoints, recipients, plugins, role actions/scopes |
+| comprehensive | Every public API kind: enforced content and OAuth SSO, report, plugin, incident relay, compact custom-role binding, direct and synchronized Team access, multiple custom/fixed roles, preferences, and folder/dashboard ACLs | All profile names, endpoints, recipients, identities, verified fixed-role UIDs, plugins, role actions/scopes, and ACL targets |
 | sso-create-only | Platform initializes OAuth, then stack administrators own later SSO edits | Approved OAuth profile and handoff policy |
 | sso-azuread | Azure AD OAuth profile selected from platform policy | Tenant/application IDs, group claims, role expression, client-secret path |
 | sso-saml | SAML metadata and role-value mapping | Metadata URL, attributes, signing requirements, role values |
 | access-and-rbac | Direct and directory Team membership, preferences, custom/fixed roles, folder/dashboard ACLs | Team/group names, verified role UIDs, actions/scopes, ACL targets |
 
-Copy a directory as a starting point; do not enable every option merely because it exists. A production catalog normally offers a few reviewed profiles such as standard, regulated, and administrator-owned SSO rather than exposing raw provider fields to request authors.
+The comprehensive directory is a renderable Kustomize base. It intentionally contains every current public API kind so it can be used for schema validation, platform evaluation, and consumer overlays. It is not a claim that every feature should be enabled for every stack.
+
+Copy a directory as a starting point or consume it as a remote base; do not enable every option merely because it exists. A production catalog normally offers a few reviewed profiles such as standard, regulated, and administrator-owned SSO rather than exposing raw provider fields to request authors.
+
+### Public base, private environment overlay
+
+The reusable implementation and the live environment have different publication boundaries. A public repository can safely own the provider install, function, XRDs, Compositions, and inert catalog. A private GitOps repository must own values that identify or authorize a real deployment:
+
+| Public reference owns | Private environment owns |
+| --- | --- |
+| Provider and function packages at immutable digests | Approved public-reference Git commit |
+| XRD schemas and Composition behavior | Production API group under a controlled domain |
+| Non-destructive lifecycle policy | Secret-store kind/name, cloud region, and workload identity |
+| Placeholder SSO and incident profile shapes | Real endpoints and ExternalSecret remote paths |
+| Comprehensive request with reserved example identities | Globally unique stack slug, intended recipients, user IDs, groups, and verified fixed-role UIDs |
+
+An Argo CD Application can source `platform/` directly from this repository at an immutable commit. Its Kustomize patches can replace the four XRD group-qualified names, each XRD `spec.group`, and each Composition `spec.compositeTypeRef.apiVersion`; the stack Composition input `apiVersion` must be patched as well. A second source in the same Application can point at a small private directory containing only the environment SecretStore, ExternalSecrets, and organization ProviderConfig. This keeps one Argo owner while avoiding a copied platform implementation.
+
+The comprehensive request can be consumed the same way from `examples/catalog/comprehensive`. Apply private Kustomize patches for all four custom kinds rather than editing generated managed resources:
+
+1. replace the request `metadata.name`, `spec.slug`, display name, region, usage, and request references;
+2. replace every `spec.stackRef.name` and any baseline managed-resource names containing the example slug;
+3. replace example Team names, members, external groups, role permissions/scopes, and fixed-role UIDs with reviewed values;
+4. disable SSO unless its selected profile and Secret exist;
+5. disable incident delivery unless its relay endpoint and authorization Secret exist;
+6. disable the report unless the recipients are intentional and the stack has the required capability;
+7. retain the plugin only after approving its slug/version and entitlement.
+
+Do not put the patched live request under this public repository's `examples/enabled` directory. That would publish a real cloud-resource identity and couple a production deployment to mutable public data. Keep the live patches private and pin both public Argo sources to the same reviewed commit. Updating that pin is the platform upgrade event.
 
 ## SSO patterns and ownership
 
@@ -370,7 +398,7 @@ deploy/argocd contains four building blocks:
 3. platform.yaml installs platform/ plus the environment-specific AWS SecretStore and ProviderConfig.
 4. requests-applicationset.yaml creates one Application for each directory under examples/enabled.
 
-The examples assume an Argo CD AppProject named platform and a repository that Argo CD can read. While a fork is private, configure repository access through Argo CD's credential mechanism rather than placing credentials in an Application.
+The examples assume an Argo CD AppProject named platform and a repository that Argo CD can read. While a fork is private, configure repository access through Argo CD's credential mechanism rather than placing credentials in an Application. A consumer of this public repository should pin `targetRevision` to an audited commit SHA, not `main`, and update the pin only after rendering and testing the new revision.
 
 Apply the relevant settings from deploy/argocd/argocd-values.yaml to Argo CD:
 
@@ -606,16 +634,16 @@ Run the complete local gate:
 
 It performs:
 
-- public-release scanning for source identifiers, credential prefixes, private keys, local paths, account IDs, JWT-like values, Kubernetes Secret manifests, and sensitive file names;
+- public-release scanning of the working tree and reachable Git history for source identifiers, credential prefixes, private keys, local paths, private endpoints, account IDs, JWT-like values, Kubernetes Secret manifests, sensitive file names, and tracked archives/key containers;
 - Go formatting and module consistency checks;
 - race-enabled unit tests with coverage;
 - go vet;
 - YAML syntax parsing;
-- Kustomize rendering for the platform and AWS examples.
+- Kustomize rendering for the platform, AWS examples, and comprehensive catalog base.
 
 The unit tests pin the desired-resource contracts, gating behavior for observed IDs, rotating-token parameters, least-privilege scopes, output-document shape, reconciliation modes, OAuth and SAML rendering, SSO Secret references, incident resources, Team membership/preferences, custom and fixed-role assignments, whole-target content ACLs, and safe composite status.
 
-Before making the repository public, also review the complete Git history and repository settings. The working-tree scan cannot prove that an earlier private commit never contained a secret.
+Before making the repository public, also review repository settings, issues, workflow logs, releases, packages, and commit-author metadata. The automated history scan covers reachable local Git objects, but it cannot inspect deleted remote refs or external artifacts that are no longer present in a checkout.
 
 ## Known limitations
 

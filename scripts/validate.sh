@@ -25,5 +25,6 @@ find . -type f \( -name '*.yaml' -o -name '*.yml' \) -not -path './.git/*' -prin
 
 kubectl kustomize platform >/dev/null
 kubectl kustomize deploy/aws >/dev/null
+kubectl kustomize examples/catalog/comprehensive >/dev/null
 
 echo "Validation passed."
