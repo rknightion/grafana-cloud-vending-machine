@@ -19,6 +19,7 @@ This reference pins versions and immutable artifacts instead of following latest
 | ESO Helm chart | 2.6.0 | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
 | Cosign verification image | 3.1.2, immutable digest | Verifies the Grafana provider and this repository's function package |
 | Composition function SDK | 0.7.1 | Pinned by the function Go module |
+| Vending composition function | sha256:2def3a7a00b2ecc445caa178837376c60889da3588596c5c72f9993fcf9e23a3 | Signed amd64/arm64 package built from commit c5b0453549db |
 
 The Grafana Crossplane provider describes itself as experimental and unsupported. The currently published Terraform provider is newer than the version used to generate provider 2.13.0. In particular, Terraform provider 4.40.1 contains a Stack drift fix that is not in this Crossplane provider release. Test provider upgrades and drift behavior against non-production stacks before rollout.
 
@@ -207,6 +208,8 @@ The repository function workflow:
 6. signs the OCI index with keyless Cosign.
 
 platform/function/install.yaml must pin the resulting signed digest for production. A fork must also change the package repository and the expected Cosign workflow identity. If the package is private, provide a dedicated read-only registry credential through an external secret; do not commit a Docker config or reuse a developer token.
+
+The supplied install manifest verifies the pinned function package against this repository's exact main-branch workflow identity before Crossplane installs it. The verification Job name contains the digest prefix, so changing the digest creates a new gate rather than reusing an old successful Job.
 
 ## Follow along: direct installation
 

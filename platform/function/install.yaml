@@ -1,3 +1,58 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: verify-function-grafana-vending-2def3a7a
+  namespace: crossplane-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  activeDeadlineSeconds: 300
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: verify-function-grafana-vending
+        app.kubernetes.io/part-of: grafana-cloud-vending-machine
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: cosign
+          image: ghcr.io/sigstore/cosign/cosign:v3.1.2@sha256:d91bc4e7e95e8d2f549c747a72dc174f90579e410a1695f57f686674f84ce849
+          imagePullPolicy: IfNotPresent
+          args:
+            - verify
+            - --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+            - --certificate-identity=https://github.com/rknightion/grafana-cloud-vending-machine/.github/workflows/publish-function.yml@refs/heads/main
+            - ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending@sha256:2def3a7a00b2ecc445caa178837376c60889da3588596c5c72f9993fcf9e23a3
+          env:
+            - name: HOME
+              value: /tmp
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
 apiVersion: pkg.crossplane.io/v1beta1
 kind: DeploymentRuntimeConfig
 metadata:
@@ -42,8 +97,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
-  # The bootstrap tag is replaced with a signed immutable digest before release.
-  package: ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending:main
+  package: ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending@sha256:2def3a7a00b2ecc445caa178837376c60889da3588596c5c72f9993fcf9e23a3
   packagePullPolicy: IfNotPresent
   revisionActivationPolicy: Automatic
   revisionHistoryLimit: 1

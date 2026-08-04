@@ -3,13 +3,23 @@ name: Publish Grafana vending function
 on:
   pull_request:
     paths:
-      - platform/function/**
+      - platform/function/*.go
+      - platform/function/go.mod
+      - platform/function/go.sum
+      - platform/function/Dockerfile
+      - platform/function/.dockerignore
+      - platform/function/package/**
       - .github/workflows/publish-function.yml
   push:
     branches:
       - main
     paths:
-      - platform/function/**
+      - platform/function/*.go
+      - platform/function/go.mod
+      - platform/function/go.sum
+      - platform/function/Dockerfile
+      - platform/function/.dockerignore
+      - platform/function/package/**
       - .github/workflows/publish-function.yml
   workflow_dispatch: {}
 
