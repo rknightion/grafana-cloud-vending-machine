@@ -58,6 +58,10 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		}
 	case "GrafanaCustomRoleBinding":
 		desired, err = renderRoleBinding(content)
+	case "GrafanaTeamAccess":
+		desired, err = renderTeamAccess(content)
+	case "GrafanaContentAccessPolicy":
+		desired, err = renderContentAccessPolicy(content)
 	default:
 		err = errors.Errorf("unsupported composite kind %q", kind)
 	}

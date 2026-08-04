@@ -116,5 +116,8 @@ spec:
     - outgoingwebhooks.oncall.grafana.m.crossplane.io
     - contactpoints.alerting.grafana.m.crossplane.io
     - teams.oss.grafana.m.crossplane.io
+    - folderpermissions.oss.grafana.m.crossplane.io
+    - dashboardpermissions.oss.grafana.m.crossplane.io
     - roles.enterprise.grafana.m.crossplane.io
     - roleassignments.enterprise.grafana.m.crossplane.io
+    - roleassignmentitems.enterprise.grafana.m.crossplane.io

@@ -1,0 +1,311 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanateamaccesses.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaTeamAccess
+    plural: grafanateamaccesses
+    singular: grafanateamaccess
+    shortNames:
+      - gcteamaccess
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-team-access-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: A Grafana team with optional directory sync, direct members, preferences, custom roles, and fixed-role assignments.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - team
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: GrafanaCloudStackRequest name and per-stack ProviderConfig name in this namespace.
+                team:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                    email:
+                      type: string
+                      maxLength: 254
+                    members:
+                      type: array
+                      maxItems: 100
+                      x-kubernetes-list-type: set
+                      items:
+                        type: string
+                        minLength: 3
+                        maxLength: 254
+                      description: Direct members by Grafana login email; each user must already exist.
+                    externalGroups:
+                      type: array
+                      maxItems: 50
+                      x-kubernetes-list-type: set
+                      items:
+                        type: string
+                        minLength: 1
+                        maxLength: 256
+                      description: Identity-provider groups synchronized through Grafana Team Sync.
+                    ignoreExternallySyncedMembers:
+                      type: boolean
+                      default: true
+                    preferences:
+                      type: object
+                      properties:
+                        homeDashboardUid:
+                          type: string
+                          maxLength: 190
+                        theme:
+                          type: string
+                          enum:
+                            - ""
+                            - light
+                            - dark
+                            - system
+                        timezone:
+                          type: string
+                          enum:
+                            - ""
+                            - utc
+                            - browser
+                        weekStart:
+                          type: string
+                          enum:
+                            - ""
+                            - sunday
+                            - monday
+                            - saturday
+                customRoles:
+                  type: array
+                  default: []
+                  maxItems: 20
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - uid
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - uid
+                      - permissions
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 190
+                      uid:
+                        type: string
+                        minLength: 1
+                        maxLength: 190
+                        pattern: ^[a-zA-Z0-9._-]+$
+                      displayName:
+                        type: string
+                        maxLength: 190
+                      description:
+                        type: string
+                        maxLength: 1024
+                      group:
+                        type: string
+                        maxLength: 190
+                      hidden:
+                        type: boolean
+                        default: false
+                      permissions:
+                        type: array
+                        minItems: 1
+                        maxItems: 200
+                        items:
+                          type: object
+                          required:
+                            - action
+                          properties:
+                            action:
+                              type: string
+                              minLength: 1
+                              maxLength: 190
+                            scope:
+                              type: string
+                              maxLength: 190
+                fixedRoleUids:
+                  type: array
+                  default: []
+                  maxItems: 50
+                  x-kubernetes-list-type: set
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 190
+                  description: Existing Grafana fixed-role UIDs assigned item-by-item to avoid whole-role assignment collisions.
+---
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanacontentaccesspolicies.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaContentAccessPolicy
+    plural: grafanacontentaccesspolicies
+    singular: grafanacontentaccesspolicy
+    shortNames:
+      - gccontentaccess
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-content-access-policy-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: The authoritative basic-role, team, and user ACL for one Grafana folder or dashboard.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - target
+                - permissions
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                target:
+                  type: object
+                  required:
+                    - kind
+                    - ref
+                  properties:
+                    kind:
+                      type: string
+                      enum:
+                        - Folder
+                        - Dashboard
+                    ref:
+                      type: object
+                      x-kubernetes-validations:
+                        - rule: '(has(self.name) ? 1 : 0) + (has(self.uid) ? 1 : 0) == 1'
+                          message: set exactly one target ref name or uid
+                      properties:
+                        name:
+                          type: string
+                          minLength: 1
+                          maxLength: 253
+                          description: Kubernetes name of a provider Folder or Dashboard managed resource.
+                        uid:
+                          type: string
+                          minLength: 1
+                          maxLength: 190
+                          description: Existing Grafana folder or dashboard UID when no managed-resource reference is available.
+                permissions:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items:
+                    type: object
+                    required:
+                      - permission
+                    x-kubernetes-validations:
+                      - rule: '(has(self.basicRole) ? 1 : 0) + (has(self.teamRef) ? 1 : 0) + (has(self.userId) ? 1 : 0) == 1'
+                        message: set exactly one basicRole, teamRef, or userId
+                    properties:
+                      permission:
+                        type: string
+                        enum:
+                          - View
+                          - Edit
+                          - Admin
+                      basicRole:
+                        type: string
+                        enum:
+                          - Viewer
+                          - Editor
+                          - Admin
+                      teamRef:
+                        type: object
+                        required:
+                          - name
+                        properties:
+                          name:
+                            type: string
+                            minLength: 1
+                            maxLength: 253
+                            description: Kubernetes name of a provider Team managed resource.
+                      userId:
+                        type: string
+                        minLength: 1
+                        maxLength: 190
+                        description: Existing Grafana user or service-account ID.
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-team-access-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaTeamAccess
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-team-access
+      functionRef:
+        name: function-grafana-vending
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-content-access-policy-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaContentAccessPolicy
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-content-access-policy
+      functionRef:
+        name: function-grafana-vending

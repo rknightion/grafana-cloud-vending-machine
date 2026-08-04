@@ -403,6 +403,21 @@ func TestSSOReconciliationModesUseStableIdentity(t *testing.T) {
 	}
 }
 
+func TestOAuthSSORejectsLiteralClientSecretWithoutSecretReference(t *testing.T) {
+	claim := stackDocument(map[string]any{"sso": map[string]any{"mode": "enforced", "profile": "unsafe"}})
+	input := `{
+		"apiVersion":"platform.example.org/v1beta1","kind":"GrafanaVendingConfig",
+		"spec":{"ssoProfiles":[{
+			"name":"unsafe","providerName":"generic_oauth",
+			"oauth2Settings":{"clientId":"example","clientSecret":"literal-client-secret"}
+		}]}
+	}`
+	rsp := callFunction(t, claim, nil, input)
+	if fatal := fatalResult(rsp); !strings.Contains(fatal, "clientSecretSecretRef") {
+		t.Fatalf("literal-only OAuth secret returned fatal result %q", fatal)
+	}
+}
+
 func TestMonthlyReportIsOptionalValidatedAndDeterministic(t *testing.T) {
 	if _, ok := runStack(t, minimalStack(), nil).GetDesired().GetResources()["monthly-report"]; ok {
 		t.Fatal("monthly report is enabled by default")
@@ -458,6 +473,26 @@ func TestIncidentIntegrationIsOptionalAndSecretBacked(t *testing.T) {
 			t.Errorf("%s contains a literal relay credential", name)
 		}
 	}
+	webhookSpec := nestedMap(t, desiredResource(t, rsp, "incident-oncall-test-firing"), "spec")
+	if _, ok := nestedMap(t, webhookSpec, "initProvider")["data"]; !ok {
+		t.Fatal("default incident webhook does not preserve later data-template edits")
+	}
+	if _, ok := nestedMap(t, webhookSpec, "forProvider")["data"]; ok {
+		t.Fatal("default incident webhook has two data-template owners")
+	}
+	contactPoint := nestedMap(t, desiredResource(t, rsp, "incident-alerting-test"), "spec", "forProvider")
+	if _, ok := contactPoint["webhook"]; !ok {
+		t.Fatal("alerting contact-point payload is not enforced")
+	}
+
+	enforcedClaim := stackDocument(map[string]any{"incidentIntegration": map[string]any{
+		"enabled": true, "profile": "incident-relay", "templateMode": "enforced",
+	}})
+	enforced := runStackWithInput(t, enforcedClaim, nil, platformConfig())
+	enforcedSpec := nestedMap(t, desiredResource(t, enforced, "incident-oncall-test-firing"), "spec")
+	if _, ok := nestedMap(t, enforcedSpec, "forProvider")["data"]; !ok {
+		t.Fatal("enforced incident webhook does not own its data template")
+	}
 }
 
 func TestCustomRoleBindingRendersTeamRoleAndAssignment(t *testing.T) {
@@ -487,6 +522,161 @@ func TestCustomRoleBindingRendersTeamRoleAndAssignment(t *testing.T) {
 	}
 	if _, ok := params["teamRefs"]; !ok {
 		t.Fatal("role assignment has no teamRefs")
+	}
+}
+
+func TestTeamAccessRendersMembershipPreferencesAndAdditiveRoleAssignments(t *testing.T) {
+	claim := `{
+		"apiVersion":"platform.example.org/v1beta1",
+		"kind":"GrafanaTeamAccess",
+		"metadata":{"name":"example-editors","namespace":"grafana-vending"},
+		"spec":{
+			"stackRef":{"name":"teamdemo01"},
+			"team":{
+				"name":"Example Editors","email":"editors@example.com",
+				"members":["engineer@example.com"],"externalGroups":["idp-example-editors"],
+				"ignoreExternallySyncedMembers":true,
+				"preferences":{"homeDashboardUid":"vending-home","theme":"system","timezone":"browser","weekStart":"monday"}
+			},
+			"customRoles":[{
+				"name":"example-alert-editor","uid":"example-alert-editor","displayName":"Example alert editor",
+				"permissions":[{"action":"alert.rules:read","scope":"folders:*"},{"action":"alert.rules:write","scope":"folders:*"}]
+			}],
+			"fixedRoleUids":["fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ"]
+		}
+	}`
+	rsp := runStack(t, claim, nil)
+	customSuffix := stableResourceSuffix("example-alert-editor")
+	fixedSuffix := stableResourceSuffix("fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ")
+	got := map[string]string{}
+	for name, desired := range rsp.GetDesired().GetResources() {
+		got[name] = desired.GetResource().GetFields()["kind"].GetStringValue()
+	}
+	want := map[string]string{
+		"team":                                   "Team",
+		"custom-role-" + customSuffix:            "Role",
+		"custom-role-assignment-" + customSuffix: "RoleAssignmentItem",
+		"fixed-role-assignment-" + fixedSuffix:   "RoleAssignmentItem",
+	}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Fatalf("team access resources differ (-want +got):\n%s", diff)
+	}
+
+	team := nestedMap(t, desiredResource(t, rsp, "team"), "spec", "forProvider")
+	if got := team["members"].([]any); len(got) != 1 || got[0] != "engineer@example.com" {
+		t.Fatalf("direct team members = %v", got)
+	}
+	teamSync := team["teamSync"].([]any)[0].(map[string]any)
+	if got := teamSync["groups"].([]any); len(got) != 1 || got[0] != "idp-example-editors" {
+		t.Fatalf("team sync groups = %v", got)
+	}
+	preferences := team["preferences"].([]any)[0].(map[string]any)
+	if got := preferences["homeDashboardUid"]; got != "vending-home" {
+		t.Fatalf("team home dashboard = %v", got)
+	}
+
+	customAssignment := nestedMap(t, desiredResource(t, rsp, "custom-role-assignment-"+customSuffix), "spec", "forProvider")
+	if _, ok := customAssignment["roleRef"]; !ok {
+		t.Fatal("custom role assignment has no roleRef")
+	}
+	if _, ok := customAssignment["teamRef"]; !ok {
+		t.Fatal("custom role assignment has no teamRef")
+	}
+	fixedAssignment := nestedMap(t, desiredResource(t, rsp, "fixed-role-assignment-"+fixedSuffix), "spec", "forProvider")
+	if got := fixedAssignment["roleUid"]; got != "fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ" {
+		t.Fatalf("fixed role UID = %v", got)
+	}
+}
+
+func TestTeamAccessRoleResourceIdentityDoesNotDependOnListOrder(t *testing.T) {
+	roleA := map[string]any{"name": "Role A", "uid": "role-a", "permissions": []any{map[string]any{"action": "dashboards:read"}}}
+	roleB := map[string]any{"name": "Role B", "uid": "role-b", "permissions": []any{map[string]any{"action": "folders:read"}}}
+	document := func(roles []any, fixed []any) string {
+		return mustJSON(map[string]any{
+			"apiVersion": "platform.example.org/v1beta1", "kind": "GrafanaTeamAccess",
+			"metadata": map[string]any{"name": "stable-team", "namespace": "grafana-vending"},
+			"spec": map[string]any{
+				"stackRef":    map[string]any{"name": "teamdemo01"},
+				"team":        map[string]any{"name": "Stable Team"},
+				"customRoles": roles, "fixedRoleUids": fixed,
+			},
+		})
+	}
+	first := runStack(t, document([]any{roleA, roleB}, []any{"fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ", "fixed_Sgr67JTOhjQGFlzYRahOe45TdWM"}), nil)
+	second := runStack(t, document([]any{roleB, roleA}, []any{"fixed_Sgr67JTOhjQGFlzYRahOe45TdWM", "fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ"}), nil)
+	serialized := func(rsp *fnv1.RunFunctionResponse) map[string]string {
+		result := map[string]string{}
+		for name, desired := range rsp.GetDesired().GetResources() {
+			result[name] = mustJSON(desired.GetResource().AsMap())
+		}
+		return result
+	}
+	if diff := cmp.Diff(serialized(first), serialized(second)); diff != "" {
+		t.Fatalf("role resource identity depends on list order (-first +second):\n%s", diff)
+	}
+}
+
+func TestContentAccessPolicyOwnsWholeFolderOrDashboardACL(t *testing.T) {
+	claim := `{
+		"apiVersion":"platform.example.org/v1beta1",
+		"kind":"GrafanaContentAccessPolicy",
+		"metadata":{"name":"billing-access","namespace":"grafana-vending"},
+		"spec":{
+			"stackRef":{"name":"teamdemo01"},
+			"target":{"kind":"Folder","ref":{"name":"teamdemo01-billing"}},
+			"permissions":[
+				{"basicRole":"Viewer","permission":"View"},
+				{"teamRef":{"name":"example-editors-team"},"permission":"Edit"}
+			]
+		}
+	}`
+	rsp := runStack(t, claim, nil)
+	policy := desiredResource(t, rsp, "access-policy")
+	if got := policy["kind"]; got != "FolderPermission" {
+		t.Fatalf("content access kind = %v", got)
+	}
+	params := nestedMap(t, policy, "spec", "forProvider")
+	if got := nestedMap(t, params, "folderRef")["name"]; got != "teamdemo01-billing" {
+		t.Fatalf("folder reference = %v", got)
+	}
+	permissions := params["permissions"].([]any)
+	if got := permissions[0].(map[string]any)["role"]; got != "Viewer" {
+		t.Fatalf("basic role permission = %v", got)
+	}
+	if got := nestedMap(t, permissions[1].(map[string]any), "teamRef")["name"]; got != "example-editors-team" {
+		t.Fatalf("team permission reference = %v", got)
+	}
+
+	invalid := strings.Replace(claim, `"basicRole":"Viewer"`, `"basicRole":"Viewer","userId":"42"`, 1)
+	if fatal := fatalResult(callFunction(t, invalid, nil, "")); !strings.Contains(fatal, "exactly one") {
+		t.Fatalf("ambiguous ACL actor returned fatal result %q", fatal)
+	}
+}
+
+func TestSAMLSSOProfileRendersSAMLSettings(t *testing.T) {
+	claim := stackDocument(map[string]any{"sso": map[string]any{"mode": "enforced", "profile": "example-saml"}})
+	input := `{
+		"apiVersion":"platform.example.org/v1beta1","kind":"GrafanaVendingConfig",
+		"spec":{"ssoProfiles":[{
+			"name":"example-saml","providerName":"saml",
+			"samlSettings":{
+				"name":"Example SAML","enabled":true,"allowSignUp":true,
+				"idpMetadataUrl":"https://identity.example.com/saml/metadata",
+				"assertionAttributeEmail":"email","assertionAttributeRole":"role",
+				"roleValuesAdmin":"Admin","roleValuesEditor":"Editor","roleValuesViewer":"Viewer"
+			}
+		}]}
+	}`
+	rsp := runStackWithInput(t, claim, nil, input)
+	params := nestedMap(t, desiredResource(t, rsp, "sso"), "spec", "forProvider")
+	if _, ok := params["samlSettings"]; !ok {
+		t.Fatal("SAML profile did not render samlSettings")
+	}
+	if _, ok := params["oauth2Settings"]; ok {
+		t.Fatal("SAML profile rendered oauth2Settings")
+	}
+	if got := params["providerName"]; got != "saml" {
+		t.Fatalf("SAML provider name = %v", got)
 	}
 }
 

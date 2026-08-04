@@ -1,0 +1,21 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCloudStackRequest
+metadata:
+  name: replacewithunique06
+  namespace: grafana-vending
+spec:
+  displayName: Azure AD OAuth SSO example
+  slug: replacewithunique06
+  region: prod-us-central-0
+  usage: development
+  profile: standard
+  reconciliation:
+    dashboards: createOnly
+    homePreference: createOnly
+  sso:
+    mode: enforced
+    profile: example-azuread
+  monthlyReport:
+    enabled: false
+  incidentIntegration:
+    enabled: false

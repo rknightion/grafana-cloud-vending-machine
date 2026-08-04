@@ -185,6 +185,7 @@ spec:
                   default:
                     enabled: false
                     profile: ""
+                    templateMode: createOnly
                   properties:
                     enabled:
                       type: boolean
@@ -194,6 +195,13 @@ spec:
                       maxLength: 32
                       pattern: ^$|^[a-z0-9-]+$
                       description: Selects a platform-owned relay URL and Secret reference.
+                    templateMode:
+                      type: string
+                      default: createOnly
+                      enum:
+                        - enforced
+                        - createOnly
+                      description: Controls whether Crossplane repairs or preserves later OnCall outgoing-webhook data-template edits.
             status:
               type: object
               properties:
@@ -357,6 +365,40 @@ spec:
                 clientSecretSecretRef:
                   name: grafana-sso-example-oidc
                   key: clientSecret
+            - name: example-azuread
+              providerName: azuread
+              oauth2Settings:
+                name: Example Azure AD
+                enabled: true
+                allowSignUp: true
+                authUrl: https://login.microsoftonline.com/example-tenant-id/oauth2/v2.0/authorize
+                tokenUrl: https://login.microsoftonline.com/example-tenant-id/oauth2/v2.0/token
+                clientId: example-application-id
+                scopes: openid email profile
+                groupsAttributePath: groups
+                roleAttributePath: contains(groups[*], 'example-grafana-admins') && 'Admin' || contains(groups[*], 'example-grafana-editors') && 'Editor' || 'Viewer'
+                roleAttributeStrict: true
+                clientSecretSecretRef:
+                  name: grafana-sso-example-azuread
+                  key: clientSecret
+            - name: example-saml
+              providerName: saml
+              samlSettings:
+                name: Example SAML
+                enabled: true
+                allowSignUp: true
+                idpMetadataUrl: https://identity.example.com/saml/metadata
+                assertionAttributeLogin: login
+                assertionAttributeEmail: email
+                assertionAttributeName: displayName
+                assertionAttributeGroups: groups
+                assertionAttributeRole: role
+                roleValuesAdmin: Admin
+                roleValuesEditor: Editor
+                roleValuesViewer: Viewer
+                roleValuesNone: None
+                nameIdFormat: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+                signatureAlgorithm: rsa-sha256
           incidentProfiles:
             - name: example-relay
               url: https://incident-relay.example.com/grafana/events

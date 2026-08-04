@@ -1,0 +1,23 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCloudStackRequest
+metadata:
+  name: replacewithunique04
+  namespace: grafana-vending
+spec:
+  displayName: Access and RBAC example
+  slug: replacewithunique04
+  region: prod-us-central-0
+  usage: development
+  profile: standard
+  baselineDashboards:
+    enabled: true
+  reconciliation:
+    dashboards: createOnly
+    homePreference: createOnly
+  sso:
+    mode: enforced
+    profile: example-oidc
+  monthlyReport:
+    enabled: false
+  incidentIntegration:
+    enabled: false

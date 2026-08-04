@@ -1,0 +1,45 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaTeamAccess
+metadata:
+  name: example-observability-editors
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique04
+  team:
+    name: Example observability editors
+    email: observability-editors@example.com
+    # Direct members must already have logged in or otherwise exist in Grafana.
+    members:
+      - engineer@example.com
+    externalGroups:
+      - idp-example-observability-editors
+    ignoreExternallySyncedMembers: true
+    preferences:
+      homeDashboardUid: vending-home
+      theme: system
+      timezone: browser
+      weekStart: monday
+  customRoles:
+    - name: example-alert-rule-editor
+      uid: example-alert-rule-editor
+      displayName: Example alert rule editor
+      description: Create and edit alert rules without granting broad organization administration.
+      group: Example access
+      hidden: false
+      permissions:
+        - action: alert.rules:read
+          scope: folders:*
+        - action: alert.rules:create
+          scope: folders:*
+        - action: alert.rules:write
+          scope: folders:*
+        - action: folders:read
+          scope: folders:*
+        - action: datasources:query
+          scope: datasources:*
+  # Fixed-role UIDs are version- and edition-sensitive. Confirm each UID against
+  # the target stack's role inventory before enabling an assignment.
+  fixedRoleUids:
+    # fixed:datasources:reader in the reviewed Grafana role catalog.
+    - fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ

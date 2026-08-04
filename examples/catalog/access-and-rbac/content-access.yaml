@@ -1,0 +1,41 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaContentAccessPolicy
+metadata:
+  name: example-billing-folder-access
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique04
+  target:
+    kind: Folder
+    ref:
+      # Baseline provider Folder objects are named STACK-SLUG-billing.
+      name: replacewithunique04-billing
+  # This list is authoritative for the folder. Put every required grant in this
+  # single object; a second policy for the same target would fight this one.
+  permissions:
+    - basicRole: Viewer
+      permission: View
+    - teamRef:
+        # GrafanaTeamAccess creates a provider Team named CLAIM-NAME-team.
+        name: example-observability-editors-team
+      permission: Edit
+---
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaContentAccessPolicy
+metadata:
+  name: example-home-dashboard-access
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique04
+  target:
+    kind: Dashboard
+    ref:
+      name: replacewithunique04-homepage
+  permissions:
+    - basicRole: Viewer
+      permission: View
+    - teamRef:
+        name: example-observability-editors-team
+      permission: Edit

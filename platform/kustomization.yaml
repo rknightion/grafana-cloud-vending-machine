@@ -5,3 +5,4 @@ resources:
   - provider/provider-grafana.yaml
   - function/install.yaml
   - apis/v1beta1.yaml
+  - apis/access-v1beta1.yaml

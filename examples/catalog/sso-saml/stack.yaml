@@ -1,0 +1,21 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCloudStackRequest
+metadata:
+  name: replacewithunique05
+  namespace: grafana-vending
+spec:
+  displayName: SAML SSO example
+  slug: replacewithunique05
+  region: prod-us-central-0
+  usage: development
+  profile: standard
+  reconciliation:
+    dashboards: createOnly
+    homePreference: createOnly
+  sso:
+    mode: enforced
+    profile: example-saml
+  monthlyReport:
+    enabled: false
+  incidentIntegration:
+    enabled: false

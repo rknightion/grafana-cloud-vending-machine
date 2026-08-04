@@ -33,3 +33,4 @@ spec:
   incidentIntegration:
     enabled: true
     profile: example-relay
+    templateMode: createOnly

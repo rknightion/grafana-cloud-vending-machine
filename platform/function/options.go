@@ -37,20 +37,43 @@ func addSSO(desired map[resource.Name]*resource.DesiredComposed, namespace, prov
 	if mode == "observeOnly" {
 		resourceSpec["managementPolicies"] = []any{"Observe"}
 	} else {
-		settings, err := safeOAuthSettings(profile)
+		settingsKey, settings, err := safeSSOSettings(profile, providerName)
 		if err != nil {
 			return errors.Wrapf(err, "invalid SSO profile %q", profileName)
 		}
 		if mode == "enforced" {
-			forProvider["oauth2Settings"] = []any{settings}
+			forProvider[settingsKey] = []any{settings}
 		} else {
-			resourceSpec["initProvider"] = map[string]any{"oauth2Settings": []any{settings}}
+			resourceSpec["initProvider"] = map[string]any{settingsKey: []any{settings}}
 		}
 	}
 
 	desired["sso"] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "SsoSettings", namespace, providerConfig+"-sso",
 		map[string]any{"crossplane.io/external-name": providerName}, resourceSpec)
 	return nil
+}
+
+func safeSSOSettings(profile map[string]any, providerName string) (string, map[string]any, error) {
+	if !oneOf(providerName, "github", "gitlab", "google", "azuread", "okta", "generic_oauth", "saml") {
+		return "", nil, errors.Errorf("unsupported Grafana Cloud SSO provider %q", providerName)
+	}
+	_, hasOAuth := profile["oauth2Settings"].(map[string]any)
+	_, hasSAML := profile["samlSettings"].(map[string]any)
+	if hasOAuth == hasSAML {
+		return "", nil, errors.New("profile must set exactly one oauth2Settings or samlSettings object")
+	}
+	if providerName == "saml" && !hasSAML {
+		return "", nil, errors.New("saml provider requires samlSettings")
+	}
+	if providerName != "saml" && !hasOAuth {
+		return "", nil, errors.New("OAuth provider requires oauth2Settings")
+	}
+	if hasOAuth {
+		settings, err := safeOAuthSettings(profile)
+		return "oauth2Settings", settings, err
+	}
+	settings, err := safeSAMLSettings(profile)
+	return "samlSettings", settings, err
 }
 
 func safeOAuthSettings(profile map[string]any) (map[string]any, error) {
@@ -77,6 +100,39 @@ func safeOAuthSettings(profile map[string]any) (map[string]any, error) {
 		return nil, errors.New("oauth2Settings.clientSecretSecretRef must set name and key")
 	}
 	out["clientSecretSecretRef"] = map[string]any{"name": name, "key": key}
+	return out, nil
+}
+
+func safeSAMLSettings(profile map[string]any) (map[string]any, error) {
+	raw, _ := profile["samlSettings"].(map[string]any)
+	allowed := []string{
+		"allowIdpInitiated", "allowSignUp", "allowedOrganizations", "assertionAttributeEmail",
+		"assertionAttributeExternalUid", "assertionAttributeGroups", "assertionAttributeLogin",
+		"assertionAttributeName", "assertionAttributeOrg", "assertionAttributeRole", "autoLogin",
+		"clientId", "enabled", "entityId", "forceUseGraphApi", "idpMetadata", "idpMetadataUrl",
+		"maxIssueDelay", "metadataValidDuration", "name", "nameIdFormat", "orgMapping", "relayState",
+		"roleValuesAdmin", "roleValuesEditor", "roleValuesGrafanaAdmin", "roleValuesNone",
+		"roleValuesViewer", "signatureAlgorithm", "singleLogout", "skipOrgRoleSync", "tokenUrl",
+	}
+	out := map[string]any{}
+	for _, key := range allowed {
+		if value, ok := raw[key]; ok {
+			out[key] = value
+		}
+	}
+	for _, field := range []string{"certificateSecretRef", "privateKeySecretRef"} {
+		if secretRef, ok := raw[field].(map[string]any); ok {
+			name, _ := secretRef["name"].(string)
+			key, _ := secretRef["key"].(string)
+			if name == "" || key == "" {
+				return nil, errors.Errorf("samlSettings.%s must set name and key", field)
+			}
+			out[field] = map[string]any{"name": name, "key": key}
+		}
+	}
+	if len(out) == 0 {
+		return nil, errors.New("samlSettings must contain at least one supported setting")
+	}
 	return out, nil
 }
 
@@ -125,6 +181,10 @@ func addIncidentIntegration(desired map[resource.Name]*resource.DesiredComposed,
 	if !enabled {
 		return nil
 	}
+	templateMode := stringValue(incident, "templateMode", "createOnly")
+	if !oneOf(templateMode, "enforced", "createOnly") {
+		return errors.Errorf("unsupported incident template reconciliation mode %q", templateMode)
+	}
 	profileName, _ := incident["profile"].(string)
 	profile, ok := configuredProfile(config, "incidentProfiles", profileName)
 	if !ok {
@@ -142,16 +202,16 @@ func addIncidentIntegration(desired map[resource.Name]*resource.DesiredComposed,
 	for _, environment := range []string{"test", "production"} {
 		for _, trigger := range []struct{ suffix, value string }{{"firing", "escalation"}, {"resolved", "resolve"}} {
 			name := "incident-oncall-" + environment + "-" + trigger.suffix
-			desired[resource.Name(name)] = newDesired("oncall.grafana.m.crossplane.io/v1alpha1", "OutgoingWebhook", namespace, slug+"-"+name, nil,
-				map[string]any{
-					"managementPolicies": managementPolicies,
-					"forProvider": map[string]any{
-						"name": fmt.Sprintf("Incident relay %s %s", environment, trigger.suffix), "url": url, "httpMethod": "POST",
-						"authorizationHeaderSecretRef": authRef, "triggerType": trigger.value,
-						"data": `{"environment":"` + environment + `","event":{{ payload | toJson }}}`,
-					},
-					"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": providerConfig},
-				})
+			webhookSpec := map[string]any{
+				"managementPolicies": managementPolicies,
+				"forProvider": map[string]any{
+					"name": fmt.Sprintf("Incident relay %s %s", environment, trigger.suffix), "url": url, "httpMethod": "POST",
+					"authorizationHeaderSecretRef": authRef, "triggerType": trigger.value,
+				},
+				"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": providerConfig},
+			}
+			ownedParameters(webhookSpec, templateMode)["data"] = `{"environment":"` + environment + `","event":{{ payload | toJson }}}`
+			desired[resource.Name(name)] = newDesired("oncall.grafana.m.crossplane.io/v1alpha1", "OutgoingWebhook", namespace, slug+"-"+name, nil, webhookSpec)
 		}
 
 		name := "incident-alerting-" + environment
