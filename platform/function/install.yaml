@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: verify-function-grafana-vending-36aee084
+  name: verify-function-grafana-vending-673028c1
   namespace: crossplane-system
   annotations:
     argocd.argoproj.io/sync-wave: "2"
@@ -30,7 +30,7 @@ spec:
             - verify
             - --certificate-oidc-issuer=https://token.actions.githubusercontent.com
             - --certificate-identity=https://github.com/rknightion/grafana-cloud-vending-machine/.github/workflows/publish-function.yml@refs/heads/main
-            - ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending@sha256:36aee084bda51e1bd909ee40ce8f2144808130472b30d5f77f8e41162d0e2e2f
+            - ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending@sha256:673028c172bfeef3b1a9ab83ccb8b6db1320808b9f1e4b3c712aefc9ba4ed89b
           env:
             - name: HOME
               value: /tmp
@@ -97,7 +97,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
-  package: ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending@sha256:36aee084bda51e1bd909ee40ce8f2144808130472b30d5f77f8e41162d0e2e2f
+  package: ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending@sha256:673028c172bfeef3b1a9ab83ccb8b6db1320808b9f1e4b3c712aefc9ba4ed89b
   packagePullPolicy: IfNotPresent
   revisionActivationPolicy: Automatic
   revisionHistoryLimit: 1
