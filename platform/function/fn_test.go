@@ -45,6 +45,25 @@ func TestMinimalStackRendersBaseline(t *testing.T) {
 	}
 }
 
+func TestBaselineResourcesUseDeterministicExternalNames(t *testing.T) {
+	rsp := runStack(t, minimalStack(), nil)
+
+	want := map[string]string{
+		"stack":               "teamdemo01",
+		"billing-folder":      "vending-billing-folder",
+		"billing-dashboard":   "vending-billing",
+		"endpoints-folder":    "vending-endpoints-folder",
+		"endpoints-dashboard": "vending-endpoints",
+		"homepage-folder":     "vending-home-folder",
+		"homepage-dashboard":  "vending-home",
+	}
+	for name, externalName := range want {
+		if got := desiredExternalName(t, desiredResource(t, rsp, name)); got != externalName {
+			t.Errorf("%s external name = %q, want %q", name, got, externalName)
+		}
+	}
+}
+
 func TestTelemetryAccessPolicyIsStackScopedAndLeastPrivilege(t *testing.T) {
 	rsp := runStack(t, minimalStack(), nil)
 	policy := desiredResource(t, rsp, "telemetry-access-policy")
@@ -523,6 +542,20 @@ func TestCustomRoleBindingRendersTeamRoleAndAssignment(t *testing.T) {
 	if _, ok := params["teamRefs"]; !ok {
 		t.Fatal("role assignment has no teamRefs")
 	}
+	role := desiredResource(t, rsp, "role")
+	if got := desiredExternalName(t, role); got != "example-editor" {
+		t.Fatalf("role external name = %q, want example-editor", got)
+	}
+	roleParams := nestedMap(t, role, "spec", "forProvider")
+	if got := roleParams["autoIncrementVersion"]; got != false {
+		t.Fatalf("role autoIncrementVersion = %v, want false", got)
+	}
+	if _, ok := roleParams["version"]; ok {
+		t.Fatal("role owns the server-managed version field")
+	}
+	if got := desiredExternalName(t, assignment); got != "example-editor" {
+		t.Fatalf("role assignment external name = %q, want example-editor", got)
+	}
 }
 
 func TestTeamAccessRendersMembershipPreferencesAndAdditiveRoleAssignments(t *testing.T) {
@@ -545,9 +578,23 @@ func TestTeamAccessRendersMembershipPreferencesAndAdditiveRoleAssignments(t *tes
 			"fixedRoleUids":["fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ"]
 		}
 	}`
-	rsp := runStack(t, claim, nil)
 	customSuffix := stableResourceSuffix("example-alert-editor")
 	fixedSuffix := stableResourceSuffix("fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ")
+	initial := runStack(t, claim, nil)
+	for _, name := range []string{"custom-role-assignment-" + customSuffix, "fixed-role-assignment-" + fixedSuffix} {
+		if _, ok := initial.GetDesired().GetResources()[name]; ok {
+			t.Fatalf("%s was rendered before Grafana assigned the Team ID", name)
+		}
+	}
+
+	observed := map[string]*fnv1.Resource{
+		"team": observedResource(`{
+			"apiVersion":"oss.grafana.m.crossplane.io/v1alpha1",
+			"kind":"Team",
+			"status":{"atProvider":{"teamId":42}}
+		}`),
+	}
+	rsp := runStack(t, claim, observed)
 	got := map[string]string{}
 	for name, desired := range rsp.GetDesired().GetResources() {
 		got[name] = desired.GetResource().GetFields()["kind"].GetStringValue()
@@ -579,12 +626,37 @@ func TestTeamAccessRendersMembershipPreferencesAndAdditiveRoleAssignments(t *tes
 	if _, ok := customAssignment["roleRef"]; !ok {
 		t.Fatal("custom role assignment has no roleRef")
 	}
-	if _, ok := customAssignment["teamRef"]; !ok {
-		t.Fatal("custom role assignment has no teamRef")
+	if got := customAssignment["teamId"]; got != "42" {
+		t.Fatalf("custom role assignment team ID = %v, want 42", got)
 	}
-	fixedAssignment := nestedMap(t, desiredResource(t, rsp, "fixed-role-assignment-"+fixedSuffix), "spec", "forProvider")
+	if _, ok := customAssignment["teamRef"]; ok {
+		t.Fatal("custom role assignment uses an org-qualified Team reference")
+	}
+	customRole := desiredResource(t, rsp, "custom-role-"+customSuffix)
+	if got := desiredExternalName(t, customRole); got != "example-alert-editor" {
+		t.Fatalf("custom role external name = %q, want example-alert-editor", got)
+	}
+	customRoleParams := nestedMap(t, customRole, "spec", "forProvider")
+	if got := customRoleParams["autoIncrementVersion"]; got != false {
+		t.Fatalf("custom role autoIncrementVersion = %v, want false", got)
+	}
+	if _, ok := customRoleParams["version"]; ok {
+		t.Fatal("custom role owns the server-managed version field")
+	}
+	customAssignmentResource := desiredResource(t, rsp, "custom-role-assignment-"+customSuffix)
+	if got := desiredExternalName(t, customAssignmentResource); got != "example-alert-editor:team:42" {
+		t.Fatalf("custom role assignment external name = %q, want example-alert-editor:team:42", got)
+	}
+	fixedAssignmentResource := desiredResource(t, rsp, "fixed-role-assignment-"+fixedSuffix)
+	fixedAssignment := nestedMap(t, fixedAssignmentResource, "spec", "forProvider")
 	if got := fixedAssignment["roleUid"]; got != "fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ" {
 		t.Fatalf("fixed role UID = %v", got)
+	}
+	if got := fixedAssignment["teamId"]; got != "42" {
+		t.Fatalf("fixed role assignment team ID = %v, want 42", got)
+	}
+	if got := desiredExternalName(t, fixedAssignmentResource); got != "fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ:team:42" {
+		t.Fatalf("fixed role assignment external name = %q", got)
 	}
 }
 
@@ -602,8 +674,11 @@ func TestTeamAccessRoleResourceIdentityDoesNotDependOnListOrder(t *testing.T) {
 			},
 		})
 	}
-	first := runStack(t, document([]any{roleA, roleB}, []any{"fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ", "fixed_Sgr67JTOhjQGFlzYRahOe45TdWM"}), nil)
-	second := runStack(t, document([]any{roleB, roleA}, []any{"fixed_Sgr67JTOhjQGFlzYRahOe45TdWM", "fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ"}), nil)
+	observed := map[string]*fnv1.Resource{
+		"team": observedResource(`{"status":{"atProvider":{"teamId":42}}}`),
+	}
+	first := runStack(t, document([]any{roleA, roleB}, []any{"fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ", "fixed_Sgr67JTOhjQGFlzYRahOe45TdWM"}), observed)
+	second := runStack(t, document([]any{roleB, roleA}, []any{"fixed_Sgr67JTOhjQGFlzYRahOe45TdWM", "fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ"}), observed)
 	serialized := func(rsp *fnv1.RunFunctionResponse) map[string]string {
 		result := map[string]string{}
 		for name, desired := range rsp.GetDesired().GetResources() {
@@ -650,6 +725,12 @@ func TestContentAccessPolicyOwnsWholeFolderOrDashboardACL(t *testing.T) {
 	invalid := strings.Replace(claim, `"basicRole":"Viewer"`, `"basicRole":"Viewer","userId":"42"`, 1)
 	if fatal := fatalResult(callFunction(t, invalid, nil, "")); !strings.Contains(fatal, "exactly one") {
 		t.Fatalf("ambiguous ACL actor returned fatal result %q", fatal)
+	}
+
+	directUID := strings.Replace(claim, `"kind":"Folder","ref":{"name":"teamdemo01-billing"}`, `"kind":"Dashboard","ref":{"uid":"vending-home"}`, 1)
+	directPolicy := desiredResource(t, runStack(t, directUID, nil), "access-policy")
+	if got := desiredExternalName(t, directPolicy); got != "vending-home" {
+		t.Fatalf("direct-UID content policy external name = %q, want vending-home", got)
 	}
 }
 
@@ -827,6 +908,13 @@ func nestedMap(t *testing.T, object map[string]any, fields ...string) map[string
 		current = next
 	}
 	return current
+}
+
+func desiredExternalName(t *testing.T, object map[string]any) string {
+	t.Helper()
+	annotations := nestedMap(t, object, "metadata", "annotations")
+	value, _ := annotations["crossplane.io/external-name"].(string)
+	return value
 }
 
 func fatalResult(rsp *fnv1.RunFunctionResponse) string {

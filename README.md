@@ -205,6 +205,8 @@ GrafanaTeamAccess supports both members and externalGroups. Direct members must 
 
 Custom role permissions are an allow list; there is no deny rule. Prefer the narrowest action and scope, keep global=false for stack-local roles, and validate actions against the Grafana version deployed to the target stack. The access-and-rbac example demonstrates alert-rule read/create/write plus the supporting folder-read and data-source-query permissions rather than granting organization Admin. Narrow folders:* and datasources:* to named UIDs in a real catalog.
 
+Provider 2.13.0 has a Role initializer defect: although autoIncrementVersion is optional in its CRD, the initializer rejects a Role that omits it. The function therefore emits autoIncrementVersion=false explicitly and never owns the deprecated, server-managed version field. Recheck this workaround when upgrading the provider.
+
 RoleAssignment manages the entire set of actors for a role and conflicts with RoleAssignmentItem. GrafanaCustomRoleBinding is safe only because it creates a unique role and owns that role's entire assignment set. GrafanaTeamAccess uses RoleAssignmentItem so multiple team bundles can add assignments independently. Never manage the same role/actor pair through both APIs.
 
 FolderPermission and DashboardPermission also manage the entire ACL. Omitting an entry removes it on the next enforced reconciliation. Put all grants for a target into one GrafanaContentAccessPolicy, including basic-role grants that should remain. The reference omits Delete permission from the managed resource lifecycle, so deleting the Kubernetes policy orphans the last external ACL instead of clearing it; edits while the policy exists are still repaired.
@@ -585,7 +587,32 @@ A safe adoption rehearsal should:
 7. hand over one resource family at a time;
 8. retain a tested rollback that removes Kubernetes ownership without deleting external resources.
 
-The Stack resource uses the slug as crossplane.io/external-name, which provides an adoption path supported by the provider's external identity model. Other resources may require explicit external names or a dedicated migration Composition. Extend the request API rather than editing generated managed resources by hand.
+The provider imports external objects through the crossplane.io/external-name annotation. This reference emits an identity only when it can derive the provider's import key without consulting a live environment:
+
+| Resource | Deterministic external name |
+| --- | --- |
+| Stack | request slug |
+| Baseline Folder | declared Folder UID |
+| Baseline Dashboard | UID embedded in the declared dashboard JSON |
+| Custom Role | declared role UID |
+| Whole-set RoleAssignment | declared role UID |
+| RoleAssignmentItem | declared role UID, literal actor type, and the observed bare Team ID: roleUID:team:teamID |
+| FolderPermission or DashboardPermission with a direct UID target | declared target UID |
+
+Do not infer the remaining import keys from Kubernetes names, display names, list order, or another resource's UID. Inventory them from the existing managed resource annotation and provider status or from the supported Grafana inventory API. Provider 2.13.0 uses keys such as stackSlug:serviceAccountID for StackServiceAccount, region:policyID for AccessPolicy, orgID:teamID for Team, region:tokenID for AccessPolicyRotatingToken, and orgID for OrganizationPreferences. A rotating service-account token and any resource without a documented importer must be recorded verbatim and rehearsed against the pinned provider; do not manufacture an ID. Whole-set content permissions that target another managed resource by reference also require the resolved target UID to be inventoried.
+
+For a non-destructive orphan-and-adopt transition:
+
+1. pause automated promotion and confirm Delete is absent from every external managed resource involved;
+2. export a mapping of logical composed-resource name, kind, external-name annotation, relevant non-secret status IDs, and external object URL or UID;
+3. render the replacement Composition and compare that mapping before applying it;
+4. let this function supply deterministic identities, and add provider-assigned identities through a reviewed adoption field or dedicated migration Composition;
+5. move one resource family at a time, requiring the original identity plus Ready and Synced before continuing;
+6. stop on any Create attempt for an inventoried object, identity change, duplicate external object, or deletion event;
+7. keep provider-assigned adoption inputs durable until the standard Composition can preserve the same identity, then remove migration machinery only after another steady-state check;
+8. resume automated promotion after the complete inventory matches and rollback has been tested.
+
+Extend the request API or use a dedicated migration Composition for provider-assigned inputs. Do not patch generated managed resources by hand: the Composition will overwrite the patch and can turn an adoption into an attempted create.
 
 ## Upgrade runbook
 
@@ -643,7 +670,7 @@ It performs:
 - YAML syntax parsing;
 - Kustomize rendering for the platform, AWS examples, and comprehensive catalog base.
 
-The unit tests pin the desired-resource contracts, gating behavior for observed IDs, rotating-token parameters, least-privilege scopes, output-document shape, reconciliation modes, OAuth and SAML rendering, SSO Secret references, incident resources, Team membership/preferences, custom and fixed-role assignments, whole-target content ACLs, and safe composite status.
+The unit tests pin the desired-resource contracts, deterministic external identities, gating behavior for observed IDs, rotating-token parameters, least-privilege scopes, output-document shape, reconciliation modes, OAuth and SAML rendering, SSO Secret references, incident resources, the pinned Role initializer workaround, Team membership/preferences, three-segment custom and fixed-role assignments, whole-target content ACLs, and safe composite status.
 
 Before making the repository public, also review repository settings, issues, workflow logs, releases, packages, and commit-author metadata. The automated history scan covers reachable local Git objects, but it cannot inspect deleted remote refs or external artifacts that are no longer present in a checkout.
 
@@ -651,6 +678,7 @@ Before making the repository public, also review repository settings, issues, wo
 
 - The Grafana provider is experimental and may lag the Terraform provider.
 - Provider schemas and Grafana APIs may expose fields that do not round-trip cleanly; test drift rather than assuming.
+- Provider 2.13.0 requires the optional Role autoIncrementVersion field to be present because of an initializer defect; this reference pins it to false and omits version.
 - The reference has no destructive workflow.
 - It does not provision Kubernetes, AWS infrastructure, DNS, identity providers, or incident relays.
 - It uses generic starter dashboards rather than a full observability content library.

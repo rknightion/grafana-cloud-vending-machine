@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	xpv2 "github.com/crossplane/crossplane/apis/v2/core/v2"
 	"github.com/crossplane/function-sdk-go/errors"
@@ -59,7 +60,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 	case "GrafanaCustomRoleBinding":
 		desired, err = renderRoleBinding(content)
 	case "GrafanaTeamAccess":
-		desired, err = renderTeamAccess(content)
+		desired, err = renderTeamAccess(content, observed)
 	case "GrafanaContentAccessPolicy":
 		desired, err = renderContentAccessPolicy(content)
 	default:
@@ -188,7 +189,8 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 		} {
 			folderName := dashboard.name + "-folder"
 			dashboardName := dashboard.name + "-dashboard"
-			desired[resource.Name(folderName)] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "Folder", namespace, slug+"-"+dashboard.name, nil,
+			desired[resource.Name(folderName)] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "Folder", namespace, slug+"-"+dashboard.name,
+				map[string]any{"crossplane.io/external-name": dashboard.uid + "-folder"},
 				map[string]any{
 					"managementPolicies": managementPolicies,
 					"forProvider":        map[string]any{"title": dashboard.title, "uid": dashboard.uid + "-folder"},
@@ -202,7 +204,8 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 				"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": providerConfig},
 			}
 			ownedParameters(dashboardSpec, dashboardMode)["configJson"] = dashboardJSON(dashboard.title, dashboard.uid, dashboard.description)
-			desired[resource.Name(dashboardName)] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "Dashboard", namespace, slug+"-"+dashboard.name, nil, dashboardSpec)
+			desired[resource.Name(dashboardName)] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "Dashboard", namespace, slug+"-"+dashboard.name,
+				map[string]any{"crossplane.io/external-name": dashboard.uid}, dashboardSpec)
 		}
 
 		preferencesSpec := map[string]any{
@@ -333,6 +336,18 @@ func observedString(observed map[resource.Name]resource.ObservedComposed, name r
 		return ""
 	}
 	return v
+}
+
+func observedIntegerString(observed map[resource.Name]resource.ObservedComposed, name resource.Name, fieldPath string) string {
+	r, ok := observed[name]
+	if !ok || r.Resource == nil {
+		return ""
+	}
+	v, err := r.Resource.GetInteger(fieldPath)
+	if err != nil {
+		return ""
+	}
+	return strconv.FormatInt(v, 10)
 }
 
 func newDesired(apiVersion, kind, namespace, name string, annotations, spec map[string]any) *resource.DesiredComposed {

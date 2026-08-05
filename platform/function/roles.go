@@ -29,7 +29,7 @@ func renderRoleBinding(xr map[string]any) (map[resource.Name]*resource.DesiredCo
 	teamResourceName := name + "-team"
 	roleResourceName := name + "-role"
 	roleParams := map[string]any{
-		"name": roleName, "uid": roleUID, "global": false, "permissions": permissions,
+		"name": roleName, "uid": roleUID, "global": false, "autoIncrementVersion": false, "permissions": permissions,
 	}
 	if description, ok := role["description"].(string); ok && description != "" {
 		roleParams["description"] = description
@@ -45,13 +45,15 @@ func renderRoleBinding(xr map[string]any) (map[resource.Name]*resource.DesiredCo
 			"forProvider":        map[string]any{"name": teamName, "teamSync": []any{map[string]any{"groups": groups}}},
 			"providerConfigRef":  map[string]any{"kind": "ProviderConfig", "name": stackName},
 		})
-	desired["role"] = newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "Role", namespace, roleResourceName, nil,
+	desired["role"] = newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "Role", namespace, roleResourceName,
+		map[string]any{"crossplane.io/external-name": roleUID},
 		map[string]any{
 			"managementPolicies": managementPolicies,
 			"forProvider":        roleParams,
 			"providerConfigRef":  map[string]any{"kind": "ProviderConfig", "name": stackName},
 		})
-	desired["role-assignment"] = newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "RoleAssignment", namespace, name+"-assignment", nil,
+	desired["role-assignment"] = newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "RoleAssignment", namespace, name+"-assignment",
+		map[string]any{"crossplane.io/external-name": roleUID},
 		map[string]any{
 			"managementPolicies": managementPolicies,
 			"forProvider": map[string]any{
@@ -63,7 +65,7 @@ func renderRoleBinding(xr map[string]any) (map[resource.Name]*resource.DesiredCo
 	return desired, nil
 }
 
-func renderTeamAccess(xr map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+func renderTeamAccess(xr map[string]any, observed map[resource.Name]resource.ObservedComposed) (map[resource.Name]*resource.DesiredComposed, error) {
 	metadata, _ := xr["metadata"].(map[string]any)
 	spec, _ := xr["spec"].(map[string]any)
 	name, _ := metadata["name"].(string)
@@ -94,6 +96,7 @@ func renderTeamAccess(xr map[string]any) (map[resource.Name]*resource.DesiredCom
 				"providerConfigRef":  map[string]any{"kind": "ProviderConfig", "name": stackName},
 			}),
 	}
+	teamID := observedIntegerString(observed, "team", "status.atProvider.teamId")
 
 	customRoles, _ := spec["customRoles"].([]any)
 	for index, item := range customRoles {
@@ -109,21 +112,26 @@ func renderTeamAccess(xr map[string]any) (map[resource.Name]*resource.DesiredCom
 		logicalName := "custom-role-" + suffix
 		roleResourceName := name + "-role-" + suffix
 		roleParams := map[string]any{
-			"name": roleName, "uid": roleUID, "global": false, "permissions": permissions,
+			"name": roleName, "uid": roleUID, "global": false, "autoIncrementVersion": false, "permissions": permissions,
 		}
 		copyOptionalFields(roleParams, role, "description", "displayName", "group", "hidden")
-		desired[resource.Name(logicalName)] = newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "Role", namespace, roleResourceName, nil,
+		desired[resource.Name(logicalName)] = newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "Role", namespace, roleResourceName,
+			map[string]any{"crossplane.io/external-name": roleUID},
 			map[string]any{
 				"managementPolicies": managementPolicies,
 				"forProvider":        roleParams,
 				"providerConfigRef":  map[string]any{"kind": "ProviderConfig", "name": stackName},
 			})
-		desired[resource.Name("custom-role-assignment-"+suffix)] = newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "RoleAssignmentItem", namespace, name+"-custom-"+suffix, nil,
+		if teamID == "" {
+			continue
+		}
+		desired[resource.Name("custom-role-assignment-"+suffix)] = newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "RoleAssignmentItem", namespace, name+"-custom-"+suffix,
+			map[string]any{"crossplane.io/external-name": roleUID + ":team:" + teamID},
 			map[string]any{
 				"managementPolicies": managementPolicies,
 				"forProvider": map[string]any{
 					"roleRef": map[string]any{"name": roleResourceName},
-					"teamRef": map[string]any{"name": teamResourceName},
+					"teamId":  teamID,
 				},
 				"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": stackName},
 			})
@@ -135,13 +143,17 @@ func renderTeamAccess(xr map[string]any) (map[resource.Name]*resource.DesiredCom
 		if roleUID == "" {
 			return nil, errors.Errorf("fixedRoleUids[%d] must not be empty", index)
 		}
+		if teamID == "" {
+			continue
+		}
 		suffix := stableResourceSuffix(roleUID)
-		desired[resource.Name("fixed-role-assignment-"+suffix)] = newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "RoleAssignmentItem", namespace, name+"-fixed-"+suffix, nil,
+		desired[resource.Name("fixed-role-assignment-"+suffix)] = newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "RoleAssignmentItem", namespace, name+"-fixed-"+suffix,
+			map[string]any{"crossplane.io/external-name": roleUID + ":team:" + teamID},
 			map[string]any{
 				"managementPolicies": managementPolicies,
 				"forProvider": map[string]any{
 					"roleUid": roleUID,
-					"teamRef": map[string]any{"name": teamResourceName},
+					"teamId":  teamID,
 				},
 				"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": stackName},
 			})
@@ -208,14 +220,16 @@ func renderContentAccessPolicy(xr map[string]any) (map[resource.Name]*resource.D
 		uidKey = "dashboardUid"
 	}
 	parameters := map[string]any{"permissions": renderedPermissions}
+	annotations := map[string]any(nil)
 	if refName != "" {
 		parameters[targetKey] = map[string]any{"name": refName}
 	} else {
 		parameters[uidKey] = targetUID
+		annotations = map[string]any{"crossplane.io/external-name": targetUID}
 	}
 
 	return map[resource.Name]*resource.DesiredComposed{
-		"access-policy": newDesired("oss.grafana.m.crossplane.io/v1alpha1", resourceKind, namespace, name, nil,
+		"access-policy": newDesired("oss.grafana.m.crossplane.io/v1alpha1", resourceKind, namespace, name, annotations,
 			map[string]any{
 				"managementPolicies": managementPolicies,
 				"forProvider":        parameters,
