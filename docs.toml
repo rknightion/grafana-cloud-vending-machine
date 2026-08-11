@@ -5,7 +5,7 @@
 [site]
 name = "grafana-cloud-vending-machine"
 description = "Reference architecture that vends Grafana Cloud stacks through a declarative Kubernetes API using Argo CD, Crossplane, and External Secrets Operator."
-author = "Rob Knighton"
+author = "Rob Knight"
 keywords = [
     "grafana cloud",
     "crossplane",
