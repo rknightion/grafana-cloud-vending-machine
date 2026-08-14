@@ -3,15 +3,20 @@ id: doc-0003
 title: Closed GitHub issues — pre-Backlog history index
 type: other
 created_date: '2026-08-14 16:39'
-updated_date: '2026-08-14 16:39'
+updated_date: '2026-08-14 16:43'
 ---
 All work before 2026-08-14 was tracked as GitHub Issues. Three issues existed, all closed as
 completed. This is the index of them.
 
-**They are scheduled for deletion from GitHub, so treat `archive/issues-dump.json` as the record and
-not `gh issue view <N>`.** The full verbatim text — every body and all 11 comments — is committed
-there, with `archive/README.md` describing the capture and the redaction finding. Nothing was
-redacted; the archive is verbatim.
+**The issues were archived and then deleted from GitHub on 2026-08-14, so `gh issue view <N>` no
+longer resolves any of them and this index is a pointer to the archive, not to GitHub.** The full
+verbatim text — every body and all 11 comments — is committed at `archive/issues-dump.json`, with
+`archive/README.md` describing the capture and the redaction finding. Nothing was redacted; the
+archive is verbatim. It was committed and pushed before anything was deleted, and every deleted
+number was asserted present in it first.
+
+The Issues tab stays enabled for external contributors; it is simply empty of this project's own
+history.
 
 ```bash
 jq -r '.[] | select(.number == 4) | .body, "\n--- comments ---", (.comments[] | "\n[\(.createdAt)]\n\(.body)")' \

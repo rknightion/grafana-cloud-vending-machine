@@ -5,6 +5,9 @@ stood on 2026-08-14, captured immediately before the issues themselves were dele
 record, not a convenience copy: the issues no longer exist on GitHub, so `gh issue view <N>` will
 not resolve any of them.
 
+The archive was committed and pushed **before** anything was deleted, and every number in the delete
+list was asserted present here first. The Issues tab remains enabled for external contributors.
+
 Three issues, all closed as completed, all authored by the repository owner: `#1`, `#3`, `#4`.
 (`#2` was a pull request and is not part of the issue archive.) Every issue body and every comment
 is present — 11 comments in total, matching the API's own per-issue comment counts exactly, which
