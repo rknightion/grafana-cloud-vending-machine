@@ -26,6 +26,4 @@ docs/superpowers/
 
 # The tracker guard hook and its wiring are shared; everything else under .claude/
 # is per-machine state (worktrees, scheduler locks, settings.local.json).
-.claude/*
-!.claude/settings.json
-!.claude/hooks/
+.claude/

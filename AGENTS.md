@@ -74,8 +74,7 @@ feels private, and here it also fails the publication scan permanently. Sweep be
 
 **Never use `--notes` or `--plan` bare.** They *silently replace* the whole section, destroying
 another session's writes with no warning and exit 0. This is an open upstream bug, not a
-misunderstanding. Use `--append-notes` and `--append-plan`. A `PreToolUse` hook in
-`.claude/hooks/backlog-guard.py` denies the unsafe forms rather than trusting anyone to remember.
+misunderstanding. Use `--append-notes` and `--append-plan`. A global `PreToolUse` hook in the agent config denies the unsafe forms rather than trusting anyone to remember.
 
 **Never hand-edit task, draft, doc, decision or milestone markdown.** Section boundaries are
 HTML-comment markers; break one and the section is *silently dropped* at exit 0 — the data stays in
