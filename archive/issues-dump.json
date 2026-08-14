@@ -1,0 +1,233 @@
+[
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Mission\n\nPublish a comprehensive, portable Grafana Cloud stack vending-machine reference built on Crossplane reconciliation and the Grafana Crossplane provider. The repository should be safe to make public, understandable as a follow-along architecture, and adaptable without carrying any source-environment identity or credentials.\n\nThe proven behavior is the premise to preserve; this work re-expresses it as a neutral reference rather than copying any live requests or surrounding cluster infrastructure.\n\n## Binding decisions\n\n- Use one comprehensive `README.md` as the user journey, architecture, security model, reconciliation guide, operations runbook, and feature-equivalence matrix.\n- Keep the product implementation in `platform/`, consumer examples in `examples/`, and optional installation/GitOps/cloud-secret integration in `deploy/`.\n- Use `platform.example.org` as an explicit placeholder API group. Production adopters must replace it with a domain they control.\n- Publish the composition function from this repository to `ghcr.io/rknightion/grafana-cloud-vending-machine-function`; document how forks replace that reference.\n- Pin provider and controller versions. Explain that the Grafana Crossplane provider is experimental and generated from a specific Grafana Terraform provider version.\n- Preserve non-destructive deletion defaults and make deletion/adoption behavior explicit.\n- Never copy live stack claims or real secret material. Examples use reserved example domains, fictional identifiers, and placeholder AWS values only.\n\n## Scope and approach\n\n### 1. Portable platform core\n\n- Namespaced `GrafanaCloudStackRequest` API.\n- Namespaced `GrafanaCustomRoleBinding` API.\n- Pipeline Compositions backed by a repository-owned Go composition function.\n- Grafana provider installation and ProviderConfig wiring.\n- Minimal composition RBAC.\n- Neutral platform-owned SSO and incident-relay profile examples.\n- Function package metadata and signed multi-platform publishing workflow.\n\n### 2. Vending-machine feature set\n\n- Stack creation/adoption and deletion protection.\n- Non-destructive management policies.\n- Administrative stack service account and rotating token.\n- Stack-realm least-privilege telemetry access policy and rotating token.\n- Structured administrator and telemetry output documents exported with ESO PushSecret.\n- Stack-local ProviderConfig.\n- Baseline folders, dashboards, and organization home preference.\n- Reconciliation modes for content and SSO.\n- Optional SSO, monthly report, plugins, incident contact point/webhook, teams, custom roles, and role assignments.\n- Status fields that expose stack URL/ID and external secret paths without exposing secret values.\n\n### 3. Optional deployment examples\n\n- Crossplane installation/configuration.\n- External Secrets Operator with AWS Secrets Manager and workload identity guidance.\n- Grafana organization credential ingestion through ExternalSecret.\n- Argo CD platform app plus an ApplicationSet-per-request GitOps pattern.\n- Sync waves, annotation-based tracking, pruning boundaries, and safe ownership rules.\n- Version-gated ESO PushSecret caveat and upgrade instructions.\n\n### 4. Public documentation and safety\n\n- Follow-along prerequisites and deployment sequence.\n- Architecture, trust boundaries, secret flow, and permission model.\n- Dedicated reconciliation section explaining out-of-band edits for every mode.\n- Migration/orphan-and-adopt and teardown runbooks.\n- Feature-equivalence matrix against a generic Grafana Cloud Terraform vending-machine model.\n- Known provider gaps and safe extension points.\n- Automated public-release scan for credentials, private keys, cloud identities, local paths, and source-environment identifiers.\n\n## Explicit exclusions\n\n- No live stack requests, imports, mutations, or migration of existing stacks.\n- No EKS, VPC, DNS, node, or general AWS infrastructure provisioning.\n- No secret values or Kubernetes Secret payloads.\n- No production-ready identity-provider or incident-relay endpoint; only profile-shaped examples.\n- No promise of support from Grafana for the experimental provider.\n\n## Acceptance criteria\n\n- [x] Repository structure cleanly separates portable core, consumer examples, and optional deployment integrations.\n- [x] Public API group, resource names, examples, secret paths, and package references are neutral and documented.\n- [x] Core preserves stack, rotating admin/telemetry credentials, baseline content, reconciliation modes, SSO, reports, plugins, incident integration, and custom RBAC features.\n- [x] All secret inputs come from external stores and generated outputs can be pushed back without committing credentials.\n- [x] Argo CD examples define safe ownership, ordering, pruning, and Crossplane reconciliation behavior.\n- [x] README contains the full follow-along, architecture, security, reconciliation, feature-equivalence, operations, migration, and limitation guidance.\n- [x] Function unit tests, race test, vet, schema/render validation, YAML parsing, and public-release scan pass.\n- [x] CI validates pull requests and publishes a signed multi-platform function package from trusted pushes/releases.\n- [x] Final diff has been reviewed for identity leakage, credentials, unsafe deletion, permissions, and public API stability.\n- [x] Completing commit is pushed to `main` with `Closes #1`.\n\n\n",
+    "closedAt": "2026-08-04T13:27:47Z",
+    "comments": [
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNLQpLg",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Implementation checkpoint is ready for the bootstrap push.\n\nLanded in the working tree:\n- neutral namespaced APIs and repository-owned composition function;\n- rotating administrator and telemetry token chains;\n- configurable ProviderConfig, SecretStore, and output-prefix seams;\n- optional SSO, reports, plugins, incident relay, and custom role bindings;\n- Crossplane, ESO, AWS workload-identity, and Argo CD examples;\n- one comprehensive public guide and inert catalog examples;\n- pinned-action CI, signed multi-platform package publishing, and public-release safety scanning.\n\nLocal evidence:\n- public-release scan passed;\n- Go race tests passed with 88.1% statement coverage;\n- go vet passed;\n- YAML parsing and both Kustomize renders passed;\n- shellcheck and actionlint passed;\n- zizmor --pedantic reported no findings.\n\nThe first non-closing commit will bootstrap the GHCR package. After that workflow publishes and signs the package, the platform manifest will be changed from the temporary main tag to the exact digest, a digest-specific Cosign verification gate will be added, and the final commit will close this issue.",
+        "createdAt": "2026-08-04T12:39:04Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/1#issuecomment-5179189550",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNLau6A",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Checkpoint commits are now on main:\n- c5b0453 adds the portable implementation, examples, guide, safety scan, and CI.\n- b51fe2f pins the signed multi-platform function digest and adds the digest-specific Cosign verification gate.\n\nThe package digest sha256:2def3a7a00b2ecc445caa178837376c60889da3588596c5c72f9993fcf9e23a3 was independently inspected as an amd64/arm64 OCI index and verified with Cosign against the exact main-branch publication workflow identity.\n\nRemaining external gate: GitHub reports the personal GHCR package as private, and an anonymous bearer-token pull returns HTTP 403. GitHub documents personal package visibility as a web-only, irreversible setting. Make grafana-cloud-vending-machine/function-grafana-vending Public under the package Settings Danger Zone; after that, an anonymous pull and in-cluster verification can succeed without registry credentials. The issue remains open until this is verified.",
+        "createdAt": "2026-08-04T12:53:53Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/1#issuecomment-5179354856",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNLhrBg",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Expanded parity and customer-reference pass started after the package was made public.\n\nVerified inputs:\n- anonymous GHCR bearer-token access to the pinned OCI index returns HTTP 200 for both amd64 and arm64;\n- validation and signed-package workflows for b51fe2f both passed;\n- the original Terraform reference was compared at its current remote main revision;\n- provider behavior is being checked against provider-grafana v2.13.0 and its generated Terraform provider v4.40.0 contract.\n\nThe active Terraform resource surface is already represented structurally: stack, administrator credential, external secret document, three dashboard/folder pairs, organization home preference, scheduled report, OAuth SSO ownership modes, synchronized teams, custom roles/assignments, four incident webhooks, and two alerting contact points.\n\nThis final pass will add the missing customer-facing depth:\n- provider-specific OAuth and SAML profile patterns with secret references and ownership modes;\n- reusable team access beyond the one-team/one-role example, including direct membership, external-group sync, preferences, custom roles, and fixed-role assignments;\n- an authoritative folder/dashboard ACL API with basic-role and team examples;\n- clear collision/ownership rules for whole-set permission and role-assignment resources;\n- detailed equivalence, coverage, and extension matrices in the single README;\n- additional inert examples and validation coverage.\n\nNo live stacks or source infrastructure will be imported, adopted, or changed.",
+        "createdAt": "2026-08-04T13:04:29Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/1#issuecomment-5179468550",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNLxSaA",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Final publication checkpoint:\n\n- resource-by-resource comparison against the current Terraform source is complete;\n- hosted validation for 7c3a37b passed;\n- the new function package published as a public amd64/arm64 OCI index at sha256:36aee084bda51e1bd909ee40ce8f2144808130472b30d5f77f8e41162d0e2e2f;\n- anonymous bearer-token retrieval returns HTTP 200;\n- Cosign verification passed for the exact main-branch publication workflow identity;\n- local validation, race tests (88.1% coverage), vet, YAML/Kustomize rendering, shellcheck, actionlint, zizmor, public-data scan, and diff checks pass.\n\nThe final pin now points both the Function and the in-cluster verification hook at that immutable digest. The remaining action is the closing commit and its hosted validation.",
+        "createdAt": "2026-08-04T13:27:39Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/1#issuecomment-5179724392",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-04T12:19:30Z",
+    "labels": [],
+    "milestone": null,
+    "number": 1,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Build portable public Grafana Cloud vending-machine reference",
+    "updatedAt": "2026-08-04T13:28:54Z",
+    "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/1"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\n\nMake the public reference repository the authoritative reusable source for both platform installation and one comprehensive consumer example. The example must exercise as much of the currently supported vending API as is safe and coherent, remain portable, and be consumable from a separate private GitOps repository without copying Crossplane definitions.\n\n## Architecture and safety decisions\n\n- Keep live environment identity and cloud secret locations outside this public repository.\n- Keep `examples/catalog/comprehensive` inert and portable; consumers apply it through a private Argo/Kustomize parameter layer that replaces the globally unique stack identity and disables profile-dependent features when their backing secrets are not configured.\n- Do not commit a live stack slug, account ID, organization ID, cluster name, secret path, credential, email address belonging to a person, or private endpoint.\n- Preserve non-destructive Crossplane management policies and deletion protection.\n- One declarative owner remains mandatory for whole-set Grafana resources such as folder/dashboard permissions and role assignments.\n- No expansion to arbitrary provider resources unless the current APIs/examples expose a concrete missing seam discovered by the audit.\n\n## Scope\n\n- Consolidate every current public API kind into one comprehensive example directory: stack request, team access, custom/fixed RBAC, and content ACLs.\n- Make the comprehensive directory directly renderable as a Kustomize base so a private repository can consume it by immutable revision and apply only environment-specific patches.\n- Document the exact public-base/private-overlay pattern and which features require configured SSO or incident profiles.\n- Audit the working tree, tracked files, Git history, workflows, OCI references, examples, docs, and generated artifacts for publication risks.\n- Strengthen automated release scanning if the audit identifies blind spots.\n- Validate schemas, render paths, function tests, supply-chain references, and hosted workflows proportionately to the change.\n\n## Acceptance criteria\n\n- [x] One renderable comprehensive example contains every currently supported public API kind and demonstrates stack, rotation, telemetry, content, plugins, report, SSO, incident, teams, custom roles, fixed roles, and folder/dashboard ACL behavior.\n- [x] The example is safe and inert by default, with clear consumer patch points and no live identity.\n- [x] README documents consuming the public platform and example from a private Argo CD repository without copying Crossplane manifests.\n- [x] Public-release scan covers credentials, identities, local paths, private endpoints, tracked binaries/archives, and history-sensitive findings.\n- [x] No high-risk public-release finding remains unresolved.\n- [x] Local validation and hosted checks pass.\n- [x] Completing commit includes `Closes #<issue>` and is pushed directly to `main`.\n",
+    "closedAt": "2026-08-04T13:59:02Z",
+    "comments": [
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNMCJQg",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Implementation checkpoint:\n\n- `examples/catalog/comprehensive` now renders as one Kustomize base containing all four public API kinds.\n- The stack request demonstrates rotation, telemetry, baseline content, enforced reconciliation, a plugin, report, OAuth SSO, and incident relay configuration.\n- The same base now includes compact custom-role compatibility, direct/directory Team access, Team preferences, multiple custom roles, a verified-example fixed-role assignment, and authoritative Folder/Dashboard ACLs.\n- README records the public-base/private-overlay ownership boundary and immutable-revision consumption model.\n- The release scan now covers the working tree and reachable Git history, private endpoints, and archive/key-container filenames; CI fetches full history.\n\nEvidence so far: complete validation passed with race tests at 88.1% coverage, vet, YAML parsing, and Kustomize rendering; shellcheck and actionlint passed; zizmor pedantic reported no findings; repository settings contain no Actions secrets/variables, environments, hooks, deploy keys, releases, or downloads; commit authors use GitHub noreply addresses; issue/PR metadata and available workflow logs passed the publication scan. Final diff and hosted checks remain.",
+        "createdAt": "2026-08-04T13:51:00Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/3#issuecomment-5180000578",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNMETTQ",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Completed in `3b3e4b0` (`Closes #3`). Hosted validation run `30915921824` passed. The final public-release review found no unresolved high-risk material in the reachable tree/history, issue and pull-request metadata, available workflow logs, releases, repository variables/secrets, environments, hooks, deploy keys, or commit-author addresses. The repository remains private so visibility can be changed explicitly after the consuming cluster migration is proven.",
+        "createdAt": "2026-08-04T13:54:06Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/3#issuecomment-5180035917",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNMIZpA",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Integration follow-up: the private Argo consumer correctly uses Kustomize patches, which forces Kustomize rendering for every selected catalog path. The comprehensive directory renders, but the minimal directory lacked a Kustomization and failed before cluster deployment. Reopening this tracker to add and validate the missing minimal base, then repin the consumer to the follow-up commit. No live resource has changed.",
+        "createdAt": "2026-08-04T13:58:41Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/3#issuecomment-5180103076",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNMLaCg",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Integration follow-up completed in `7f57a56` (`Closes #3`). The minimal catalog is now also a renderable Kustomize base, the complete local validation gate passed again, and hosted validation run `30916561464` succeeded. A private consumer render at this exact revision now succeeds for the platform, comprehensive catalog, and minimal catalog.",
+        "createdAt": "2026-08-04T14:02:41Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/3#issuecomment-5180152330",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-04T13:42:25Z",
+    "labels": [],
+    "milestone": null,
+    "number": 3,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Add an executable comprehensive reference and final public-release audit",
+    "updatedAt": "2026-08-04T14:02:41Z",
+    "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/3"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\n\nClose the gaps found by the first external GitOps consumer: make deterministic child resources resilient to non-destructive orphan-and-adopt transitions, correct the current RBAC rendering errors, and make the catalog versus live-enable boundary unambiguous for readers.\n\n## Findings\n\n- A controller-ownership transition correctly preserved external Grafana resources because `Delete` was absent, but newly rendered Folder resources attempted creation without their deterministic UID as `crossplane.io/external-name`.\n- Cloud StackServiceAccount and AccessPolicy resources require provider-assigned import IDs; these cannot be derived safely from a request and need an explicit inventory/adoption runbook.\n- The pinned provider's Role initializer errors when optional `autoIncrementVersion` is omitted. Role resources must render it explicitly as `false` while continuing to omit the deprecated server-managed `version` field.\n- Team references resolve to org-qualified external names. Passing that reference directly to RoleAssignmentItem causes the provider to construct an invalid four-segment ID; the function must use the observed provider-assigned Team ID and the documented `roleUID:type:identifier` external name.\n- The former `examples/enabled` layout visually mixed inert examples with the opt-in live boundary.\n- Catalog directories previously lacked local navigation and prerequisite notes.\n\n## Scope\n\n- Add deterministic external-name annotations for provider resources whose import identity is already declared by the request/function, including baseline Folders and Dashboards and custom Roles where supported.\n- Render the pinned Role initializer workaround, omit server-managed Role fields, and construct RoleAssignmentItem resources from the observed bare Team ID, with contract tests.\n- Document provider-assigned child import IDs and a non-destructive adoption procedure without embedding any live identity.\n- Move the opt-in directory from `examples/enabled` to top-level `enabled/`; update the ApplicationSet, tree, follow-along, scans, and validation references.\n- Add `examples/README.md` and a concise README inside every catalog directory, covering purpose, prerequisites, reconciliation behavior, and fields a consumer must replace.\n- Re-run public-release, function, YAML/Kustomize, shell/workflow, and hosted validation gates.\n- Publish/sign a new multi-platform function package, then pin and verify its immutable digest.\n\n## Acceptance criteria\n\n- [x] Deterministic child resources render correct external-name annotations and tests pin the contract.\n- [x] Role resources satisfy the pinned provider initializer without owning server-managed version state, and RoleAssignmentItem IDs match the documented three-segment format.\n- [x] Provider-assigned StackServiceAccount, AccessPolicy, Team, and similar adoption IDs are documented as inventory inputs rather than guessed.\n- [x] Top-level `enabled/` is the only watched live-request directory and starts inert.\n- [x] Root examples and every catalog directory have a useful README.\n- [x] All repository/docs/Argo references use the new layout.\n- [x] Local and hosted validation pass and the public-release audit remains clean.\n- [x] The changed function package is public, signed, multi-platform, and pinned by digest.\n- [x] Completing commit includes `Closes #<issue>` and is pushed directly to `main`.\n",
+    "closedAt": "2026-08-05T15:07:33Z",
+    "comments": [
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNMj7UQ",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Layout checkpoint landed in c478b9f57f002aa0c834839d531df8d9bdb07415. The Argo ApplicationSet now watches only top-level `enabled/*`; the old `examples/enabled` directory is gone; `examples/README.md` indexes all six catalog entries; and every catalog directory documents prerequisites, required substitutions, and reconciliation behavior. Validation now guards the watch path and README coverage. Local validation/public-release scan passed, and hosted run 30919718518 passed. The issue remains open for the provider-contract and adoption hardening work.",
+        "createdAt": "2026-08-04T14:36:13Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/4#issuecomment-5180554065",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNY5Waw",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Provider-contract checkpoint landed in fcd3bc5b57b178b0d62fd97f93509229506cf318. Deterministic Stack, Folder, Dashboard, Role, whole-role assignment, item-assignment, and direct-UID ACL identities are now pinned by tests. Role rendering includes the provider 2.13.0 initializer workaround without owning server-managed version state, and item assignments wait for the observed bare Team ID before emitting the documented three-segment identity. The generic orphan-and-adopt runbook now separates derivable IDs from inventory-only provider IDs and defines stop conditions. Local public-release scan, race-enabled tests (89.0% coverage), vet, YAML/Kustomize validation, actionlint, and shellcheck passed. Hosted validation run 31018319033 passed; signed multi-platform package publication run 31018320629 is pending.",
+        "createdAt": "2026-08-05T15:03:28Z",
+        "includesCreatedEdit": true,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/4#issuecomment-5193487979",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOTtWT3s8AAAABNY9Kaw",
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Completed by 63e2eabe4494b7bd88dce97f60498f6e82900fcf. Hosted validation run 31018695042 passed on the completing commit. Package publication run 31018320629 produced a public OCI index for linux/amd64 and linux/arm64 at sha256:673028c172bfeef3b1a9ab83ccb8b6db1320808b9f1e4b3c712aefc9ba4ed89b; its keyless signature verified against the exact main-branch publish workflow identity, and that immutable digest is pinned in the install manifest.",
+        "createdAt": "2026-08-05T15:08:47Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/4#issuecomment-5193550443",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-04T14:28:03Z",
+    "labels": [],
+    "milestone": null,
+    "number": 4,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Harden child adoption and clarify example enablement",
+    "updatedAt": "2026-08-05T15:08:47Z",
+    "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/4"
+  }
+]
