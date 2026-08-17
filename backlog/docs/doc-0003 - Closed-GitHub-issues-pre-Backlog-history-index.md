@@ -1,9 +1,9 @@
 ---
 id: doc-0003
-title: Closed GitHub issues — pre-Backlog history index
+title: Closed GitHub issues (pre-Backlog history index)
 type: other
 created_date: '2026-08-14 16:39'
-updated_date: '2026-08-14 16:43'
+updated_date: '2026-08-17 09:02'
 ---
 All work before 2026-08-14 was tracked as GitHub Issues. Three issues existed, all closed as
 completed. This is the index of them.
