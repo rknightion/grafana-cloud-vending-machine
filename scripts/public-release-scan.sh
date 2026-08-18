@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if ! command -v rg >/dev/null 2>&1; then
+  echo "public-release scan: ripgrep (rg) is required; without it the working-tree" >&2
+  echo "half of every check silently no-ops and the scan reports a false pass." >&2
+  exit 1
+fi
+
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 
@@ -57,10 +63,68 @@ scan_regex() {
   fi
 }
 
+# Runs a search whose no-match status is 1 and whose error statuses are >1, so a
+# broken search can never be mistaken for a clean result. Prints matches on stdout.
+run_search() {
+  local status=0
+  "$@" || status=$?
+  if (( status > 1 )); then
+    echo "public-release scan: search command failed with status $status: $*" >&2
+    exit 2
+  fi
+}
+
+# Like scan_fixed, but tolerates occurrences that are legitimately public. Each
+# hit has its allowed substrings removed before it is re-tested, so a record only
+# passes when nothing forbidden survives — a line carrying both an allowed
+# reference and real environment identity still fails, and an allowed substring in
+# the file path does not exonerate the line's content.
+sift_hits() {
+  local pattern=$1
+  local allowed=$2
+  run_search perl -ne '
+    BEGIN { $allowed = shift @ARGV; $forbidden = shift @ARGV }
+    $stripped = $_;
+    $stripped =~ s/$allowed//gi;
+    print if $stripped =~ /\Q$forbidden\E/i;
+  ' "$allowed" "$pattern"
+}
+
+scan_fixed_allowing() {
+  local label=$1
+  local pattern=$2
+  local allowed=$3
+  local hits
+
+  hits=$(run_search rg --hidden --glob '!.git/**' \
+    --glob '!scripts/public-release-scan.sh' -n -i -F -- "$pattern" . |
+    sift_hits "$pattern" "$allowed")
+  if [[ -n $hits ]]; then
+    printf '%s\n' "$hits"
+    echo "public-release scan: found $label in the working tree" >&2
+    failed=1
+  fi
+
+  if (( ${#history_revisions[@]} > 0 )); then
+    hits=$(run_search git grep -I -n -i -F -- "$pattern" "${history_revisions[@]}" -- . \
+      ':(exclude)scripts/public-release-scan.sh' |
+      sift_hits "$pattern" "$allowed")
+    if [[ -n $hits ]]; then
+      printf '%s\n' "$hits"
+      echo "public-release scan: found $label in reachable Git history" >&2
+      failed=1
+    fi
+  fi
+}
+
 # These strings are split so the safety control does not reproduce source
 # environment identifiers in a repository intended for publication.
 scan_fixed "source customer identifier" "ro""che"
-scan_fixed "source API/domain identifier" "m7""kni"
+# The organisation name is also the public documentation hub this repository
+# publishes into, so hub references pass and environment identity still fails.
+org_identifier="m7""kni"
+scan_fixed_allowing "source API/domain identifier" "$org_identifier" \
+  "$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs"
 scan_fixed "source account identifier" "rob""knight"
 scan_fixed "source proof-of-concept identifier" "crossplane""avm"
 scan_fixed "source architecture acronym" "a""vm"

@@ -3,10 +3,10 @@ id: GCV-0001
 title: >-
   Public-release scan is red on main: it rejects the docs-hub repository
   reference
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-14 16:41'
-updated_date: '2026-08-14 16:42'
+updated_date: '2026-08-18 10:16'
 labels:
   - needs-triage
 dependencies: []
