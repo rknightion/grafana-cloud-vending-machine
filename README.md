@@ -84,8 +84,9 @@ The primary API is GrafanaCloudStackRequest at platform.example.org/v1beta1. It 
 | spec.displayName | Human-readable stack name |
 | spec.slug | Immutable Grafana Cloud slug; must equal metadata.name |
 | spec.region | Grafana Cloud region slug |
-| spec.usage | Classification and output-secret path segment |
+| spec.usage | Immutable platform-approved classification and output-secret path segment |
 | spec.profile | Platform-defined policy/profile label |
+| spec.lifecycle.externalResources | `Retain` (default) or reviewed `Delete` lifecycle for external resources that can outlive the stack |
 | spec.changeReference | Optional request or change identifier published in output metadata |
 | spec.configurationItemReference | Optional inventory identifier published in output metadata |
 | spec.baselineDashboards.enabled | Enables three starter folders and dashboards |
@@ -114,11 +115,20 @@ The Composition input in platform/apis/v1beta1.yaml is the platform-owned policy
 
 - organizationProviderConfigName: the namespaced ProviderConfig used for organization-level Cloud operations;
 - outputSecretPrefix: the external path prefix for generated per-stack documents;
+- allowedUsages: the platform-owned usage vocabulary; the reference allows `development` and `production`;
+- deletionAuthorizations: platform-owned, exact request namespace/name/UID/profile tuples allowed to select `spec.lifecycle.externalResources: Delete` (empty by default);
 - secretStoreRef: either a namespaced SecretStore or a ClusterSecretStore;
 - ssoProfiles: approved OAuth or SAML settings and Secret references;
 - incidentProfiles: approved relay URLs and authorization Secret references.
 
-Consumers select a profile by name. They cannot supply an arbitrary identity endpoint, client secret, incident URL, or authorization value in a stack request.
+Consumers select a profile by name. They cannot supply an arbitrary identity endpoint, client secret, incident URL, or authorization value in a stack request. `spec.usage` must be in
+`allowedUsages` and is immutable because it is part of the external credential identity. The
+generated documents use the path `{outputSecretPrefix}/{region}/{usage}/{slug}`; the reference
+vocabulary is `development` and `production`.
+
+`spec.lifecycle.externalResources` defaults to `Retain`. `Delete` is accepted only when the
+request's namespace, name, Kubernetes UID, and immutable `spec.profile` match an entry in `deletionAuthorizations`.
+That list is empty by default, so a consumer cannot authorize deletion by selecting a profile.
 
 The API group is not a runtime setting. Replace every occurrence of platform.example.org in the XRDs, Compositions, examples, tests, Argo health configuration, and documentation when making a production fork.
 
@@ -128,7 +138,7 @@ Nothing in examples/catalog is live. Each directory demonstrates one ownership d
 
 | Directory | What it demonstrates | What an adopter changes |
 | --- | --- | --- |
-| minimal | Safe stack baseline, rotating credentials, create-only content, no SSO | Slug, region, usage, API group, secret backend |
+| minimal | Safe stack baseline, rotating credentials, create-only content, no SSO | Slug, region, immutable usage (`development` or `production` in the reference), API group, secret backend |
 | comprehensive | Every public API kind: enforced content and OAuth SSO, report, plugin, incident relay, compact custom-role binding, direct and synchronized Team access, multiple custom/fixed roles, preferences, and folder/dashboard ACLs | All profile names, endpoints, recipients, identities, verified fixed-role UIDs, plugins, role actions/scopes, and ACL targets |
 | sso-create-only | Platform initializes OAuth, then stack administrators own later SSO edits | Approved OAuth profile and handoff policy |
 | sso-azuread | Azure AD OAuth profile selected from platform policy | Tenant/application IDs, group claims, role expression, client-secret path |
@@ -147,7 +157,7 @@ The reusable implementation and the live environment have different publication 
 | --- | --- |
 | Provider and function packages at immutable digests | Approved public-reference Git commit |
 | XRD schemas and Composition behavior | Production API group under a controlled domain |
-| Non-destructive lifecycle policy | Secret-store kind/name, cloud region, and workload identity |
+| Retain-by-default lifecycle and platform-controlled Delete authorization | Secret-store kind/name, cloud region, and workload identity |
 | Placeholder SSO and incident profile shapes | Real endpoints and ExternalSecret remote paths |
 | Comprehensive request with reserved example identities | Globally unique stack slug, intended recipients, user IDs, groups, and verified fixed-role UIDs |
 
@@ -155,7 +165,7 @@ An Argo CD Application can source `platform/` directly from this repository at a
 
 The comprehensive request can be consumed the same way from `examples/catalog/comprehensive`. Apply private Kustomize patches for all four custom kinds rather than editing generated managed resources:
 
-1. replace the request `metadata.name`, `spec.slug`, display name, region, usage, and request references;
+1. replace the request `metadata.name`, `spec.slug`, display name, region, immutable usage (`development` or `production` in the reference vocabulary), and request references;
 2. replace every `spec.stackRef.name` and any baseline managed-resource names containing the example slug;
 3. replace example Team names, members, external groups, role permissions/scopes, and fixed-role UIDs with reviewed values;
 4. disable SSO unless its selected profile and Secret exist;
@@ -209,7 +219,7 @@ Provider 2.13.0 has a Role initializer defect: although autoIncrementVersion is 
 
 RoleAssignment manages the entire set of actors for a role and conflicts with RoleAssignmentItem. GrafanaCustomRoleBinding is safe only because it creates a unique role and owns that role's entire assignment set. GrafanaTeamAccess uses RoleAssignmentItem so multiple team bundles can add assignments independently. Never manage the same role/actor pair through both APIs.
 
-FolderPermission and DashboardPermission also manage the entire ACL. Omitting an entry removes it on the next enforced reconciliation. Put all grants for a target into one GrafanaContentAccessPolicy, including basic-role grants that should remain. The reference omits Delete permission from the managed resource lifecycle, so deleting the Kubernetes policy orphans the last external ACL instead of clearing it; edits while the policy exists are still repaired.
+FolderPermission and DashboardPermission also manage the entire ACL. Omitting an entry removes it on the next enforced reconciliation. Put all grants for a target into one GrafanaContentAccessPolicy, including basic-role grants that should remain. These stack-local ACL resources retain/orphan their external state when their Kubernetes policy is removed; armed Delete is reserved for state that can outlive the Stack. Edits while the policy exists are still repaired.
 
 ## Secret and token design
 
@@ -254,7 +264,7 @@ The exported document has this shape:
   "change_reference": "CHANGE-EXAMPLE",
   "configuration_item_reference": "CONFIG-EXAMPLE",
   "stack_service_account_token": "GENERATED",
-  "telemetry_access_policy_secret_path": "/platform/grafana-cloud/stacks/REGION/USAGE/SLUG/telemetry-publisher"
+  "telemetry_access_policy_secret_path": "{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher"
 }
 ~~~
 
@@ -269,7 +279,11 @@ When telemetryAccess.enabled is true, the Composition creates a stack-realm Acce
 - logs:write
 - traces:write
 
-An AccessPolicyRotatingToken uses the same 30-day lifetime and seven-day early rotation window. A separate PushSecret publishes the token and policy metadata under the stack's telemetry-publisher path. Workloads should use this token for telemetry and never receive the administrator token.
+An AccessPolicyRotatingToken uses the same 30-day lifetime and seven-day early rotation window. A
+separate PushSecret publishes the token and policy metadata under
+`{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher`. The immutable, platform-approved
+usage segment keeps this identity stable. Workloads should use this token for telemetry and never
+receive the administrator token.
 
 Static StackServiceAccountToken, AccessPolicyToken, and ServiceAccountToken resources remain available in the upstream provider but are deliberately not used. Their rotating counterparts avoid creating a permanent credential lifecycle outside the control plane.
 
@@ -281,11 +295,18 @@ deploy/aws/iam-policy.json is the minimum policy shape for the example paths. At
 - IRSA: annotate that ServiceAccount with its role and use the standard EKS OIDC trust relationship.
 - Other Kubernetes platforms: use the cloud identity integration recommended for that platform.
 
-Do not put long-lived AWS keys in SecretStore. The controller should obtain short-lived credentials from workload identity. Restrict CreateSecret, PutSecretValue, and TagResource to the output prefix; restrict read access to the input and output paths actually required.
+Do not put long-lived AWS keys in SecretStore. The controller should obtain short-lived credentials from workload identity. Restrict CreateSecret, PutSecretValue, and TagResource to the output prefix; allow DeleteSecret only for output documents carrying the function's stable `grafana-cloud-vending-machine: managed` tag; restrict read access to the input and output paths actually required.
 
 The example uses AWS Secrets Manager, not Systems Manager Parameter Store. The function itself only emits SecretStore references, so another ESO provider can be substituted if it supports ExternalSecret and PushSecret with the required structured-value behavior.
 
-PushSecret uses deletionPolicy: None. Removing a request does not delete its external credential documents.
+`PushSecret` uses retain behaviour by default, so removing an unarmed request does not delete its
+external credential documents. When an authorized request is armed with
+`spec.lifecycle.externalResources: Delete`, the administrator and telemetry `PushSecret` documents
+are deleted during Stage 3 of the separately reviewed request-removal sequence, after Stage 2 has
+cleared the access claims. With AWS Secrets Manager, ESO's
+deletion defaults to a 30-day recovery window; the supplied IAM policy includes tag-conditioned
+`DeleteSecret` on the output prefix. Operators using another backend must verify that its
+`PushSecret` implementation supports Delete before authorizing this lifecycle.
 
 ## Supply-chain controls
 
@@ -416,9 +437,17 @@ The Application sync waves order controllers before platform APIs and requests. 
 
 Argo CD selfHeal repairs changes to request objects and platform manifests. Crossplane repairs changes to external Grafana resources according to management policies. These are different reconciliation loops.
 
-Argo pruning a GrafanaCloudStackRequest deletes the composite Kubernetes object and its composed managed-resource objects. The managed resources omit the Delete management policy, the Stack enables delete protection, rotating tokens set deleteOnDestroy to false, and PushSecret uses deletionPolicy: None. External Grafana and secret-manager objects are therefore orphaned rather than destroyed.
+Argo pruning a `GrafanaCloudStackRequest` normally uses the default `spec.lifecycle.externalResources:
+Retain`: the composite and composed Kubernetes objects disappear, while external resources are
+orphaned rather than destroyed. Stack-local Grafana content remains retain/orphaned in the
+Composition because deleting the Stack itself removes that content. The explicit `Delete` mode is
+limited to external state that can outlive the Stack: the Stack, its administrator service account
+and token, the telemetry access policy and token, and the administrator and telemetry credential
+documents.
 
-That safety contract is intentional. A destructive decommission must be a separately reviewed operation with an inventory, dependency order, credential revocation, explicit deletion policies, and confirmation of the exact stack identity.
+That safety contract is intentional. A destructive decommission must be a separately reviewed
+operation with an inventory, dependency order, credential revocation, explicit lifecycle intent, and
+confirmation of the exact stack identity.
 
 ## Reconciliation and out-of-band changes
 
@@ -429,7 +458,8 @@ Crossplane providers poll the external APIs and compare observed state with desi
 | Resource or field | Mode | Effect of an out-of-band edit |
 | --- | --- | --- |
 | Stack name, region, labels, readiness flags | managed forProvider fields | Crossplane attempts to restore the value in the request |
-| Stack deletion | deleteProtection plus no Delete policy | The reference refuses normal controller-driven deletion |
+| Stack deletion | `spec.lifecycle.externalResources: Retain` (default) | The Stack remains protected and normal request pruning orphans external state |
+| Armed external deletion | `spec.lifecycle.externalResources: Delete` plus an exact platform authorization for the request identity and immutable profile | Only the Stack and external state that can outlive it become deletable; stack-local content remains retain/orphan |
 | Baseline dashboard JSON | createOnly | Initial JSON is supplied through initProvider; later UI edits are preserved |
 | Baseline dashboard JSON | enforced | UI edits are detected and restored from Git-rendered desired state |
 | Folder title and dashboard folder relationship | managed forProvider fields | Drift is restored even when dashboard JSON is create-only |
@@ -448,7 +478,7 @@ Crossplane providers poll the external APIs and compare observed state with desi
 | OnCall outgoing-webhook data | enforced | Later UI template edits are restored from the Composition |
 | Alerting contact-point payload | enabled | Crossplane always restores the relay payload and Secret-backed authorization contract |
 
-Changing SSO from enforced to createOnly moves oauth2Settings or samlSettings from forProvider to initProvider while retaining a stable external name for the provider. This is the supported handoff from platform ownership to administrator ownership. Changing to observeOnly removes write authority. Changing to disabled removes the managed-resource object from the Composition; because Delete is not permitted, the external SSO configuration remains but is no longer observed.
+Changing SSO from enforced to createOnly moves oauth2Settings or samlSettings from forProvider to initProvider while retaining a stable external name for the provider. This is the supported handoff from platform ownership to administrator ownership. Changing to observeOnly removes write authority. Changing to disabled removes the managed-resource object from the Composition; under the retain-by-default lifecycle, the external SSO configuration remains but is no longer observed.
 
 Changing dashboards from enforced to createOnly stops ownership of configJson. It does not roll back whatever value existed at the handoff. Returning to enforced makes the Git-rendered dashboard authoritative again.
 
@@ -525,11 +555,11 @@ This matrix was checked resource-by-resource against the active modules in the T
 | Cloud stack resource | Stack composed from GrafanaCloudStackRequest | Equivalent, continuously observed |
 | Stack name, slug, region, usage, labels | Request fields and Stack labels | Equivalent |
 | Stack readiness wait and first-create delay | waitForReadiness plus observed-ID gates and references | Equivalent outcome without a fixed sleep or two-pass apply |
-| Deletion protection | Stack deleteProtection plus omitted Delete policy | Equivalent with a stronger default |
+| Deletion protection | `Retain` by default; explicit `Delete` only for an exactly authorized request identity and immutable profile | Equivalent with a stronger default and a reviewable decommission path |
 | Administrator service account | StackServiceAccount | Equivalent |
 | Static administrator token | StackServiceAccountRotatingToken | Superset through automatic rotation |
 | Stack-local provider | ESO-built credentials plus namespaced ProviderConfig | Equivalent without credentials in code or state |
-| External credential document | PushSecret document containing name, slug, URL, region, usage, request references, token, and telemetry path | Field parity through a backend-neutral secret manager |
+| External credential document | PushSecret document containing name, slug, URL, region, immutable platform-approved usage, request references, token, and `{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher` | Field parity through a backend-neutral secret manager |
 | Telemetry publisher | Stack-realm AccessPolicy, rotating token, separate output | Superset through least privilege |
 | Plugins | PluginInstallation list | Equivalent provider support |
 | Billing/usage, endpoints, and home folders/dashboards | Three Folder and Dashboard pairs | Resource and lifecycle parity; neutral starter JSON replaces source-specific content |
@@ -570,7 +600,10 @@ This matrix was checked resource-by-resource against the active modules in the T
 | OnCall schedules, escalation chains, routes, and integrations | Incident-management bundle | People, rotations, and escalation policy have an independent lifecycle |
 | Frontend Observability, k6, Fleet Management, ML, Asserts, Assistant | Dedicated domain modules | Each has entitlement, identity, content, and rollout inputs beyond stack creation |
 
-The complete provider-family table above is the extension index. New modules should reuse the namespaced stack ProviderConfig, keep secrets in external stores, choose whole-set versus item resources deliberately, omit Delete by default, and document their reconciliation owner in this README.
+The complete provider-family table above is the extension index. New modules should reuse the namespaced
+stack ProviderConfig, keep secrets in external stores, choose whole-set versus item resources
+deliberately, retain by default, and document their reconciliation owner in this README. The armed
+Delete contract does not turn stack-local content into independently deletable resources.
 
 ## Migration and adoption
 
@@ -644,20 +677,53 @@ For a Crossplane upgrade:
 
 ## Decommission runbook
 
-Normal Git deletion is non-destructive. After pruning, confirm that the external stack and credential documents remain and revoke any credentials that no longer have an owner.
+The default `spec.lifecycle.externalResources: Retain` is safe for ordinary pruning: removing an
+unarmed request from Git or pruning it from Argo orphans external resources. Stack-local Grafana
+content is safe to orphan because deleting the Stack destroys it; credential-bearing state that can
+outlive the Stack is the state covered by the optional Delete path.
 
-If actual destruction is approved, use a separate change that:
+An actual deletion has three reviewed Git stages. It is not a one-command path.
 
-1. resolves and records the exact stack ID and slug;
-2. inventories dependants and data-retention requirements;
-3. disables Argo auto-sync for the request while sequencing the operation;
-4. revokes and removes publisher and administrator tokens;
-5. deletes or reassigns stack-local resources in dependency order;
-6. explicitly removes deletion protection and enables Delete only for the exact resources approved;
-7. verifies external deletion and removes retained secret-manager outputs;
-8. removes the request from Git after the external result is confirmed.
+### Review 1: arm deletion
 
-This repository intentionally contains no one-command destructive path.
+1. Inventory and record the exact stack identity (`status.stack.id`, slug, and URL), dependants,
+   access claims, credential consumers, and data-retention requirements.
+2. Have the platform owner add this request's exact namespace, name, Kubernetes UID, and immutable profile to the
+   platform-owned `deletionAuthorizations` list. If there is no exact match, stop; the request must
+   remain `Retain`.
+3. Change only the request lifecycle intent to
+   `spec.lifecycle.externalResources: Delete` and submit that change for review. Arming is intent
+   only; it does not delete anything.
+4. After reconciliation, confirm `status.deletionArmed=true`. Wait for
+   `status.deletionReady=true`; this means observed provider state reports the Stack's
+   `deleteProtection=false` and ESO has installed its deletion finalizer and successfully synced
+   each enabled external credential document at the current generation. Do not proceed on desired
+   specs or a stale Ready condition alone. New access claims fail closed as soon as deletion is
+   armed; already-observed access children remain managed until Stage 2 removes their claims.
+
+### Review 2: remove access claims
+
+1. In Stage 2, remove all dependent `GrafanaCustomRoleBinding`,
+   `GrafanaTeamAccess`, and `GrafanaContentAccessPolicy` objects. Merge or sync this change and
+   wait until each access-claim Kubernetes object and its finalizer are gone while the Stack and its
+   request still exist. Do not remove the request until this check passes.
+
+### Review 3: remove the stack request
+
+1. In a third reviewed change, remove the `GrafanaCloudStackRequest` from Git only after the
+   dependent access claims and their finalizers have cleared.
+2. Let Crossplane and ESO reconcile the armed deletion. The Delete mode covers only the Stack, its
+   administrator service account and token, the telemetry access policy and token, and the
+   administrator and telemetry `PushSecret` documents. Stack-local Grafana content remains
+   retain/orphan because Stack deletion destroys it.
+3. Verify the external deletion result and the credential-document outcome. AWS Secrets Manager
+   deletion defaults to a 30-day recovery window, and the supplied IAM policy includes
+   tag-conditioned `DeleteSecret` on the output prefix. A platform operator using another secret backend must
+   verify its `PushSecret` Delete support before enabling this workflow.
+
+This repository intentionally contains no one-command destructive path. If the request is pruned
+without first being armed and ready, the default Retain behaviour applies and external resources
+are orphaned.
 
 ## Validation
 
@@ -685,7 +751,8 @@ Before making the repository public, also review repository settings, issues, wo
 - The Grafana provider is experimental and may lag the Terraform provider.
 - Provider schemas and Grafana APIs may expose fields that do not round-trip cleanly; test drift rather than assuming.
 - Provider 2.13.0 requires the optional Role autoIncrementVersion field to be present because of an initializer defect; this reference pins it to false and omits version.
-- The reference has no destructive workflow.
+- The reference has no one-command destructive workflow; the authorized Delete path still requires
+  three reviewed stages and a readiness wait.
 - It does not provision Kubernetes, AWS infrastructure, DNS, identity providers, or incident relays.
 - It uses generic starter dashboards rather than a full observability content library.
 - Report, Enterprise, OnCall, plugin, and other resources require the relevant Grafana Cloud capabilities.

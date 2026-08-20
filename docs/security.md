@@ -1,6 +1,6 @@
 ---
 title: Security
-description: Supply-chain verification, credential handling, and the non-destructive lifecycle this reference enforces
+description: Supply-chain verification, credential handling, and the Retain-by-default lifecycle with platform-authorized deletion
 ---
 
 # Security
@@ -52,23 +52,39 @@ Key properties:
 - AWS access should come from workload identity (EKS Pod Identity, IRSA, or the equivalent for
   your platform), never long-lived keys in the `SecretStore`.
 
-## Non-destructive lifecycle
+## External-resource lifecycle
 
-This reference contains no one-command destructive path. Deletion protection and the omission of
-provider `Delete` permissions are deliberate:
+This reference contains no one-command destructive path. The request field
+`spec.lifecycle.externalResources` defaults to `Retain`: ordinary pruning removes the Kubernetes
+composite and composed objects but **orphans** external resources. Stack-local Grafana content
+remains retain/orphan because deleting the Stack destroys that content.
 
-- The `Stack` sets `deleteProtection`.
-- Every composed managed resource omits the `Delete` management policy.
-- Rotating tokens set `deleteOnDestroy: false`.
-- `PushSecret` uses `deletionPolicy: None`.
+The platform-owned Composition input controls the exceptional `Delete` mode:
 
-Pruning a request from Git deletes the Kubernetes composite and composed objects but **orphans**
-the external Grafana stack and its credential documents rather than destroying them. A
-destructive decommission must be a separately reviewed operation — see the decommission runbook
-in the project
-[README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook), which
-covers resolving the exact stack identity, revoking credentials, and confirming external deletion
-before removing the request from Git.
+- `allowedUsages` must contain the immutable `spec.usage`; the reference vocabulary is
+  `development` and `production`.
+- `deletionAuthorizations` binds permission to an exact request namespace, name, Kubernetes UID, and immutable
+  profile and is empty by default. Selecting a profile cannot authorize a consumer's request.
+- An authorized `Delete` value is first an intent change. `status.deletionArmed=true` confirms the
+  intent was accepted; `status.deletionReady=true` is required before Stage 2 and means observed
+  provider state reports the Stack's `deleteProtection=false` while ESO reports current successful
+  sync and has installed its deletion finalizer on every enabled credential document. Stage 3 follows only
+  after Stage 2 access-claim finalizers have cleared.
+
+The decommission therefore has three reviewed stages. Stage 1 changes the request to `Delete` and
+waits for readiness. Stage 2 removes the dependent access claims, merges or syncs that change, and
+waits until their Kubernetes objects and finalizers are gone while the Stack and request still
+exist. Stage 3 removes the request from Git. Armed deletion affects only state that can outlive the Stack:
+the Stack, administrator service account and token, telemetry access policy and token, and
+administrator/telemetry `PushSecret` documents. It does not turn stack-local content into
+independently deleted resources.
+
+For AWS Secrets Manager, deleting a `PushSecret` target defaults to a 30-day recovery window, and
+the supplied IAM policy permits `DeleteSecret` only for output documents carrying the function's
+stable `grafana-cloud-vending-machine: managed` tag. A platform operator using another secret
+backend must verify that its `PushSecret` implementation supports Delete before authorizing the
+workflow. See the [decommission runbook](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook)
+for the ordered procedure.
 
 ## Public-release scanning
 
@@ -87,7 +103,8 @@ GitHub settings, issues, workflow logs, releases, packages, and commit-author me
 - The Grafana provider is experimental and may lag the Terraform provider it is generated from.
 - Provider schemas and Grafana APIs may expose fields that do not round-trip cleanly — test drift
   rather than assuming it behaves correctly.
-- The reference has no destructive workflow by design.
+- The reference has no one-command destructive workflow by design; the explicit, platform-authorized
+  Delete lifecycle still requires three reviewed stages and a readiness wait.
 - It does not provision Kubernetes, AWS infrastructure, DNS, identity providers, or incident
   relays.
 - It uses generic starter dashboards rather than a full observability content library.

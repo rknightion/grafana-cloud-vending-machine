@@ -15,7 +15,7 @@ these.
 
 | Directory | What it demonstrates | What an adopter changes |
 | --- | --- | --- |
-| [minimal](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/minimal) | Safe stack baseline, rotating credentials, create-only content, no SSO | Slug, region, usage, API group, secret backend |
+| [minimal](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/minimal) | Safe stack baseline, rotating credentials, create-only content, no SSO | Slug, region, immutable usage (`development` or `production` in the reference), API group, secret backend |
 | [comprehensive](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/comprehensive) | Every public API kind: enforced content and OAuth SSO, report, plugin, incident relay, compact custom-role binding, direct and synchronized Team access, multiple custom/fixed roles, preferences, and folder/dashboard ACLs | All profile names, endpoints, recipients, identities, verified fixed-role UIDs, plugins, role actions/scopes, and ACL targets |
 | [sso-create-only](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/sso-create-only) | Platform initializes OAuth, then stack administrators own later SSO edits | Approved OAuth profile and handoff policy |
 | [sso-azuread](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/sso-azuread) | Azure AD OAuth profile selected from platform policy | Tenant/application IDs, group claims, role expression, client-secret path |
@@ -52,12 +52,18 @@ kubectl apply -k enabled/my-stack
 ```
 
 Grafana Cloud stack slugs are globally unique. `metadata.name` and `spec.slug` must remain
-identical. A production deployment should keep real enabled requests in a private GitOps
+identical. `spec.usage` is also immutable and must be in the platform-owned `allowedUsages` list;
+the reference vocabulary is `development` and `production`. It forms part of the generated
+credential path `{outputSecretPrefix}/{region}/{usage}/{slug}`, so changing it would orphan
+documents at the previous path. A production deployment should keep real enabled requests in a private GitOps
 repository rather than publishing stack identities, recipients, users, groups, or environment
 profile names in a public fork — see
 [Configuration → Public base, private environment overlay](../configuration.md#public-base-private-environment-overlay).
 
-Deleting an enabled request prunes its Kubernetes objects, but the reference intentionally omits
-provider `Delete` permission and enables stack deletion protection. This orphans external
-resources; it is not a complete decommission workflow — see the decommission runbook in the
-project [README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook).
+Deleting an enabled request uses `spec.lifecycle.externalResources: Retain` by default: it prunes
+Kubernetes objects and orphans external resources. `Delete` requires an exact request
+namespace/name/UID/profile entry in platform-owned `deletionAuthorizations` (empty by default). The decommission has three
+reviewed stages: arm Delete and reach `status.deletionReady=true`; remove dependent access claims
+and merge/sync until their Kubernetes objects and finalizers are gone while the Stack still exists;
+then remove the request. See the decommission runbook in the project
+[README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook).

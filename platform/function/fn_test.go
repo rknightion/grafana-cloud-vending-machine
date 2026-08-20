@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sort"
 	"strings"
 	"testing"
@@ -54,6 +55,294 @@ func TestTelemetryAccessPolicyIsStackScopedAndLeastPrivilege(t *testing.T) {
 	}
 	if diff := cmp.Diff(managementPolicies, spec["managementPolicies"]); diff != "" {
 		t.Fatalf("telemetry access policy management policies differ (-want +got):\n%s", diff)
+	}
+}
+
+func TestMalformedLifecycleIsRejected(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		value any
+		want  string
+	}{
+		{name: "object", value: "Delete", want: "spec.lifecycle must be an object"},
+		{name: "external resources", value: map[string]any{"externalResources": true}, want: "spec.lifecycle.externalResources must be a string"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			claim := stackDocument(map[string]any{"lifecycle": test.value})
+			rsp := callFunction(t, claim, nil, "")
+
+			if fatal := fatalResult(rsp); !strings.Contains(fatal, test.want) {
+				t.Fatalf("malformed lifecycle returned fatal result %q", fatal)
+			}
+		})
+	}
+}
+
+func TestUnlistedUsageIsRejected(t *testing.T) {
+	claim := stackDocument(map[string]any{"usage": "preview"})
+	rsp := callFunction(t, claim, nil, `{"spec":{"allowedUsages":["development","production"]}}`)
+
+	if fatal := fatalResult(rsp); !strings.Contains(fatal, "usage \"preview\" is not allowed") {
+		t.Fatalf("unlisted usage returned fatal result %q", fatal)
+	}
+}
+
+func TestPlatformAllowedUsageIsAccepted(t *testing.T) {
+	claim := stackDocument(map[string]any{"usage": "preview"})
+	rsp := callFunction(t, claim, nil, `{"spec":{"allowedUsages":["preview"]}}`)
+
+	if fatal := fatalResult(rsp); fatal != "" {
+		t.Fatalf("allowed usage returned fatal result %q", fatal)
+	}
+}
+
+func TestDeleteLifecycleRequiresAnAuthorizedProfile(t *testing.T) {
+	claim := stackDocument(map[string]any{"lifecycle": map[string]any{"externalResources": "Delete"}})
+	rsp := callFunction(t, claim, nil, "")
+
+	if fatal := fatalResult(rsp); !strings.Contains(fatal, "request grafana-vending/teamdemo01 with profile \"standard\" is not authorized") {
+		t.Fatalf("disallowed delete returned fatal result %q", fatal)
+	}
+}
+
+func TestDeleteLifecycleAuthorizationIsBoundToRequestIdentity(t *testing.T) {
+	claim := stackDocument(map[string]any{"lifecycle": map[string]any{"externalResources": "Delete"}})
+	input := `{"spec":{"deletionAuthorizations":[{"namespace":"grafana-vending","name":"teamdemo01","uid":"previous-request-uid","profile":"standard"}]}}`
+	rsp := callFunction(t, claim, nil, input)
+
+	if fatal := fatalResult(rsp); !strings.Contains(fatal, "request grafana-vending/teamdemo01 with profile \"standard\" is not authorized") {
+		t.Fatalf("wrong-request authorization returned fatal result %q", fatal)
+	}
+}
+
+func TestAuthorizedDeleteLifecycleProjectsDeletionToExternalResources(t *testing.T) {
+	observed := foundationReadyObserved()
+	observed["telemetry-access-policy"] = observedResource(`{
+		"apiVersion":"cloud.grafana.m.crossplane.io/v1alpha1",
+		"kind":"AccessPolicy",
+		"metadata":{"name":"teamdemo01-telemetry-publisher","namespace":"grafana-vending"},
+		"status":{"atProvider":{"policyId":"policy-12345"}}
+	}`)
+	claim := stackDocument(map[string]any{"lifecycle": map[string]any{"externalResources": "Delete"}})
+	rsp := runStackWithInput(t, claim, observed, deletionAuthorizationInput())
+
+	deletePolicies := []any{"*"}
+	for _, name := range []string{"stack", "stack-service-account", "stack-token", "telemetry-access-policy", "telemetry-token"} {
+		spec := nestedMap(t, desiredResource(t, rsp, name), "spec")
+		if diff := cmp.Diff(deletePolicies, spec["managementPolicies"]); diff != "" {
+			t.Errorf("%s management policies differ (-want +got):\n%s", name, diff)
+		}
+	}
+	if got := nestedMap(t, desiredResource(t, rsp, "stack"), "spec", "forProvider")["deleteProtection"]; got != false {
+		t.Errorf("stack delete protection = %v, want false", got)
+	}
+	for _, name := range []string{"stack-token", "telemetry-token"} {
+		if got := nestedMap(t, desiredResource(t, rsp, name), "spec", "forProvider")["deleteOnDestroy"]; got != true {
+			t.Errorf("%s deleteOnDestroy = %v, want true", name, got)
+		}
+	}
+	for _, name := range []string{"credentials", "telemetry-credentials"} {
+		if got := nestedMap(t, desiredResource(t, rsp, name), "spec")["deletionPolicy"]; got != "Delete" {
+			t.Errorf("%s deletion policy = %v, want Delete", name, got)
+		}
+	}
+	if got := nestedMap(t, desiredResource(t, rsp, "billing-folder"), "spec")["managementPolicies"]; !cmp.Equal(managementPolicies, got) {
+		t.Errorf("stack-local billing-folder management policies = %v, want %v", got, managementPolicies)
+	}
+}
+
+func TestPushSecretDocumentsCarryTheDeletionGuardTag(t *testing.T) {
+	rsp := runStack(t, minimalStack(), foundationReadyObserved())
+	want := map[string]any{"grafana-cloud-vending-machine": "managed"}
+
+	for _, name := range []string{"credentials", "telemetry-credentials"} {
+		spec := nestedMap(t, desiredResource(t, rsp, name), "spec")
+		data, ok := spec["data"].([]any)
+		if !ok || len(data) != 1 {
+			t.Fatalf("%s data = %T %v, want one entry", name, spec["data"], spec["data"])
+		}
+		entry, ok := data[0].(map[string]any)
+		if !ok {
+			t.Fatalf("%s data entry = %T, want object", name, data[0])
+		}
+		if diff := cmp.Diff(want, nestedMap(t, entry, "metadata", "spec", "tags")); diff != "" {
+			t.Errorf("%s deletion guard tags differ (-want +got):\n%s", name, diff)
+		}
+	}
+}
+
+func TestAuthorizedDeleteLifecycleWaitsForObservedProtectionToBeDisabled(t *testing.T) {
+	claim := stackDocument(map[string]any{"lifecycle": map[string]any{"externalResources": "Delete"}})
+	input := deletionAuthorizationInput()
+
+	untilObserved := runStackWithInput(t, claim, nil, input)
+	status := nestedMap(t, untilObserved.GetDesired().GetComposite().GetResource().AsMap(), "status")
+	if got := status["deletionArmed"]; got != true {
+		t.Errorf("deletion armed = %v, want true", got)
+	}
+	if got := status["deletionReady"]; got != false {
+		t.Errorf("deletion ready without observed protection = %v, want false", got)
+	}
+
+	protected := map[string]*fnv1.Resource{
+		"stack": observedResource(`{
+			"apiVersion":"cloud.grafana.m.crossplane.io/v1alpha1",
+			"kind":"Stack",
+			"metadata":{"name":"teamdemo01","namespace":"grafana-vending"},
+			"status":{"atProvider":{"deleteProtection":true}}
+		}`),
+	}
+	stillProtected := runStackWithInput(t, claim, protected, input)
+	status = nestedMap(t, stillProtected.GetDesired().GetComposite().GetResource().AsMap(), "status")
+	if got := status["deletionReady"]; got != false {
+		t.Errorf("deletion ready while observed protection remains enabled = %v, want false", got)
+	}
+
+	observed := map[string]*fnv1.Resource{
+		"stack": observedResource(`{
+			"apiVersion":"cloud.grafana.m.crossplane.io/v1alpha1",
+			"kind":"Stack",
+			"metadata":{"name":"teamdemo01","namespace":"grafana-vending"},
+			"status":{"atProvider":{"deleteProtection":false}}
+		}`),
+	}
+	notPrepared := runStackWithInput(t, claim, observed, input)
+	status = nestedMap(t, notPrepared.GetDesired().GetComposite().GetResource().AsMap(), "status")
+	if got := status["deletionReady"]; got != false {
+		t.Errorf("deletion ready before PushSecrets are prepared = %v, want false", got)
+	}
+
+	observed["credentials"] = observedResource(`{
+		"apiVersion":"external-secrets.io/v1alpha1",
+		"kind":"PushSecret",
+		"metadata":{"name":"teamdemo01-credentials","namespace":"grafana-vending","generation":2},
+		"spec":{"deletionPolicy":"Delete"},
+		"status":{
+			"syncedResourceVersion":"2-example",
+			"syncedPushSecrets":{"SecretStore/grafana-vending-secrets":{"vending.json":{}}},
+			"conditions":[{"type":"Ready","status":"True","reason":"Synced"}]
+		}
+	}`)
+	observed["telemetry-credentials"] = deletionPreparedPushSecret("teamdemo01-telemetry-credentials")
+	notFinalized := runStackWithInput(t, claim, observed, input)
+	status = nestedMap(t, notFinalized.GetDesired().GetComposite().GetResource().AsMap(), "status")
+	if got := status["deletionReady"]; got != false {
+		t.Errorf("deletion ready before ESO finalizer is installed = %v, want false", got)
+	}
+
+	observed["credentials"] = deletionPreparedPushSecret("teamdemo01-credentials")
+	ready := runStackWithInput(t, claim, observed, input)
+	status = nestedMap(t, ready.GetDesired().GetComposite().GetResource().AsMap(), "status")
+	if got := status["deletionReady"]; got != false {
+		t.Errorf("deletion ready before rotating tokens are deletion-managed = %v, want false", got)
+	}
+
+	observed["stack-token"] = deletionPreparedToken("StackServiceAccountRotatingToken", "teamdemo01-admin", "serviceAccountId", "67890")
+	observed["telemetry-token"] = deletionPreparedToken("AccessPolicyRotatingToken", "teamdemo01-telemetry-publisher", "accessPolicyId", "policy-12345")
+	ready = runStackWithInput(t, claim, observed, input)
+	status = nestedMap(t, ready.GetDesired().GetComposite().GetResource().AsMap(), "status")
+	if got := status["deletionReady"]; got != true {
+		t.Errorf("deletion ready after Stack and PushSecrets are prepared = %v, want true", got)
+	}
+}
+
+func TestObservedRotatingTokensSurviveTransientParentIDLoss(t *testing.T) {
+	observed := foundationReadyObserved()
+	observed["stack-service-account"] = observedResource(`{
+		"apiVersion":"cloud.grafana.m.crossplane.io/v1alpha1",
+		"kind":"StackServiceAccount",
+		"metadata":{"name":"teamdemo01-admin","namespace":"grafana-vending"}
+	}`)
+	observed["stack-token"] = deletionPreparedToken("StackServiceAccountRotatingToken", "teamdemo01-admin", "serviceAccountId", "67890")
+	observed["telemetry-access-policy"] = observedResource(`{
+		"apiVersion":"cloud.grafana.m.crossplane.io/v1alpha1",
+		"kind":"AccessPolicy",
+		"metadata":{"name":"teamdemo01-telemetry-publisher","namespace":"grafana-vending"}
+	}`)
+	observed["telemetry-token"] = deletionPreparedToken("AccessPolicyRotatingToken", "teamdemo01-telemetry-publisher", "accessPolicyId", "policy-12345")
+
+	rsp := runStack(t, minimalStack(), observed)
+	if got := nestedMap(t, desiredResource(t, rsp, "stack-token"), "spec", "forProvider")["serviceAccountId"]; got != "67890" {
+		t.Errorf("retained administrator token service account ID = %v, want 67890", got)
+	}
+	if got := nestedMap(t, desiredResource(t, rsp, "telemetry-token"), "spec", "forProvider")["accessPolicyId"]; got != "policy-12345" {
+		t.Errorf("retained telemetry token access policy ID = %v, want policy-12345", got)
+	}
+}
+
+func deletionAuthorizationInput() string {
+	return `{"spec":{"deletionAuthorizations":[{"namespace":"grafana-vending","name":"teamdemo01","uid":"example-request-uid","profile":"standard"}]}}`
+}
+
+func deletionPreparedPushSecret(name string) *fnv1.Resource {
+	return observedResource(fmt.Sprintf(`{
+		"apiVersion":"external-secrets.io/v1alpha1",
+		"kind":"PushSecret",
+		"metadata":{
+			"name":%q,
+			"namespace":"grafana-vending",
+			"generation":2,
+			"finalizers":["pushsecret.externalsecrets.io/finalizer"]
+		},
+		"spec":{"deletionPolicy":"Delete"},
+		"status":{
+			"syncedResourceVersion":"2-example",
+			"syncedPushSecrets":{"SecretStore/grafana-vending-secrets":{"vending.json":{}}},
+			"conditions":[{"type":"Ready","status":"True","reason":"Synced"}]
+		}
+	}`, name))
+}
+
+func deletionPreparedToken(kind, name, idField, id string) *fnv1.Resource {
+	return observedResource(mustJSON(map[string]any{
+		"apiVersion": "cloud.grafana.m.crossplane.io/v1alpha1",
+		"kind":       kind,
+		"metadata":   map[string]any{"name": name, "namespace": "grafana-vending"},
+		"spec": map[string]any{
+			"managementPolicies": []any{"*"},
+			"forProvider": map[string]any{
+				idField:           id,
+				"deleteOnDestroy": true,
+			},
+		},
+	}))
+}
+
+func TestOmittedAndRetainLifecycleKeepExternalResourcesRetained(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		lifecycle map[string]any
+	}{
+		{name: "omitted"},
+		{name: "retain", lifecycle: map[string]any{"externalResources": "Retain"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			additions := map[string]any{}
+			if test.lifecycle != nil {
+				additions["lifecycle"] = test.lifecycle
+			}
+			rsp := runStack(t, stackDocument(additions), foundationReadyObserved())
+
+			stack := nestedMap(t, desiredResource(t, rsp, "stack"), "spec")
+			if diff := cmp.Diff(managementPolicies, stack["managementPolicies"]); diff != "" {
+				t.Errorf("stack management policies differ (-want +got):\n%s", diff)
+			}
+			if got := nestedMap(t, stack, "forProvider")["deleteProtection"]; got != true {
+				t.Errorf("stack delete protection = %v, want true", got)
+			}
+			if got := nestedMap(t, desiredResource(t, rsp, "stack-token"), "spec", "forProvider")["deleteOnDestroy"]; got != false {
+				t.Errorf("stack token deleteOnDestroy = %v, want false", got)
+			}
+			if got := nestedMap(t, desiredResource(t, rsp, "credentials"), "spec")["deletionPolicy"]; got != "None" {
+				t.Errorf("credentials deletion policy = %v, want None", got)
+			}
+			status := nestedMap(t, rsp.GetDesired().GetComposite().GetResource().AsMap(), "status")
+			for _, field := range []string{"deletionArmed", "deletionReady"} {
+				if got := status[field]; got != false {
+					t.Errorf("retained lifecycle status.%s = %v, want false", field, got)
+				}
+			}
+		})
 	}
 }
 
@@ -494,7 +783,7 @@ func TestCustomRoleBindingRendersTeamRoleAndAssignment(t *testing.T) {
 			"role":{"name":"example-editor","uid":"example-editor","description":"Example editor access","permissions":[{"action":"dashboards:read","scope":"folders:*"}]}
 		}
 	}`
-	rsp := runStack(t, claim, nil)
+	rsp := runAccess(t, claim, nil)
 	got := map[string]string{}
 	for name, resource := range rsp.GetDesired().GetResources() {
 		got[name] = resource.GetResource().GetFields()["kind"].GetStringValue()
@@ -549,7 +838,7 @@ func TestTeamAccessRendersMembershipPreferencesAndAdditiveRoleAssignments(t *tes
 	}`
 	customSuffix := stableResourceSuffix("example-alert-editor")
 	fixedSuffix := stableResourceSuffix("fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ")
-	initial := runStack(t, claim, nil)
+	initial := runAccess(t, claim, nil)
 	for _, name := range []string{"custom-role-assignment-" + customSuffix, "fixed-role-assignment-" + fixedSuffix} {
 		if _, ok := initial.GetDesired().GetResources()[name]; ok {
 			t.Fatalf("%s was rendered before Grafana assigned the Team ID", name)
@@ -563,7 +852,7 @@ func TestTeamAccessRendersMembershipPreferencesAndAdditiveRoleAssignments(t *tes
 			"status":{"atProvider":{"teamId":42}}
 		}`),
 	}
-	rsp := runStack(t, claim, observed)
+	rsp := runAccess(t, claim, observed)
 	got := map[string]string{}
 	for name, desired := range rsp.GetDesired().GetResources() {
 		got[name] = desired.GetResource().GetFields()["kind"].GetStringValue()
@@ -646,8 +935,8 @@ func TestTeamAccessRoleResourceIdentityDoesNotDependOnListOrder(t *testing.T) {
 	observed := map[string]*fnv1.Resource{
 		"team": observedResource(`{"status":{"atProvider":{"teamId":42}}}`),
 	}
-	first := runStack(t, document([]any{roleA, roleB}, []any{"fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ", "fixed_Sgr67JTOhjQGFlzYRahOe45TdWM"}), observed)
-	second := runStack(t, document([]any{roleB, roleA}, []any{"fixed_Sgr67JTOhjQGFlzYRahOe45TdWM", "fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ"}), observed)
+	first := runAccess(t, document([]any{roleA, roleB}, []any{"fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ", "fixed_Sgr67JTOhjQGFlzYRahOe45TdWM"}), observed)
+	second := runAccess(t, document([]any{roleB, roleA}, []any{"fixed_Sgr67JTOhjQGFlzYRahOe45TdWM", "fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ"}), observed)
 	serialized := func(rsp *fnv1.RunFunctionResponse) map[string]string {
 		result := map[string]string{}
 		for name, desired := range rsp.GetDesired().GetResources() {
@@ -674,7 +963,7 @@ func TestContentAccessPolicyOwnsWholeFolderOrDashboardACL(t *testing.T) {
 			]
 		}
 	}`
-	rsp := runStack(t, claim, nil)
+	rsp := runAccess(t, claim, nil)
 	policy := desiredResource(t, rsp, "access-policy")
 	if got := policy["kind"]; got != "FolderPermission" {
 		t.Fatalf("content access kind = %v", got)
@@ -697,9 +986,135 @@ func TestContentAccessPolicyOwnsWholeFolderOrDashboardACL(t *testing.T) {
 	}
 
 	directUID := strings.Replace(claim, `"kind":"Folder","ref":{"name":"teamdemo01-billing"}`, `"kind":"Dashboard","ref":{"uid":"vending-home"}`, 1)
-	directPolicy := desiredResource(t, runStack(t, directUID, nil), "access-policy")
+	directPolicy := desiredResource(t, runAccess(t, directUID, nil), "access-policy")
 	if got := desiredExternalName(t, directPolicy); got != "vending-home" {
 		t.Fatalf("direct-UID content policy external name = %q, want vending-home", got)
+	}
+}
+
+func TestAccessClaimsRequestTheirReferencedStack(t *testing.T) {
+	for kind, claim := range accessClaims() {
+		t.Run(kind, func(t *testing.T) {
+			rsp := callFunctionWithRequiredResources(t, claim, nil, nil, nil)
+
+			selector, ok := rsp.GetRequirements().GetResources()["referenced-stack"]
+			if !ok {
+				t.Fatal("access claim did not request the referenced stack")
+			}
+			if got, want := selector.GetApiVersion(), "platform.example.org/v1beta1"; got != want {
+				t.Fatalf("referenced stack API version = %q, want %q", got, want)
+			}
+			if got, want := selector.GetKind(), "GrafanaCloudStackRequest"; got != want {
+				t.Fatalf("referenced stack kind = %q, want %q", got, want)
+			}
+			if got, want := selector.GetMatchName(), "teamdemo01"; got != want {
+				t.Fatalf("referenced stack name = %q, want %q", got, want)
+			}
+			if got, want := selector.GetNamespace(), "grafana-vending"; got != want {
+				t.Fatalf("referenced stack namespace = %q, want %q", got, want)
+			}
+			if got := len(rsp.GetDesired().GetResources()); got != 0 {
+				t.Fatalf("unresolved referenced stack rendered %d access children", got)
+			}
+			if got := rsp.GetDesired().GetComposite().GetReady(); got != fnv1.Ready_READY_FALSE {
+				t.Fatalf("unresolved referenced stack readiness = %s, want READY_FALSE", got)
+			}
+		})
+	}
+}
+
+func TestReferencedStackSelectorPreservesTheAccessAPIVersion(t *testing.T) {
+	claim := strings.Replace(accessClaims()["GrafanaTeamAccess"], "platform.example.org/v1beta1", "custom.example.io/v1alpha1", 1)
+	rsp := callFunctionWithRequiredResources(t, claim, nil, nil, nil)
+
+	selector := rsp.GetRequirements().GetResources()["referenced-stack"]
+	if got, want := selector.GetApiVersion(), "custom.example.io/v1alpha1"; got != want {
+		t.Fatalf("referenced stack API version = %q, want access API version %q", got, want)
+	}
+}
+
+func TestAccessClaimsAdmitOnlyWhenReferencedStackIsReady(t *testing.T) {
+	for kind, claim := range accessClaims() {
+		t.Run(kind, func(t *testing.T) {
+			unready := callFunctionWithRequiredResources(t, claim, nil, requiredStackResource("teamdemo01", "grafana-vending", "False"), requiredResourceCapabilities())
+			if got := len(unready.GetDesired().GetResources()); got != 0 {
+				t.Fatalf("not-ready referenced stack rendered %d access children", got)
+			}
+			if got := unready.GetDesired().GetComposite().GetReady(); got != fnv1.Ready_READY_FALSE {
+				t.Fatalf("not-ready referenced stack readiness = %s, want READY_FALSE", got)
+			}
+
+			ready := callFunctionWithRequiredResources(t, claim, nil, requiredStackResource("teamdemo01", "grafana-vending", "True"), requiredResourceCapabilities())
+			if got := len(ready.GetDesired().GetResources()); got == 0 {
+				t.Fatal("ready referenced stack rendered no access children")
+			}
+			if got := ready.GetDesired().GetComposite().GetReady(); got != fnv1.Ready_READY_UNSPECIFIED {
+				t.Fatalf("ready referenced stack readiness = %s, want READY_UNSPECIFIED", got)
+			}
+		})
+	}
+}
+
+func TestAccessClaimsCloseAdmissionWhenReferencedStackIsDecommissioning(t *testing.T) {
+	claim := accessClaims()["GrafanaTeamAccess"]
+	for name, required := range map[string]*fnv1.Resources{
+		"armed":       requiredStackResourceState("teamdemo01", "grafana-vending", "True", true, false),
+		"terminating": requiredStackResourceState("teamdemo01", "grafana-vending", "True", false, true),
+	} {
+		t.Run(name, func(t *testing.T) {
+			rsp := callFunctionWithRequiredResources(t, claim, nil, required, requiredResourceCapabilities())
+			if got := len(rsp.GetDesired().GetResources()); got != 0 {
+				t.Fatalf("decommissioning referenced stack rendered %d new access children", got)
+			}
+			if got := rsp.GetDesired().GetComposite().GetReady(); got != fnv1.Ready_READY_FALSE {
+				t.Fatalf("decommissioning referenced stack readiness = %s, want READY_FALSE", got)
+			}
+		})
+	}
+}
+
+func TestAccessAdmissionIsOneWay(t *testing.T) {
+	claim := accessClaims()["GrafanaTeamAccess"]
+	observed := map[string]*fnv1.Resource{
+		"team": observedResource(`{"apiVersion":"oss.grafana.m.crossplane.io/v1alpha1","kind":"Team","metadata":{"name":"example-editors-team","namespace":"grafana-vending"}}`),
+	}
+	rsp := callFunctionWithRequiredResources(t, claim, observed, requiredStackResource("teamdemo01", "grafana-vending", "False"), requiredResourceCapabilities())
+	if _, ok := rsp.GetDesired().GetResources()["team"]; !ok {
+		t.Fatal("observed access child was removed while referenced stack was not ready")
+	}
+	if got := len(rsp.GetDesired().GetResources()); got != 1 {
+		t.Fatalf("not-ready access claim retained %d resources, want only the observed configured child", got)
+	}
+}
+
+func TestAccessAdmissionRejectsAmbiguousOrMismatchedReferencedStack(t *testing.T) {
+	claim := accessClaims()["GrafanaTeamAccess"]
+	tests := map[string]*fnv1.Resources{
+		"multiple results": {
+			Items: []*fnv1.Resource{
+				requiredStackResource("teamdemo01", "grafana-vending", "True").GetItems()[0],
+				requiredStackResource("teamdemo01", "grafana-vending", "True").GetItems()[0],
+			},
+		},
+		"identity mismatch": {
+			Items: []*fnv1.Resource{requiredStackResource("other-stack", "grafana-vending", "True").GetItems()[0]},
+		},
+	}
+	for name, required := range tests {
+		t.Run(name, func(t *testing.T) {
+			rsp := callFunctionWithRequiredResources(t, claim, nil, required, requiredResourceCapabilities())
+			if fatal := fatalResult(rsp); !strings.Contains(fatal, "referenced stack") {
+				t.Fatalf("invalid referenced stack returned fatal result %q", fatal)
+			}
+		})
+	}
+}
+
+func TestAccessAdmissionRejectsAdvertisedMissingRequiredResourceCapability(t *testing.T) {
+	claim := accessClaims()["GrafanaTeamAccess"]
+	rsp := callFunctionWithRequiredResources(t, claim, nil, nil, []fnv1.Capability{fnv1.Capability_CAPABILITY_CAPABILITIES})
+	if fatal := fatalResult(rsp); !strings.Contains(fatal, "CAPABILITY_REQUIRED_RESOURCES") {
+		t.Fatalf("missing required-resource capability returned fatal result %q", fatal)
 	}
 }
 
@@ -740,6 +1155,8 @@ func TestStackStatusPublishesSafeObservedFields(t *testing.T) {
 	rsp := runStack(t, minimalStack(), observed)
 	status := nestedMap(t, rsp.GetDesired().GetComposite().GetResource().AsMap(), "status")
 	want := map[string]any{
+		"deletionArmed":       false,
+		"deletionReady":       false,
 		"outputSecretPath":    "/platform/grafana-cloud/stacks/prod-us-central-0/production/teamdemo01",
 		"telemetrySecretPath": "/platform/grafana-cloud/stacks/prod-us-central-0/production/teamdemo01/telemetry-publisher",
 		"stack":               map[string]any{"id": "12345", "url": "https://teamdemo01.grafana.net"},
@@ -787,7 +1204,7 @@ func stackDocument(additions map[string]any) string {
 	document := map[string]any{
 		"apiVersion": "platform.example.org/v1beta1",
 		"kind":       "GrafanaCloudStackRequest",
-		"metadata":   map[string]any{"name": "teamdemo01", "namespace": "grafana-vending"},
+		"metadata":   map[string]any{"name": "teamdemo01", "namespace": "grafana-vending", "uid": "example-request-uid"},
 		"spec":       spec,
 	}
 	b, _ := json.Marshal(document)
@@ -826,6 +1243,15 @@ func runStack(t *testing.T, composite string, observed map[string]*fnv1.Resource
 	return runStackWithInput(t, composite, observed, "")
 }
 
+func runAccess(t *testing.T, composite string, observed map[string]*fnv1.Resource) *fnv1.RunFunctionResponse {
+	t.Helper()
+	rsp := callFunctionWithRequiredResources(t, composite, observed, requiredStackResource("teamdemo01", "grafana-vending", "True"), requiredResourceCapabilities())
+	if fatal := fatalResult(rsp); fatal != "" {
+		t.Fatalf("RunFunction returned a fatal result: %s", fatal)
+	}
+	return rsp
+}
+
 func runStackWithInput(t *testing.T, composite string, observed map[string]*fnv1.Resource, input string) *fnv1.RunFunctionResponse {
 	t.Helper()
 	rsp := callFunction(t, composite, observed, input)
@@ -851,6 +1277,87 @@ func callFunction(t *testing.T, composite string, observed map[string]*fnv1.Reso
 		t.Fatalf("RunFunction returned an error: %v", err)
 	}
 	return rsp
+}
+
+func callFunctionWithRequiredResources(t *testing.T, composite string, observed map[string]*fnv1.Resource, required *fnv1.Resources, capabilities []fnv1.Capability) *fnv1.RunFunctionResponse {
+	t.Helper()
+	req := &fnv1.RunFunctionRequest{
+		Meta: &fnv1.RequestMeta{Capabilities: capabilities},
+		Observed: &fnv1.State{
+			Composite: &fnv1.Resource{Resource: resource.MustStructJSON(composite)},
+			Resources: observed,
+		},
+	}
+	if required != nil {
+		req.RequiredResources = map[string]*fnv1.Resources{"referenced-stack": required}
+	}
+	rsp, err := (&Function{log: logging.NewNopLogger()}).RunFunction(context.Background(), req)
+	if err != nil {
+		t.Fatalf("RunFunction returned an error: %v", err)
+	}
+	return rsp
+}
+
+func requiredResourceCapabilities() []fnv1.Capability {
+	return []fnv1.Capability{
+		fnv1.Capability_CAPABILITY_CAPABILITIES,
+		fnv1.Capability_CAPABILITY_REQUIRED_RESOURCES,
+	}
+}
+
+func requiredStackResource(name, namespace, readyStatus string) *fnv1.Resources {
+	return requiredStackResourceState(name, namespace, readyStatus, false, false)
+}
+
+func requiredStackResourceState(name, namespace, readyStatus string, deletionArmed, terminating bool) *fnv1.Resources {
+	conditions := []any{}
+	if readyStatus != "" {
+		conditions = append(conditions, map[string]any{"type": "Ready", "status": readyStatus})
+	}
+	metadata := map[string]any{"name": name, "namespace": namespace}
+	if terminating {
+		metadata["deletionTimestamp"] = "2026-08-20T12:00:00Z"
+	}
+	return &fnv1.Resources{Items: []*fnv1.Resource{{Resource: resource.MustStructJSON(mustJSON(map[string]any{
+		"apiVersion": "platform.example.org/v1beta1",
+		"kind":       "GrafanaCloudStackRequest",
+		"metadata":   metadata,
+		"status":     map[string]any{"conditions": conditions, "deletionArmed": deletionArmed},
+	}))}}}
+}
+
+func accessClaims() map[string]string {
+	return map[string]string{
+		"GrafanaCustomRoleBinding": `{
+			"apiVersion":"platform.example.org/v1beta1",
+			"kind":"GrafanaCustomRoleBinding",
+			"metadata":{"name":"example-editor","namespace":"grafana-vending"},
+			"spec":{
+				"stackRef":{"name":"teamdemo01"},
+				"team":{"name":"Example Editors","groups":["idp-example-editors"]},
+				"role":{"name":"example-editor","uid":"example-editor","permissions":[{"action":"dashboards:read","scope":"folders:*"}]}
+			}
+		}`,
+		"GrafanaTeamAccess": `{
+			"apiVersion":"platform.example.org/v1beta1",
+			"kind":"GrafanaTeamAccess",
+			"metadata":{"name":"example-editors","namespace":"grafana-vending"},
+			"spec":{
+				"stackRef":{"name":"teamdemo01"},
+				"team":{"name":"Example Editors"}
+			}
+		}`,
+		"GrafanaContentAccessPolicy": `{
+			"apiVersion":"platform.example.org/v1beta1",
+			"kind":"GrafanaContentAccessPolicy",
+			"metadata":{"name":"billing-access","namespace":"grafana-vending"},
+			"spec":{
+				"stackRef":{"name":"teamdemo01"},
+				"target":{"kind":"Folder","ref":{"name":"teamdemo01-billing"}},
+				"permissions":[{"basicRole":"Viewer","permission":"View"}]
+			}
+		}`,
+	}
 }
 
 func observedResource(document string) *fnv1.Resource {

@@ -1,6 +1,6 @@
 # Create-only OAuth SSO
 
-Use this example to initialize an OAuth/OIDC integration from platform policy and then hand ownership of later SSO changes to stack administrators.
+Use this example to initialize an OAuth/OIDC integration from platform policy and then hand ownership of later SSO changes to stack administrators. It omits `spec.lifecycle.externalResources`, so external-resource handling remains the safe `Retain` default.
 
 ## Prerequisites
 
@@ -11,8 +11,14 @@ Use this example to initialize an OAuth/OIDC integration from platform policy an
 
 ## Values to replace
 
-- Replace `platform.example.org`, every `replacewithunique03` occurrence, the region, usage, profile, and display name.
+- Replace `platform.example.org`, every `replacewithunique03` occurrence, the region, usage, profile, and display name. In the reference, `usage` must be the immutable platform vocabulary `development` or `production` and forms part of `{outputSecretPrefix}/{region}/{usage}/{slug}`.
 - Replace `example-oidc` with an approved Composition profile name; do not place OAuth endpoints or client secrets in the request.
+
+With the default `Retain` lifecycle, removing this request orphans external resources. A platform-
+authorized Delete decommission requires three reviewed stages: first arm
+`spec.lifecycle.externalResources: Delete` and wait for `status.deletionReady=true`; then remove
+dependent access claims and wait for their Kubernetes objects and finalizers to be gone while the
+Stack still exists; finally remove the request. Arming alone never deletes anything.
 
 ## Reconciliation
 

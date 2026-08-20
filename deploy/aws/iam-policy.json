@@ -23,6 +23,21 @@
       "Resource": [
         "arn:aws:secretsmanager:*:*:secret:/platform/grafana-cloud/stacks/*"
       ]
+    },
+    {
+      "Sid": "DeleteManagedVendingMachineOutputs",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:DeleteSecret"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:*:*:secret:/platform/grafana-cloud/stacks/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "secretsmanager:ResourceTag/grafana-cloud-vending-machine": "managed"
+        }
+      }
     }
   ]
 }

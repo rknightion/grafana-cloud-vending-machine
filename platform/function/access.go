@@ -12,6 +12,7 @@ func addTelemetryAccess(
 	namespace, slug, region, outputPath string,
 	spec map[string]any,
 	settings platformSettings,
+	deletingExternalResources bool,
 ) error {
 	if !telemetryAccessEnabled(spec) {
 		return nil
@@ -19,6 +20,14 @@ func addTelemetryAccess(
 
 	policyName := slug + "-telemetry-publisher"
 	tokenSecret := slug + "-telemetry-token"
+	externalResourcePolicies := managementPolicies
+	deleteOnDestroy := false
+	pushSecretDeletionPolicy := "None"
+	if deletingExternalResources {
+		externalResourcePolicies = []any{"*"}
+		deleteOnDestroy = true
+		pushSecretDeletionPolicy = "Delete"
+	}
 	desired["telemetry-access-policy"] = newDesired(
 		"cloud.grafana.m.crossplane.io/v1alpha1",
 		"AccessPolicy",
@@ -26,7 +35,7 @@ func addTelemetryAccess(
 		policyName,
 		nil,
 		map[string]any{
-			"managementPolicies": managementPolicies,
+			"managementPolicies": externalResourcePolicies,
 			"forProvider": map[string]any{
 				"displayName": "Telemetry publisher for " + slug,
 				"name":        policyName,
@@ -41,7 +50,11 @@ func addTelemetryAccess(
 		},
 	)
 
-	if policyID := observedString(observed, "telemetry-access-policy", "status.atProvider.policyId"); policyID != "" {
+	policyID := observedString(observed, "telemetry-access-policy", "status.atProvider.policyId")
+	if policyID == "" {
+		policyID = observedString(observed, "telemetry-token", "spec.forProvider.accessPolicyId")
+	}
+	if policyID != "" {
 		desired["telemetry-token"] = newDesired(
 			"cloud.grafana.m.crossplane.io/v1alpha1",
 			"AccessPolicyRotatingToken",
@@ -49,10 +62,10 @@ func addTelemetryAccess(
 			policyName,
 			nil,
 			map[string]any{
-				"managementPolicies": managementPolicies,
+				"managementPolicies": externalResourcePolicies,
 				"forProvider": map[string]any{
 					"accessPolicyId":      policyID,
-					"deleteOnDestroy":     false,
+					"deleteOnDestroy":     deleteOnDestroy,
 					"displayName":         "Telemetry publisher token for " + slug,
 					"earlyRotationWindow": "168h",
 					"expireAfter":         "720h",
@@ -80,7 +93,7 @@ func addTelemetryAccess(
 		map[string]any{
 			"refreshInterval": "1h",
 			"updatePolicy":    "Replace",
-			"deletionPolicy":  "None",
+			"deletionPolicy":  pushSecretDeletionPolicy,
 			"secretStoreRefs": []any{settings.secretStoreReference()},
 			"selector":        map[string]any{"secret": map[string]any{"name": tokenSecret}},
 			"template": map[string]any{
@@ -96,7 +109,10 @@ func addTelemetryAccess(
 				"metadata": map[string]any{
 					"apiVersion": "kubernetes.external-secrets.io/v1alpha1",
 					"kind":       "PushSecretMetadata",
-					"spec":       map[string]any{"secretPushFormat": "string"},
+					"spec": map[string]any{
+						"secretPushFormat": "string",
+						"tags":             map[string]any{"grafana-cloud-vending-machine": "managed"},
+					},
 				},
 			}},
 		},

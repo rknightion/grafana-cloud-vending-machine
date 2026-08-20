@@ -41,7 +41,11 @@ kubectl get gccontentaccess -A
 Every kind reports the standard Crossplane composite conditions (`Synced`, `Ready`) plus, for
 `GrafanaCloudStackRequest`, the additional `status` fields documented on
 [Configuration](../configuration.md#status-fields): `outputSecretPath`, `telemetrySecretPath`,
-`stack.id`, `stack.url`.
+`deletionArmed`, `deletionReady`, `stack.id`, and `stack.url`. `deletionReady` is the observed
+provider-state gate for Stage 2 of the three-stage decommission; it is true only after the Stack
+reports `deleteProtection=false` and ESO has finalized and currently synced every enabled
+credential PushSecret, and Stage 3 request removal waits for the access-claim objects and
+finalizers to be gone.
 
 ## Next steps
 

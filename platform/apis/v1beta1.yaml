@@ -31,6 +31,10 @@ spec:
               message: metadata.name must match spec.slug
             - rule: self.spec.slug == oldSelf.spec.slug
               message: spec.slug is immutable
+            - rule: self.spec.usage == oldSelf.spec.usage
+              message: spec.usage is immutable
+            - rule: self.spec.profile == oldSelf.spec.profile
+              message: spec.profile is immutable
             - rule: '!self.spec.monthlyReport.enabled || (size(self.spec.monthlyReport.recipients) > 0 && size(self.spec.monthlyReport.replyTo) > 0)'
               message: enabled monthlyReport requires recipients and replyTo
             - rule: 'self.spec.sso.mode == "disabled" || size(self.spec.sso.profile) > 0'
@@ -67,6 +71,18 @@ spec:
                   maxLength: 32
                   pattern: ^[a-z0-9-]+$
                   description: Generic usage classification and output-secret path segment.
+                lifecycle:
+                  type: object
+                  default:
+                    externalResources: Retain
+                  properties:
+                    externalResources:
+                      type: string
+                      default: Retain
+                      enum:
+                        - Retain
+                        - Delete
+                      description: Retains external resources by default; Delete requires a platform authorization bound to this request identity and profile.
                 profile:
                   type: string
                   default: standard
@@ -205,6 +221,10 @@ spec:
             status:
               type: object
               properties:
+                deletionArmed:
+                  type: boolean
+                deletionReady:
+                  type: boolean
                 outputSecretPath:
                   type: string
                 telemetrySecretPath:
@@ -346,6 +366,10 @@ spec:
           secretStoreRef:
             name: grafana-vending-secrets
             kind: SecretStore
+          deletionAuthorizations: []
+          allowedUsages:
+            - development
+            - production
           ssoProfiles:
             - name: example-oidc
               providerName: generic_oauth

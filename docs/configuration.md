@@ -28,12 +28,13 @@ be separated with Kubernetes namespaces and RBAC.
 | `spec.displayName` | required | Human-readable Grafana Cloud stack name (1-128 chars). |
 | `spec.slug` | required | Immutable Grafana Cloud stack slug and external identity. Must equal `metadata.name`, and must match `^[a-z0-9]+$` (3-32 chars). Grafana Cloud stack slugs are globally unique. |
 | `spec.region` | required | Grafana Cloud region slug, must match `^prod-[a-z0-9-]+-[0-9]+$` (e.g. `prod-us-central-0`). |
-| `spec.usage` | required | Generic usage classification and output-secret path segment. Must match `^[a-z0-9-]+$` (1-32 chars). |
-| `spec.profile` | `standard` | Platform-owned configuration profile selected by the request. |
+| `spec.usage` | required | Immutable platform-approved usage classification and output-secret path segment. The reference vocabulary is `development` and `production`; the value must appear in the platform input `allowedUsages`. |
+| `spec.profile` | `standard` | Immutable platform configuration profile selected when the request is created. |
+| `spec.lifecycle.externalResources` | `Retain` | `Retain` or `Delete`. `Delete` requires an exact namespace/name/UID/profile match in the platform input `deletionAuthorizations`; the default list is empty. |
 | `spec.changeReference` | `""` | Optional generic request/change identifier published in the output document (max 128 chars). |
 | `spec.configurationItemReference` | `""` | Optional generic configuration-item identifier published in the output document (max 128 chars). |
 | `spec.baselineDashboards.enabled` | `true` | Creates three baseline folder/dashboard pairs (billing/usage, telemetry endpoints, stack home). |
-| `spec.telemetryAccess.enabled` | `true` | Creates a stack-scoped, rotating telemetry publisher access policy and mirrors its token to a derived AWS Secrets Manager path. |
+| `spec.telemetryAccess.enabled` | `true` | Creates a stack-scoped, rotating telemetry publisher access policy and mirrors its token to `{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher`. |
 | `spec.plugins` | `[]` | List of `{slug, version}` plugin installations owned by this request. Max 30 items. `version` defaults to `latest`. |
 | `spec.reconciliation.dashboards` | `createOnly` | One of `enforced`, `createOnly`. Controls whether Crossplane repairs later UI edits to baseline dashboard JSON. |
 | `spec.reconciliation.homePreference` | `createOnly` | One of `enforced`, `createOnly`. Controls whether Crossplane repairs later UI changes to the organization home dashboard. |
@@ -48,21 +49,40 @@ be separated with Kubernetes namespaces and RBAC.
 
 ### Validation rules
 
-The XRD enforces these with CEL validation, rejected at admission time rather than left to the
-composition function:
+The XRD enforces the schema and immutable-field rules below with CEL validation, rejecting them at
+admission time rather than leaving them to the composition function:
 
 - `metadata.name` must equal `spec.slug`.
 - `spec.slug` is immutable after creation.
+- `spec.usage` is immutable after creation.
 - An enabled `monthlyReport` requires non-empty `recipients` and `replyTo`.
 - `sso.mode` other than `disabled` requires a non-empty `sso.profile`.
 - An enabled `incidentIntegration` requires a non-empty `incidentIntegration.profile`.
+
+The composition function then checks the immutable usage value against the platform-owned
+`allowedUsages` list and rejects any value outside it. It also rejects `Delete` unless the request's
+namespace, name, Kubernetes UID, and immutable profile match one platform-owned `deletionAuthorizations` entry.
+
+`spec.usage` is part of external credential identity. Generated documents use the exact path
+`{outputSecretPrefix}/{region}/{usage}/{slug}`. Immutability prevents a request from publishing
+future documents at a new usage path while leaving the previous credential documents orphaned.
+The reference Composition input allows `development` and `production`; a platform fork may define a
+different vocabulary through `allowedUsages`.
+
+`spec.lifecycle.externalResources` defaults to `Retain`. Selecting `Delete` is a platform-governed
+decommission intent, not a consumer-only switch: the exact request namespace, name, UID, and immutable profile
+must be present in `deletionAuthorizations`, whose default is empty. Arming the intent does not delete resources; wait
+for `status.deletionReady=true` before Stage 2 removes access claims and waits for their finalizers.
+Stage 3 removes the request only after those objects are gone.
 
 ### Status fields
 
 | Field | Description |
 | --- | --- |
-| `status.outputSecretPath` | The external path the generated administrator document was published to. |
-| `status.telemetrySecretPath` | The external path the generated telemetry document was published to. |
+| `status.outputSecretPath` | The external path for the generated administrator document: `{outputSecretPrefix}/{region}/{usage}/{slug}`. |
+| `status.telemetrySecretPath` | The external path for the generated telemetry document: `{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher`. |
+| `status.deletionArmed` | `true` after an authorized `Delete` intent has been accepted; arming alone does not delete resources. |
+| `status.deletionReady` | `true` only after observed provider state reports the Stack's `deleteProtection=false` and ESO has installed its deletion finalizer and successfully synced every enabled credential PushSecret at its current generation; this gates Stage 2, while Stage 3 waits for access-claim objects and finalizers to be gone. |
 | `status.stack.id` | The Grafana Cloud stack ID once observed. |
 | `status.stack.url` | The stack's Grafana URL once observed. |
 
@@ -137,6 +157,8 @@ The Composition input (a `GrafanaVendingConfig` object embedded in
 | --- | --- |
 | `organizationProviderConfigName` | The namespaced `ProviderConfig` used for organization-level Cloud operations. |
 | `outputSecretPrefix` | The external path prefix for generated per-stack documents. |
+| `allowedUsages` | Platform-owned usage vocabulary. The reference values are `development` and `production`; requests with other values are rejected, and `spec.usage` is immutable. |
+| `deletionAuthorizations` | Platform-owned list of exact request `namespace`, `name`, Kubernetes `uid`, and immutable `profile` tuples authorized for `spec.lifecycle.externalResources: Delete`. It is empty by default; UID binding prevents an authorization from applying to a later request that reuses the same name. |
 | `secretStoreRef` | Either a namespaced `SecretStore` or a `ClusterSecretStore`. |
 | `ssoProfiles` | Approved OAuth or SAML settings and Secret references. |
 | `incidentProfiles` | Approved relay URLs and authorization Secret references. |
@@ -153,7 +175,7 @@ The reusable implementation and a live environment have different publication bo
 | --- | --- |
 | Provider and function packages at immutable digests | Approved public-reference Git commit |
 | XRD schemas and Composition behaviour | Production API group under a controlled domain |
-| Non-destructive lifecycle policy | Secret-store kind/name, cloud region, and workload identity |
+| Retain-by-default lifecycle and platform-controlled Delete authorization | Secret-store kind/name, cloud region, and workload identity |
 | Placeholder SSO and incident profile shapes | Real endpoints and `ExternalSecret` remote paths |
 | Comprehensive request with reserved example identities | Globally unique stack slug, intended recipients, user IDs, groups, and verified fixed-role UIDs |
 

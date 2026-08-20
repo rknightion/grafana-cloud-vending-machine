@@ -36,11 +36,25 @@ in the project README.
 
 ## What happens if I delete a request from Git?
 
-Argo CD prunes the Kubernetes composite and composed objects, but the external Grafana stack and
-its credential documents are orphaned, not destroyed — deletion protection, the omitted `Delete`
-management policy, `deleteOnDestroy: false` on rotating tokens, and `PushSecret`'s
-`deletionPolicy: None` all combine to make this intentional. See
-[Security → non-destructive lifecycle](security.md#non-destructive-lifecycle).
+Unless the request was deliberately armed, `spec.lifecycle.externalResources` is `Retain` and
+Argo CD prunes the Kubernetes composite and composed objects while the external Grafana stack and
+credential documents are orphaned, not destroyed. Stack-local Grafana content remains
+retain/orphan because deleting the Stack destroys it. `Delete` is accepted only for an exact
+request namespace/name/UID/profile tuple in platform-owned `deletionAuthorizations`, which is empty by default.
+
+Decommissioning has three reviewed stages: first set `externalResources: Delete` and wait for
+`status.deletionArmed=true` followed by `status.deletionReady=true` (observed Stack
+`deleteProtection=false`, deletion-managed rotating tokens, plus finalized and currently synced
+credential PushSecrets); then remove dependent access claims and merge/sync until their
+Kubernetes objects and finalizers are gone while the Stack still exists; finally remove the request.
+The armed path deletes only the Stack, administrator service account/token, telemetry access
+policy/token, and administrator/telemetry credential documents. AWS Secrets Manager uses a 30-day
+recovery window by default for deleted `PushSecret` documents, and other backends must be checked
+for Delete support. See [Security → external-resource lifecycle](security.md#external-resource-lifecycle).
+
+The request's `spec.usage` is also immutable and must be in platform-owned `allowedUsages` (the
+reference values are `development` and `production`); generated documents use
+`{outputSecretPrefix}/{region}/{usage}/{slug}`.
 
 ## Can I point this at an existing Grafana Cloud stack?
 

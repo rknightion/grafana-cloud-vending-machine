@@ -47,6 +47,13 @@ Existing requests therefore move to the latest Composition revision automaticall
 platform update. Treat an XRD or function change like a production API release: render it,
 inspect the desired-resource diff, and roll it through a non-production request first.
 
+The platform-owned `GrafanaVendingConfig` input also owns the lifecycle vocabulary. The reference
+allows `development` and `production` in `allowedUsages`; `spec.usage` is immutable because it is
+part of the external credential identity. Generated documents use
+`{outputSecretPrefix}/{region}/{usage}/{slug}`. `spec.lifecycle.externalResources` defaults to
+`Retain`. `Delete` is accepted only for an exact request namespace/name/UID/profile tuple listed in
+`deletionAuthorizations`, which is empty by default.
+
 ## How a request becomes managed resources
 
 Each of the four kinds is backed by a single-step Crossplane `Composition` in `Pipeline` mode
@@ -68,7 +75,8 @@ affected field's reconciliation mode says so:
 | Resource or field | Mode | Effect of an out-of-band edit |
 | --- | --- | --- |
 | Stack name, region, labels, readiness flags | managed `forProvider` fields | Crossplane attempts to restore the value in the request |
-| Stack deletion | `deleteProtection` plus no `Delete` policy | Normal controller-driven deletion is refused |
+| Stack deletion | `spec.lifecycle.externalResources: Retain` (default) | Normal request pruning orphans external resources and leaves the Stack protected |
+| Armed external deletion | `spec.lifecycle.externalResources: Delete` with an exact platform authorization | After `status.deletionReady=true`, three reviewed stages clear access claims, wait for their finalizers to disappear, and then remove the request; only state that can outlive the Stack is deleted |
 | Baseline dashboard JSON | `createOnly` | Initial JSON is supplied through `initProvider`; later UI edits are preserved |
 | Baseline dashboard JSON | `enforced` | UI edits are detected and restored from Git-rendered desired state |
 | Folder title and dashboard folder relationship | managed `forProvider` fields | Drift is restored even when dashboard JSON is create-only |
@@ -90,14 +98,38 @@ affected field's reconciliation mode says so:
 Changing SSO from `enforced` to `createOnly` moves `oauth2Settings`/`samlSettings` from
 `forProvider` to `initProvider` while retaining a stable external name for the provider — the
 supported handoff from platform ownership to administrator ownership. `observeOnly` removes write
-authority. `disabled` removes the managed-resource object from the Composition; because `Delete`
-is not permitted, the external SSO configuration remains but is no longer observed. Changing the
+authority. `disabled` removes the managed-resource object from the Composition; under the
+retain-by-default lifecycle, the external SSO configuration remains but is no longer observed. Changing the
 identity type itself (e.g. `generic_oauth` to `saml`) is an identity-provider migration, not a
 routine mode toggle — plan a tested login and rollback path.
 
 Argo CD should ignore Crossplane-generated resource churn rather than carrying broad ignore rules
 for the request itself. If the request in Git changes, Argo CD applies the request; the
 Composition then computes the resulting managed-resource change.
+
+## Decommission and access-claim ordering
+
+Arming deletion and removing a request are separate reviewed stages. The first changes the request
+lifecycle to `Delete`; it does not delete anything. Wait for `status.deletionArmed=true` and then
+`status.deletionReady=true`, where readiness means observed provider state reports the Stack's
+`deleteProtection=false` and ESO has finalized and successfully synced each enabled credential
+document at its current generation. Stage 2 removes dependent `GrafanaCustomRoleBinding`, `GrafanaTeamAccess`,
+and `GrafanaContentAccessPolicy` objects. Merge or sync that change and wait until their Kubernetes
+objects and finalizers are gone while the Stack and request still exist. Stage 3 removes the request
+from Git only after that check passes, so the stack endpoint does not
+disappear before the access claims clear.
+
+New access claims fail closed as soon as deletion is armed or the stack request is terminating.
+Already-observed access children remain desired until their claims are deliberately removed in Stage 2.
+
+Armed Delete covers the Stack, its administrator service account/token, the telemetry access
+policy/token, and administrator/telemetry `PushSecret` documents. Stack-local Grafana content stays
+retain/orphan because Stack deletion destroys it. AWS Secrets Manager uses a 30-day recovery window
+by default for deleted `PushSecret` documents; the supplied IAM policy permits `DeleteSecret` only
+for output documents carrying the function's stable `grafana-cloud-vending-machine: managed`
+tag. Other backends must be checked for `PushSecret` Delete support. See the
+[decommission runbook](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook)
+for the complete sequence.
 
 ## Baseline and optional resources
 
@@ -130,4 +162,4 @@ for the complete ownership map across all 111 managed-resource kinds the provide
 
 - [Configuration](configuration.md) — every request field.
 - [Secrets](secrets.md) — the credential rotation model in detail.
-- [Security](security.md) — supply-chain verification and the non-destructive lifecycle.
+- [Security](security.md) — supply-chain verification and the Retain-by-default lifecycle.

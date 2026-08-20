@@ -30,8 +30,8 @@ The source and issue tracker live on
 
 Platform teams that already run Argo CD and Crossplane and want to offer Grafana Cloud stacks as
 a self-service, GitOps-native product — with rotating credentials, safe defaults, and an explicit
-non-destructive lifecycle — rather than hand-running Terraform or the Grafana Cloud API per
-request.
+Retain-by-default lifecycle with a reviewable Delete path — rather than hand-running Terraform or
+the Grafana Cloud API per request.
 
 ## Request-to-stack flow
 
@@ -66,7 +66,8 @@ Every enabled request gets, by default or by opt-in field:
 | --- | --- |
 | Rotating administrator credential | A `StackServiceAccount` with the Admin role and a `StackServiceAccountRotatingToken`, rotated automatically rather than issued once as a static token |
 | Rotating telemetry credential | A stack-realm `AccessPolicy` scoped to `stacks:read`, `metrics:write`, `logs:write`, `traces:write`, with its own rotating token, when `spec.telemetryAccess.enabled` is true |
-| Deletion protection | The `Stack` sets `deleteProtection`, and every composed managed resource omits the `Delete` management policy — normal Git-driven pruning cannot destroy the external stack or its credentials |
+| External-resource lifecycle | `spec.lifecycle.externalResources` defaults to `Retain`; a `Delete` intent requires an exact platform authorization for the request namespace, name, UID, and immutable profile, a readiness wait, and three reviewed stages: arm, clear access claims, then remove the request |
+| Deletion protection | Retain mode keeps the `Stack` protected; armed Delete waits for observed `deleteProtection=false` and targets only external state that can outlive the Stack |
 | Stack-local provider configuration | A namespaced Grafana `ProviderConfig` scoped to the one stack, built from the generated administrator credential |
 | Starter content | Three baseline folder/dashboard pairs occupying the billing/usage, telemetry-endpoints, and stack-home slots, when `spec.baselineDashboards.enabled` is true |
 | Configurable drift behaviour | Per-resource `enforced`/`createOnly`/`observeOnly`/`disabled` reconciliation modes that decide whether Crossplane repairs an administrator's UI edit or leaves it alone |
@@ -90,7 +91,7 @@ Every enabled request gets, by default or by opt-in field:
 | [Architecture](architecture.md) | The three-controller split, reconciliation, and where state lives |
 | [Secrets](secrets.md) | ESO wiring and the credential rotation model |
 | [SSO](sso.md) | OAuth and SAML configuration |
-| [Security](security.md) | Supply-chain controls, secret handling, and non-destructive lifecycle |
+| [Security](security.md) | Supply-chain controls, secret handling, and the Retain-by-default lifecycle |
 | [Troubleshooting](troubleshooting.md) | Common failure modes |
 | [FAQ](faq.md) | Short answers to recurring questions |
 

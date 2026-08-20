@@ -80,7 +80,10 @@ At minimum, replace:
 - `metadata.name` and `spec.slug` — these must be identical, and Grafana Cloud stack slugs are
   globally unique.
 - `spec.region` — a real Grafana Cloud region slug.
-- `spec.usage` — a classification that also becomes part of the output secret path.
+- `spec.usage` — an immutable platform-approved classification (`development` or `production` in
+  the reference vocabulary) that becomes part of the output path
+  `{outputSecretPrefix}/{region}/{usage}/{slug}`. It cannot be changed after creation because it
+  is part of external credential identity.
 - `platform.example.org`, if you have forked the repository and repointed the API group.
 
 The minimal example:
@@ -114,6 +117,13 @@ spec:
 ```
 
 See [Configuration](configuration.md) for what every field does.
+
+The example omits `spec.lifecycle.externalResources`, so it uses the safe `Retain` default. An
+authorized `Delete` value is a decommission intent only: it requires an exact platform-owned
+authorization for the request namespace, name, Kubernetes UID, and immutable profile,
+the first reviewed request change, and a wait for `status.deletionReady=true`. Stage 2 removes
+dependent access claims and waits for their Kubernetes objects and finalizers to be gone while the
+Stack still exists; Stage 3 then removes the request.
 
 ### 4. Render and review
 

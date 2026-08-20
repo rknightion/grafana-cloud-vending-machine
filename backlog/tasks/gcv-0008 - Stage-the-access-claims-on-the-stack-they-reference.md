@@ -1,9 +1,11 @@
 ---
 id: GCV-0008
 title: Stage the access claims on the stack they reference
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@codex'
 created_date: '2026-08-20 16:10'
+updated_date: '2026-08-20 17:42'
 labels:
   - function
   - reconciliation
@@ -32,3 +34,21 @@ Cheaper alternative if extra resources prove awkward: gate on the claim's own ob
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Map the Crossplane extra-resource iteration contract and all access renderer gates.
+2. Freeze one-way admission semantics and implement test-first with sole ownership of shared tests.
+3. Review, validate, publish, pin, and record exact-SHA hosted proof.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Design frozen 2026-08-20 against Crossplane 2.3 and function-sdk-go v0.7.1: every access XR always requests its namespaced referenced GrafanaCloudStackRequest under stable key referenced-stack using rsp.Requirements.Resources and a named selector derived from the access XR API group. request.GetRequiredResource reads the next iteration. Exactly one identity-matching referenced XR with standard Ready=True admits configured children; unresolved, missing, Ready False/Unknown/absent fail closed. Multiple results, identity mismatch, conversion error, or advertised capabilities without CAPABILITY_REQUIRED_RESOURCES are fatal. Admission is one-way through existing admitStaged, retaining only configured candidates already observed. While closed, set desired access XR ReadyFalse to prevent vacuous readiness; once open, normal child readiness resumes. No Secret is fetched, no RBAC expansion is needed, and roles.go/access.go/API YAML remain unchanged. Live iteration and warning reduction remain unproven.
+
+Security hardening 2026-08-20: required-stack admission now closes when the referenced request reports status.deletionArmed=true or metadata.deletionTimestamp is present. Existing observed configured children remain admitted through the established one-way rule so Stage 2 can remove their owners deliberately.
+
+Local implementation evidence 2026-08-20: required-resource selector stability, fail-closed readiness, API-version preservation, one-way admission, decommission admission closure, go test -race ./..., go vet ./..., fresh SECURITY PASS, and integrated ./scripts/validate.sh all passed. Live Crossplane iteration remains unperformed; hosted exact-SHA evidence remains pending.
+<!-- SECTION:NOTES:END -->

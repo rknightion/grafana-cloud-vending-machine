@@ -92,17 +92,32 @@ for the complete mode table, and [SSO](sso.md) for the handoff semantics.
 
 ## A deleted request left the stack and tokens behind
 
-**Cause.** This is intentional, not a bug. Pruning a `GrafanaCloudStackRequest` deletes the
-Kubernetes composite and composed objects, but the `Stack` has delete protection enabled, no
-composed resource carries the `Delete` management policy, rotating tokens set
-`deleteOnDestroy: false`, and `PushSecret` uses `deletionPolicy: None`. External Grafana and
-secret-manager objects are orphaned, not destroyed.
+**Cause.** This is intentional in the default mode, not a bug. Unless the request was armed with
+an authorized `spec.lifecycle.externalResources: Delete`, pruning a `GrafanaCloudStackRequest`
+uses `Retain`: the Kubernetes composite and composed objects disappear, while the Stack, credential
+resources, and generated documents are orphaned. Stack-local content is also retain/orphan because
+deleting the Stack destroys it. `Delete` is rejected unless the request namespace, name, UID, and
+immutable profile exactly match a platform-owned `deletionAuthorizations` entry; the list is empty by default.
 
-**Fix.** There is no fix — this is the designed non-destructive lifecycle. To actually destroy a
-stack, follow the decommission runbook in the project
-[README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook), which
-is a separately reviewed operation, not something Git deletion alone triggers. See
-[Security → non-destructive lifecycle](security.md#non-destructive-lifecycle).
+**Diagnosis.** Inspect the request status before assuming the intent was accepted:
+
+```bash
+kubectl get grafanacloudstackrequest -n grafana-vending <slug> -o yaml
+```
+
+`status.deletionArmed=true` confirms accepted intent. Do not remove the request until
+`status.deletionReady=true`; that condition means observed provider state reports
+`deleteProtection=false` and ESO has finalized and successfully synced every enabled credential
+PushSecret at its current generation. Arming itself never deletes anything.
+
+**Fix.** If destruction is approved, follow the [decommission runbook in the project
+README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook). It uses
+three reviewed stages: first arm Delete and wait for readiness; then remove dependent access claims,
+merge or sync, and wait until their Kubernetes objects and finalizers are gone while the Stack still
+exists; finally remove the request. Armed Delete affects only the Stack, administrator service
+account/token, telemetry access policy/token, and administrator/telemetry credential documents. AWS
+Secrets Manager uses a 30-day recovery window by default for deleted `PushSecret` documents, and
+another backend must be checked for Delete support.
 
 ## Running the validation gate
 

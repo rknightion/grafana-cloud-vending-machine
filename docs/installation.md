@@ -144,13 +144,19 @@ Argo CD `selfHeal` repairs changes to request objects and platform manifests. Cr
 changes to external Grafana resources according to its management policies. These are different
 reconciliation loops — see [Architecture](architecture.md).
 
-Argo CD pruning a `GrafanaCloudStackRequest` deletes the composite Kubernetes object and its
-composed managed-resource objects. The managed resources omit the `Delete` management policy,
-the `Stack` enables delete protection, rotating tokens set `deleteOnDestroy: false`, and
-`PushSecret` uses `deletionPolicy: None`. External Grafana and secret-manager objects are
-therefore **orphaned rather than destroyed**. This is intentional: a destructive decommission
-must be a separately reviewed operation. See the decommission runbook in the project
-[README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook).
+Argo CD pruning a `GrafanaCloudStackRequest` uses the default
+`spec.lifecycle.externalResources: Retain`: it deletes the composite Kubernetes object and its
+composed managed-resource objects, while external Grafana and secret-manager objects are
+**orphaned rather than destroyed**. Stack-local content is not retained independently when an armed
+decommission deletes the Stack; deleting the Stack destroys that content. An authorized `Delete`
+value is a separate, three-stage decommission path: the
+first reviewed request change arms intent and waits for `status.deletionReady=true` (observed
+`deleteProtection=false`, deletion-managed rotating tokens, and finalized/currently synced
+credential PushSecrets); Stage 2 removes dependent access claims and waits for their Kubernetes
+objects and finalizers to be gone while the Stack still exists; Stage 3 removes the request. Armed
+Delete removes only the Stack, administrator service account/token, telemetry
+access policy/token, and administrator/telemetry `PushSecret` documents. See the decommission runbook in
+the project [README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook).
 
 ## Next steps
 

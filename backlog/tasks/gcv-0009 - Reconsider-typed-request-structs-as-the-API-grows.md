@@ -1,9 +1,11 @@
 ---
 id: GCV-0009
 title: Reconsider typed request structs as the API grows
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@codex'
 created_date: '2026-08-20 16:10'
+updated_date: '2026-08-20 17:42'
 labels:
   - function
   - tech-debt
@@ -31,3 +33,21 @@ Not worth doing on the current surface: it would touch every render path for no 
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Reassess unstructured request parsing against the nested API added in this wave.
+2. Record the typed-struct decision and the observable trigger that would reverse it.
+3. Validate the integrated repository and record exact-SHA hosted proof.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Decision 2026-08-20: do not migrate all request parsing to repository-owned typed structs in this wave. The five render paths and XRD admission already protect existing fields, so a full rewrite has no current behavioral return. Parse the new spec.lifecycle.externalResources safety boundary with explicit type/path errors rather than silent defaults. Reverse this decision when lifecycle requires two or more nested fields that must be validated atomically, or a test reproduces an XRD/function mismatch that silently selects an unsafe lifecycle action or materially wrong resources; then add a single typed conversion boundary and migrate the renderers together. Cross-reference: GCV-0006.
+
+Security hardening did not cross the typed-migration reversal threshold: lifecycle remains one request field, and the additional authorization and observed-resource readiness checks are platform input/observed-state contracts rather than multiple lifecycle fields requiring atomic request parsing.
+
+Local implementation evidence 2026-08-20: malformed lifecycle tests prove explicit type/path errors, the no-migration decision and reversal trigger are recorded, and integrated ./scripts/validate.sh passed with 89.3% statement coverage. Hosted exact-SHA evidence remains pending.
+<!-- SECTION:NOTES:END -->

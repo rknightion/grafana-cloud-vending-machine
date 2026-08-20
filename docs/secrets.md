@@ -63,12 +63,18 @@ The exported document has this shape:
   "change_reference": "CHANGE-EXAMPLE",
   "configuration_item_reference": "CONFIG-EXAMPLE",
   "stack_service_account_token": "GENERATED",
-  "telemetry_access_policy_secret_path": "/platform/grafana-cloud/stacks/REGION/USAGE/SLUG/telemetry-publisher"
+  "telemetry_access_policy_secret_path": "{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher"
 }
 ```
 
 The generated token comes from the connection Secret at reconciliation time; it is never
 embedded in rendered YAML.
+
+Both administrator and telemetry documents use the identity path
+`{outputSecretPrefix}/{region}/{usage}/{slug}`. `spec.usage` is immutable and must be in the
+platform-owned `allowedUsages` list (the reference vocabulary is `development` and `production`),
+so a request cannot silently move future documents to a new usage path while orphaning documents at
+the old path.
 
 ## Rotating telemetry token
 
@@ -81,9 +87,10 @@ stack-realm `AccessPolicy` with only:
 - `traces:write`
 
 An `AccessPolicyRotatingToken` uses the same 30-day lifetime and seven-day early rotation window.
-A separate `PushSecret` publishes the token and policy metadata under the stack's
-`telemetry-publisher` path. Workloads should use this token for telemetry and never receive the
-administrator token.
+A separate `PushSecret` publishes the token and policy metadata under
+`{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher`. The immutable, platform-owned
+usage segment keeps this external identity stable. Workloads should use this token for telemetry and
+never receive the administrator token.
 
 Static `StackServiceAccountToken`, `AccessPolicyToken`, and `ServiceAccountToken` resources
 remain available in the upstream provider but are deliberately not used here — their rotating
@@ -117,6 +124,17 @@ sync. See [SSO](sso.md) for how a request selects a profile.
       "Effect": "Allow",
       "Action": ["secretsmanager:CreateSecret", "secretsmanager:PutSecretValue", "secretsmanager:TagResource"],
       "Resource": ["arn:aws:secretsmanager:*:*:secret:/platform/grafana-cloud/stacks/*"]
+    },
+    {
+      "Sid": "DeleteManagedVendingMachineOutputs",
+      "Effect": "Allow",
+      "Action": ["secretsmanager:DeleteSecret"],
+      "Resource": ["arn:aws:secretsmanager:*:*:secret:/platform/grafana-cloud/stacks/*"],
+      "Condition": {
+        "StringEquals": {
+          "secretsmanager:ResourceTag/grafana-cloud-vending-machine": "managed"
+        }
+      }
     }
   ]
 }
@@ -133,18 +151,26 @@ your cluster:
   platform.
 
 Do not put long-lived AWS keys in the `SecretStore`. The controller should obtain short-lived
-credentials from workload identity. Restrict `CreateSecret`, `PutSecretValue`, and `TagResource`
-to the output prefix; restrict read access to the input and output paths actually required.
+credentials from workload identity. Restrict `CreateSecret`, `PutSecretValue`, and `TagResource` to
+the output prefix; allow `DeleteSecret` only for output documents carrying the function's stable
+`grafana-cloud-vending-machine: managed` tag; restrict read access to the input and output paths
+actually required.
 
 The example uses AWS Secrets Manager, not Systems Manager Parameter Store. The composition
 function itself only emits `SecretStore` references, so another ESO provider can be substituted
 if it supports `ExternalSecret` and `PushSecret` with the required structured-value behaviour.
 
-`PushSecret` uses `deletionPolicy: None`. Removing a request does not delete its external
-credential documents — see [Architecture → baseline and optional resources](architecture.md) and
-the decommission runbook in the project
-[README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook) for
-the intentional non-destructive lifecycle this produces.
+`PushSecret` uses retain behaviour by default. Removing an unarmed request therefore does not
+delete its external credential documents. With an authorized
+`spec.lifecycle.externalResources: Delete`, the first reviewed stage only arms deletion; after
+`status.deletionReady=true` confirms the rotating tokens are deletion-managed and ESO has finalized
+and currently synced each enabled credential PushSecret. Stage 2 removes the dependent access claims and waits for their
+Kubernetes objects and finalizers to be gone while the Stack still exists. Stage 3 removes the
+request, after which ESO removes the administrator and telemetry documents. AWS Secrets
+Manager defaults to a 30-day recovery window for that deletion, and the supplied IAM policy includes
+tag-conditioned `DeleteSecret` on the output prefix. A platform operator using another backend must verify its
+`PushSecret` Delete support before authorizing this lifecycle. See [Architecture → decommission and access-claim ordering](architecture.md#decommission-and-access-claim-ordering)
+and the [decommission runbook](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook).
 
 ## Extra composition RBAC
 
@@ -157,6 +183,6 @@ stack's composed resources, which is outside Crossplane's default RBAC surface.
 ## Next steps
 
 - [SSO](sso.md) — how a request selects a platform-owned identity profile.
-- [Security](security.md) — supply-chain verification and the non-destructive lifecycle.
+- [Security](security.md) — supply-chain verification and the Retain-by-default lifecycle.
 - [Installation](installation.md) — where the `SecretStore` and organization `ProviderConfig` are
   applied during bootstrap.

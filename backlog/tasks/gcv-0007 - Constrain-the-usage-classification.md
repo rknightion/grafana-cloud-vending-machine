@@ -1,9 +1,11 @@
 ---
 id: GCV-0007
 title: Constrain the usage classification
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@codex'
 created_date: '2026-08-20 16:10'
+updated_date: '2026-08-20 17:42'
 labels:
   - api
 dependencies: []
@@ -31,3 +33,19 @@ Options, not exclusive: add an allowed set to the platform-owned Composition inp
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Map the usage identity contract and every output-path description.
+2. Freeze the platform-owned vocabulary and immutability behavior, then implement with focused validation/tests.
+3. Update documentation, run the integrated gate and record exact-SHA hosted proof.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Design frozen 2026-08-20: use both controls. Add platform-owned allowedUsages with reference defaults development and production, reject any request value outside it, and make spec.usage immutable with CEL because it is part of external credential identity. Document the full prefix/region/usage/slug path and that immutability prevents orphaned documents at an old path.
+
+Local implementation evidence 2026-08-20: allowedUsages validation, usage immutability, path regression coverage, documentation updates, and the integrated ./scripts/validate.sh gate passed with 89.3% statement coverage. Hosted exact-SHA evidence remains pending.
+<!-- SECTION:NOTES:END -->
