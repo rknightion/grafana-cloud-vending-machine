@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-08-20 16:10'
-updated_date: '2026-08-20 17:42'
+updated_date: '2026-08-20 17:48'
 labels:
   - api
   - design
@@ -63,4 +63,6 @@ Second security correction 2026-08-20: deletionAuthorizations now includes the r
 CodeRabbit correction audit 2026-08-20: dismissed two Major suggestions after source verification. ESO v2.6.0 status.syncedResourceVersion is generation-hash, not metadata.resourceVersion, so the current-generation prefix check is correct. Gating destructive desired fields on deletionReady would be circular because readiness must first observe those fields; Stage 1 intentionally renders deletion-capable policies without deleting resources, and readiness proves their observed preparation before removal.
 
 Local implementation evidence 2026-08-20: focused lifecycle/security RED-GREEN tests and full go test -race ./... passed; go vet ./... passed; fresh SECURITY review returned PASS with no Critical or Warning findings; CodeRabbit's two code suggestions were dismissed against pinned ESO/controller semantics, and its final two tracker-assignee findings were false positives for the repository's generic @codex actor. ./scripts/validate.sh passed with 89.3% statement coverage and the public-release scan passed.
+
+Published package evidence 2026-08-20: source/merge SHA d2343aef13dac0a41505d35da6ca2545ae1ed7df passed hosted Validate public reference run 32399213024. Publish Grafana vending function run 32399213015 succeeded; immutable amd64/arm64 package digest sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8 verified with Cosign against https://github.com/rknightion/grafana-cloud-vending-machine/.github/workflows/publish-function.yml@refs/heads/main and is being pinned in the delivery commit.
 <!-- SECTION:NOTES:END -->

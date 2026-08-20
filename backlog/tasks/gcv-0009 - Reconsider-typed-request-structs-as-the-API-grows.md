@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-08-20 16:10'
-updated_date: '2026-08-20 17:42'
+updated_date: '2026-08-20 17:48'
 labels:
   - function
   - tech-debt
@@ -50,4 +50,6 @@ Decision 2026-08-20: do not migrate all request parsing to repository-owned type
 Security hardening did not cross the typed-migration reversal threshold: lifecycle remains one request field, and the additional authorization and observed-resource readiness checks are platform input/observed-state contracts rather than multiple lifecycle fields requiring atomic request parsing.
 
 Local implementation evidence 2026-08-20: malformed lifecycle tests prove explicit type/path errors, the no-migration decision and reversal trigger are recorded, and integrated ./scripts/validate.sh passed with 89.3% statement coverage. Hosted exact-SHA evidence remains pending.
+
+Published package evidence 2026-08-20: source/merge SHA d2343aef13dac0a41505d35da6ca2545ae1ed7df passed hosted Validate public reference run 32399213024. Publish Grafana vending function run 32399213015 succeeded; immutable amd64/arm64 package digest sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8 verified with Cosign against https://github.com/rknightion/grafana-cloud-vending-machine/.github/workflows/publish-function.yml@refs/heads/main and is being pinned in the delivery commit.
 <!-- SECTION:NOTES:END -->

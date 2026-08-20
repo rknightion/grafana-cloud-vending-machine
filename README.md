@@ -19,7 +19,7 @@ This reference pins versions and immutable artifacts instead of following latest
 | ESO Helm chart | 2.6.0 | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
 | Cosign verification image | 3.1.2, immutable digest | Verifies the Grafana provider and this repository's function package |
 | Composition function SDK | 0.7.1 | Pinned by the function Go module |
-| Vending composition function | sha256:673028c172bfeef3b1a9ab83ccb8b6db1320808b9f1e4b3c712aefc9ba4ed89b | Signed amd64/arm64 package built from commit fcd3bc5b57b1 |
+| Vending composition function | sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8 | Signed amd64/arm64 package built from commit d2343aef13da |
 
 The Grafana Crossplane provider describes itself as experimental and unsupported. Version 2.13.0 is the latest Crossplane-provider release as of 2026-08-04, but it was generated from Terraform provider 4.40.0 while Terraform provider 4.43.0 is current. In particular, Terraform provider 4.40.1 contains a Stack drift fix that is not in this Crossplane provider release. Test provider upgrades and drift behavior against non-production stacks before rollout.
 

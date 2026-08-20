@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-08-20 16:10'
-updated_date: '2026-08-20 17:42'
+updated_date: '2026-08-20 17:48'
 labels:
   - api
 dependencies: []
@@ -48,4 +48,6 @@ Options, not exclusive: add an allowed set to the platform-owned Composition inp
 Design frozen 2026-08-20: use both controls. Add platform-owned allowedUsages with reference defaults development and production, reject any request value outside it, and make spec.usage immutable with CEL because it is part of external credential identity. Document the full prefix/region/usage/slug path and that immutability prevents orphaned documents at an old path.
 
 Local implementation evidence 2026-08-20: allowedUsages validation, usage immutability, path regression coverage, documentation updates, and the integrated ./scripts/validate.sh gate passed with 89.3% statement coverage. Hosted exact-SHA evidence remains pending.
+
+Published package evidence 2026-08-20: source/merge SHA d2343aef13dac0a41505d35da6ca2545ae1ed7df passed hosted Validate public reference run 32399213024. Publish Grafana vending function run 32399213015 succeeded; immutable amd64/arm64 package digest sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8 verified with Cosign against https://github.com/rknightion/grafana-cloud-vending-machine/.github/workflows/publish-function.yml@refs/heads/main and is being pinned in the delivery commit.
 <!-- SECTION:NOTES:END -->

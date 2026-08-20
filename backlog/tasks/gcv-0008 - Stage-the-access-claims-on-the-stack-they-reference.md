@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-08-20 16:10'
-updated_date: '2026-08-20 17:42'
+updated_date: '2026-08-20 17:48'
 labels:
   - function
   - reconciliation
@@ -51,4 +51,6 @@ Design frozen 2026-08-20 against Crossplane 2.3 and function-sdk-go v0.7.1: ever
 Security hardening 2026-08-20: required-stack admission now closes when the referenced request reports status.deletionArmed=true or metadata.deletionTimestamp is present. Existing observed configured children remain admitted through the established one-way rule so Stage 2 can remove their owners deliberately.
 
 Local implementation evidence 2026-08-20: required-resource selector stability, fail-closed readiness, API-version preservation, one-way admission, decommission admission closure, go test -race ./..., go vet ./..., fresh SECURITY PASS, and integrated ./scripts/validate.sh all passed. Live Crossplane iteration remains unperformed; hosted exact-SHA evidence remains pending.
+
+Published package evidence 2026-08-20: source/merge SHA d2343aef13dac0a41505d35da6ca2545ae1ed7df passed hosted Validate public reference run 32399213024. Publish Grafana vending function run 32399213015 succeeded; immutable amd64/arm64 package digest sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8 verified with Cosign against https://github.com/rknightion/grafana-cloud-vending-machine/.github/workflows/publish-function.yml@refs/heads/main and is being pinned in the delivery commit.
 <!-- SECTION:NOTES:END -->
