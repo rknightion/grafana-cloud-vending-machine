@@ -86,9 +86,18 @@ spec:
             runAsGroup: 65532
             seccompProfile:
               type: RuntimeDefault
-  serviceAccountTemplate:
-    metadata:
-      name: function-grafana-vending
+  # No serviceAccountTemplate.metadata.name here, deliberately. Crossplane names the
+  # runtime ServiceAccount after the package *revision* unless the runtime config
+  # supplies a name, and a supplied name is the one setting that makes the
+  # ServiceAccount a single object shared by every revision of the package. Package
+  # runtime objects are applied with server-side apply and ownerReferences is a
+  # merge-keyed list, so on an upgrade that re-mints revisions the incoming revision's
+  # controller reference merges alongside the outgoing one and the API server rejects
+  # the object. crossplane/crossplane#7714 fixed that for the Service and the TLS
+  # secrets; the ServiceAccount is still on the plain applicator. The failure is a full
+  # outage: no runtime Deployment is created, so the pipeline fails closed and nothing
+  # reconciles, deletions included. Nothing here references either ServiceAccount by
+  # name, so there is nothing to gain by pinning one.
 ---
 apiVersion: pkg.crossplane.io/v1
 kind: Function

@@ -636,6 +636,12 @@ For a function upgrade:
 5. pin the immutable digest in platform/function/install.yaml;
 6. let Automatic Composition updates reconcile a disposable request first.
 
+For a Crossplane upgrade:
+
+1. read the release notes for changes to package revision naming, because a new revision id re-mints a revision for every installed package and exercises the runtime hand-off on all of them at once;
+2. keep serviceAccountTemplate.metadata.name unset in both DeploymentRuntimeConfigs. Crossplane names the runtime ServiceAccount after the revision unless the runtime config supplies a name, and a supplied name makes it a single object shared by every revision. Package runtime objects are applied with server-side apply and ownerReferences is a merge-keyed list, so the incoming revision's controller reference merges alongside the outgoing one and the API server rejects the object with "Only one reference can have Controller set to true". crossplane/crossplane#7714 fixed this for the Service and the TLS secrets and left the ServiceAccount on the plain applicator;
+3. after the upgrade, confirm both packages report Healthy=True and that a runtime pod exists for each. A package that is Installed=True Healthy=False with no pod fails the pipeline closed with DeadlineExceeded and no children to pick from, which stops every request from reconciling, deletions included.
+
 ## Decommission runbook
 
 Normal Git deletion is non-destructive. After pruning, confirm that the external stack and credential documents remain and revoke any credentials that no longer have an owner.
