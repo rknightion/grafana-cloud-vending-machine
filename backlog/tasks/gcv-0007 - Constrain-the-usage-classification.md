@@ -1,11 +1,11 @@
 ---
 id: GCV-0007
 title: Constrain the usage classification
-status: In Progress
+status: Done
 assignee:
   - '@codex'
 created_date: '2026-08-20 16:10'
-updated_date: '2026-08-20 17:48'
+updated_date: '2026-08-20 17:50'
 labels:
   - api
 dependencies: []
@@ -24,14 +24,14 @@ Options, not exclusive: add an allowed set to the platform-owned Composition inp
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 usage is validated against a platform-owned set, or made immutable, or both
-- [ ] #2 The consequence of changing it is documented wherever the output path is described
+- [x] #1 usage is validated against a platform-owned set, or made immutable, or both
+- [x] #2 The consequence of changing it is documented wherever the output path is described
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -50,4 +50,12 @@ Design frozen 2026-08-20: use both controls. Add platform-owned allowedUsages wi
 Local implementation evidence 2026-08-20: allowedUsages validation, usage immutability, path regression coverage, documentation updates, and the integrated ./scripts/validate.sh gate passed with 89.3% statement coverage. Hosted exact-SHA evidence remains pending.
 
 Published package evidence 2026-08-20: source/merge SHA d2343aef13dac0a41505d35da6ca2545ae1ed7df passed hosted Validate public reference run 32399213024. Publish Grafana vending function run 32399213015 succeeded; immutable amd64/arm64 package digest sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8 verified with Cosign against https://github.com/rknightion/grafana-cloud-vending-machine/.github/workflows/publish-function.yml@refs/heads/main and is being pinned in the delivery commit.
+
+Completion evidence: SHA d8d8ee9d90d714249178e468f908721e805a6af8; hosted Validate public reference run 32399726607 passed.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Made usage immutable and constrained it through platform-owned allowedUsages, updated every output-path contract, and verified the integrated release locally and in exact-SHA hosted validation.
+<!-- SECTION:FINAL_SUMMARY:END -->

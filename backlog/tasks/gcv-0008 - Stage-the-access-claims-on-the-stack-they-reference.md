@@ -1,11 +1,11 @@
 ---
 id: GCV-0008
 title: Stage the access claims on the stack they reference
-status: In Progress
+status: Done
 assignee:
   - '@codex'
 created_date: '2026-08-20 16:10'
-updated_date: '2026-08-20 17:48'
+updated_date: '2026-08-20 17:50'
 labels:
   - function
   - reconciliation
@@ -25,14 +25,14 @@ Cheaper alternative if extra resources prove awkward: gate on the claim's own ob
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Access claim children are withheld until the stack they reference can accept them
-- [ ] #2 Admission is one-way, matching the stack request
+- [x] #1 Access claim children are withheld until the stack they reference can accept them
+- [x] #2 Admission is one-way, matching the stack request
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -53,4 +53,12 @@ Security hardening 2026-08-20: required-stack admission now closes when the refe
 Local implementation evidence 2026-08-20: required-resource selector stability, fail-closed readiness, API-version preservation, one-way admission, decommission admission closure, go test -race ./..., go vet ./..., fresh SECURITY PASS, and integrated ./scripts/validate.sh all passed. Live Crossplane iteration remains unperformed; hosted exact-SHA evidence remains pending.
 
 Published package evidence 2026-08-20: source/merge SHA d2343aef13dac0a41505d35da6ca2545ae1ed7df passed hosted Validate public reference run 32399213024. Publish Grafana vending function run 32399213015 succeeded; immutable amd64/arm64 package digest sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8 verified with Cosign against https://github.com/rknightion/grafana-cloud-vending-machine/.github/workflows/publish-function.yml@refs/heads/main and is being pinned in the delivery commit.
+
+Completion evidence: SHA d8d8ee9d90d714249178e468f908721e805a6af8; hosted Validate public reference run 32399726607 passed. Live Crossplane iteration remains outside this public inert reference implementation.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Staged all access claims on an exact required referenced stack with fail-closed, one-way admission, closed new admission during decommission, and verified the package through local and exact-SHA hosted gates.
+<!-- SECTION:FINAL_SUMMARY:END -->
