@@ -1,10 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: verify-function-grafana-vending-673028c1
+  # A PreSync hook with a stable name, matching the provider's verification job.
+  # The digest used to be part of the name, which meant a package bump silently
+  # left the old job in place verifying the old digest; scripts/validate.sh now
+  # asserts the digest below matches spec.package.
+  name: verify-function-grafana-vending
   namespace: crossplane-system
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   activeDeadlineSeconds: 300
   backoffLimit: 2

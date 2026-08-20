@@ -80,11 +80,35 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 
 func markObservedResourcesReady(desired map[resource.Name]*resource.DesiredComposed, observed map[resource.Name]resource.ObservedComposed) {
 	for name, desiredResource := range desired {
-		observedResource, ok := observed[name]
-		if !ok || observedResource.Resource.GetCondition(xpv2.TypeReady).Status != corev1.ConditionTrue {
+		if !observedReady(observed, name) {
 			continue
 		}
 		desiredResource.Ready = resource.ReadyTrue
+	}
+}
+
+func observedExists(observed map[resource.Name]resource.ObservedComposed, name resource.Name) bool {
+	r, ok := observed[name]
+	return ok && r.Resource != nil
+}
+
+func observedReady(observed map[resource.Name]resource.ObservedComposed, name resource.Name) bool {
+	r, ok := observed[name]
+	if !ok || r.Resource == nil {
+		return false
+	}
+	return r.Resource.GetCondition(xpv2.TypeReady).Status == corev1.ConditionTrue
+}
+
+// admitStaged merges a staged group into the desired set once its precondition
+// holds, and keeps any member that already exists regardless. The second rule
+// is the important one: a desired resource that disappears is deleted, so a
+// stack that briefly reports not-Ready must not take its own content with it.
+func admitStaged(desired, staged map[resource.Name]*resource.DesiredComposed, observed map[resource.Name]resource.ObservedComposed, admit bool) {
+	for name, r := range staged {
+		if admit || observedExists(observed, name) {
+			desired[name] = r
+		}
 	}
 }
 
@@ -129,7 +153,20 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 		telemetryOutputPath = outputPath + "/telemetry-publisher"
 	}
 
+	// The foundation goes to the organization credential and can be created
+	// immediately. Stack-local resources cannot: the baseline content and every
+	// optional domain reach the stack through the per-stack ProviderConfig, whose
+	// credential Secret does not exist until the admin token has been minted and
+	// published, and plugin installation calls the stack's own API. Rendering
+	// them before the stack serves traffic does not fail the vend, because
+	// Crossplane retries, but it does emit an error per resource per reconcile:
+	// a healthy first vend then produces tens of warning events, a real failure
+	// is indistinguishable from that noise, and the churn can trip the
+	// composite's watch circuit breaker. So each group waits for the condition it
+	// actually depends on.
 	desired := map[resource.Name]*resource.DesiredComposed{}
+	whenStackServes := map[resource.Name]*resource.DesiredComposed{}
+	whenCredentialsPublished := map[resource.Name]*resource.DesiredComposed{}
 	desired["stack"] = newDesired("cloud.grafana.m.crossplane.io/v1alpha1", "Stack", namespace, slug,
 		map[string]any{"crossplane.io/external-name": slug},
 		map[string]any{
@@ -189,7 +226,7 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 		} {
 			folderName := dashboard.name + "-folder"
 			dashboardName := dashboard.name + "-dashboard"
-			desired[resource.Name(folderName)] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "Folder", namespace, slug+"-"+dashboard.name,
+			whenCredentialsPublished[resource.Name(folderName)] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "Folder", namespace, slug+"-"+dashboard.name,
 				map[string]any{"crossplane.io/external-name": dashboard.uid + "-folder"},
 				map[string]any{
 					"managementPolicies": managementPolicies,
@@ -204,7 +241,7 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 				"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": providerConfig},
 			}
 			ownedParameters(dashboardSpec, dashboardMode)["configJson"] = dashboardJSON(dashboard.title, dashboard.uid, dashboard.description)
-			desired[resource.Name(dashboardName)] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "Dashboard", namespace, slug+"-"+dashboard.name,
+			whenCredentialsPublished[resource.Name(dashboardName)] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "Dashboard", namespace, slug+"-"+dashboard.name,
 				map[string]any{"crossplane.io/external-name": dashboard.uid}, dashboardSpec)
 		}
 
@@ -214,7 +251,7 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 			"providerConfigRef":  map[string]any{"kind": "ProviderConfig", "name": providerConfig},
 		}
 		ownedParameters(preferencesSpec, homeMode)["homeDashboardUid"] = "vending-home"
-		desired["organization-preferences"] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "OrganizationPreferences", namespace, slug+"-preferences", nil, preferencesSpec)
+		whenCredentialsPublished["organization-preferences"] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "OrganizationPreferences", namespace, slug+"-preferences", nil, preferencesSpec)
 	}
 
 	changeReference, _ := spec["changeReference"].(string)
@@ -260,19 +297,23 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 	if err := addTelemetryAccess(desired, observed, namespace, slug, region, telemetryOutputPath, spec, settings); err != nil {
 		return nil, err
 	}
-	if err := addPluginInstallations(desired, namespace, slug, spec, settings.organizationProviderConfigName); err != nil {
+	if err := addPluginInstallations(whenStackServes, namespace, slug, spec, settings.organizationProviderConfigName); err != nil {
 		return nil, err
 	}
 
-	if err := addSSO(desired, namespace, providerConfig, spec, config); err != nil {
+	if err := addSSO(whenCredentialsPublished, namespace, providerConfig, spec, config); err != nil {
 		return nil, err
 	}
-	if err := addMonthlyReport(desired, namespace, providerConfig, slug, spec, baselineEnabled); err != nil {
+	if err := addMonthlyReport(whenCredentialsPublished, namespace, providerConfig, slug, spec, baselineEnabled); err != nil {
 		return nil, err
 	}
-	if err := addIncidentIntegration(desired, namespace, providerConfig, slug, spec, config); err != nil {
+	if err := addIncidentIntegration(whenCredentialsPublished, namespace, providerConfig, slug, spec, config); err != nil {
 		return nil, err
 	}
+
+	stackServes := observedReady(observed, "stack")
+	admitStaged(desired, whenStackServes, observed, stackServes)
+	admitStaged(desired, whenCredentialsPublished, observed, stackServes && observedReady(observed, "instance-credentials"))
 
 	return desired, nil
 }

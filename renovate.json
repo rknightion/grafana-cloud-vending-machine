@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Fleet policy (SHA pinning, immutable Action digests, cooldown, automerge) is inherited from the self-hosted Renovate admin config (rknightion/renovate-config config.js) via autodiscover. Only repo-specific configuration lives here. The crossplane and kubernetes managers ship no default managerFilePatterns and stay inert until a repository names its files, so without the patterns below Renovate would see the Go module and the workflows but neither package digest nor the signature verifier.",
+  "crossplane": {
+    "managerFilePatterns": [
+      "/^platform/function/install\\.yaml$/",
+      "/^platform/provider/provider-grafana\\.yaml$/"
+    ]
+  },
+  "kubernetes": {
+    "managerFilePatterns": [
+      "/^platform/function/install\\.yaml$/",
+      "/^platform/provider/provider-grafana\\.yaml$/"
+    ]
+  },
+  "packageRules": [
+    {
+      "description": "The provider digest is pinned in two places: spec.package and the argv of the cosign job that verifies it, which scripts/validate.sh asserts match. An automatic pull request updates only the first and lands red. The upgrade runbook also requires reading the provider and Terraform provider changelogs, diffing generated CRD schemas for every activated kind, and proving both reconciliation modes against a disposable stack. So surface a new provider on the dependency dashboard and raise a pull request only when a human asks for one.",
+      "matchManagers": ["crossplane"],
+      "matchDepTypes": ["provider"],
+      "dependencyDashboardApproval": true,
+      "automerge": false
+    },
+    {
+      "description": "This repository publishes the composition function package itself. Its digest advances through publish-function.yml and the function half of the upgrade runbook, never through a dependency update.",
+      "matchManagers": ["crossplane"],
+      "matchDepTypes": ["function"],
+      "enabled": false
+    }
+  ]
+}

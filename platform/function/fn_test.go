@@ -14,39 +14,8 @@ import (
 	"github.com/crossplane/function-sdk-go/resource"
 )
 
-func TestMinimalStackRendersBaseline(t *testing.T) {
-	rsp := runStack(t, minimalStack(), nil)
-
-	got := make([]string, 0, len(rsp.GetDesired().GetResources()))
-	for name, desired := range rsp.GetDesired().GetResources() {
-		got = append(got, name+"="+desired.GetResource().GetFields()["kind"].GetStringValue())
-	}
-	sort.Strings(got)
-
-	want := []string{
-		"billing-dashboard=Dashboard",
-		"billing-folder=Folder",
-		"credentials=PushSecret",
-		"endpoints-dashboard=Dashboard",
-		"endpoints-folder=Folder",
-		"homepage-dashboard=Dashboard",
-		"homepage-folder=Folder",
-		"instance-credentials=ExternalSecret",
-		"organization-preferences=OrganizationPreferences",
-		"provider-config=ProviderConfig",
-		"stack=Stack",
-		"stack-service-account=StackServiceAccount",
-		"telemetry-access-policy=AccessPolicy",
-		"telemetry-credentials=PushSecret",
-	}
-	sort.Strings(want)
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Fatalf("minimal stack desired resources differ (-want +got):\n%s", diff)
-	}
-}
-
 func TestBaselineResourcesUseDeterministicExternalNames(t *testing.T) {
-	rsp := runStack(t, minimalStack(), nil)
+	rsp := runStack(t, minimalStack(), foundationReadyObserved())
 
 	want := map[string]string{
 		"stack":               "teamdemo01",
@@ -158,7 +127,7 @@ func TestPluginInstallationsAreOptionalAndStackScoped(t *testing.T) {
 		map[string]any{"slug": "grafana-clock-panel", "version": "2.1.3"},
 		map[string]any{"slug": "grafana-piechart-panel"},
 	}})
-	rsp := runStack(t, claim, nil)
+	rsp := runStack(t, claim, foundationReadyObserved())
 	clock := desiredResource(t, rsp, "plugin-grafana-clock-panel")
 	wantClock := map[string]any{
 		"cloudStackRef": map[string]any{"name": "teamdemo01"},
@@ -348,7 +317,7 @@ func TestDashboardAndHomeReconciliationModes(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			rsp := runStack(t, tc.claim, nil)
+			rsp := runStack(t, tc.claim, foundationReadyObserved())
 			dashboardSpec := nestedMap(t, desiredResource(t, rsp, "homepage-dashboard"), "spec")
 			if _, ok := nestedMap(t, dashboardSpec, tc.wantOwner)[tc.field]; !ok {
 				t.Fatalf("%s.%s is absent", tc.wantOwner, tc.field)
@@ -379,7 +348,7 @@ func TestSSOReconciliationModesUseStableIdentity(t *testing.T) {
 	for _, mode := range []string{"enforced", "createOnly", "observeOnly", "disabled"} {
 		t.Run(mode, func(t *testing.T) {
 			claim := stackDocument(map[string]any{"sso": map[string]any{"mode": mode, "profile": "corporate"}})
-			rsp := runStackWithInput(t, claim, nil, platformConfig())
+			rsp := runStackWithInput(t, claim, foundationReadyObserved(), platformConfig())
 			sso, exists := rsp.GetDesired().GetResources()["sso"]
 			if mode == "disabled" {
 				if exists {
@@ -447,8 +416,8 @@ func TestMonthlyReportIsOptionalValidatedAndDeterministic(t *testing.T) {
 			"enabled": true, "recipients": []any{"platform@example.com", "owner@example.com"}, "replyTo": "platform@example.com",
 		},
 	})
-	first := desiredResource(t, runStack(t, claim, nil), "monthly-report")
-	second := desiredResource(t, runStack(t, claim, nil), "monthly-report")
+	first := desiredResource(t, runStack(t, claim, foundationReadyObserved()), "monthly-report")
+	second := desiredResource(t, runStack(t, claim, foundationReadyObserved()), "monthly-report")
 	if diff := cmp.Diff(first, second); diff != "" {
 		t.Fatalf("monthly report is not deterministic (-first +second):\n%s", diff)
 	}
@@ -476,7 +445,7 @@ func TestIncidentIntegrationIsOptionalAndSecretBacked(t *testing.T) {
 	}
 
 	claim := stackDocument(map[string]any{"incidentIntegration": map[string]any{"enabled": true, "profile": "incident-relay"}})
-	rsp := runStackWithInput(t, claim, nil, platformConfig())
+	rsp := runStackWithInput(t, claim, foundationReadyObserved(), platformConfig())
 	want := []string{
 		"incident-oncall-test-firing", "incident-oncall-test-resolved",
 		"incident-oncall-production-firing", "incident-oncall-production-resolved",
@@ -507,7 +476,7 @@ func TestIncidentIntegrationIsOptionalAndSecretBacked(t *testing.T) {
 	enforcedClaim := stackDocument(map[string]any{"incidentIntegration": map[string]any{
 		"enabled": true, "profile": "incident-relay", "templateMode": "enforced",
 	}})
-	enforced := runStackWithInput(t, enforcedClaim, nil, platformConfig())
+	enforced := runStackWithInput(t, enforcedClaim, foundationReadyObserved(), platformConfig())
 	enforcedSpec := nestedMap(t, desiredResource(t, enforced, "incident-oncall-test-firing"), "spec")
 	if _, ok := nestedMap(t, enforcedSpec, "forProvider")["data"]; !ok {
 		t.Fatal("enforced incident webhook does not own its data template")
@@ -748,7 +717,7 @@ func TestSAMLSSOProfileRendersSAMLSettings(t *testing.T) {
 			}
 		}]}
 	}`
-	rsp := runStackWithInput(t, claim, nil, input)
+	rsp := runStackWithInput(t, claim, foundationReadyObserved(), input)
 	params := nestedMap(t, desiredResource(t, rsp, "sso"), "spec", "forProvider")
 	if _, ok := params["samlSettings"]; !ok {
 		t.Fatal("SAML profile did not render samlSettings")
@@ -929,4 +898,133 @@ func fatalResult(rsp *fnv1.RunFunctionResponse) string {
 func mustJSON(value any) string {
 	b, _ := json.Marshal(value)
 	return string(b)
+}
+
+func TestFirstPassRendersOnlyTheStackFoundation(t *testing.T) {
+	rsp := runStack(t, minimalStack(), nil)
+
+	got := make([]string, 0, len(rsp.GetDesired().GetResources()))
+	for name := range rsp.GetDesired().GetResources() {
+		got = append(got, name)
+	}
+	sort.Strings(got)
+
+	want := []string{
+		"credentials",
+		"instance-credentials",
+		"provider-config",
+		"stack",
+		"stack-service-account",
+		"telemetry-access-policy",
+		"telemetry-credentials",
+	}
+	sort.Strings(want)
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Fatalf("first-pass desired resources differ (-want +got):\n%s", diff)
+	}
+}
+
+func TestStackLocalResourcesAppearOnceTheStackServesAndCredentialsArePublished(t *testing.T) {
+	rsp := runStack(t, minimalStack(), foundationReadyObserved())
+
+	got := make([]string, 0, len(rsp.GetDesired().GetResources()))
+	for name, desired := range rsp.GetDesired().GetResources() {
+		got = append(got, name+"="+desired.GetResource().GetFields()["kind"].GetStringValue())
+	}
+	sort.Strings(got)
+
+	want := []string{
+		"billing-dashboard=Dashboard",
+		"billing-folder=Folder",
+		"credentials=PushSecret",
+		"endpoints-dashboard=Dashboard",
+		"endpoints-folder=Folder",
+		"homepage-dashboard=Dashboard",
+		"homepage-folder=Folder",
+		"instance-credentials=ExternalSecret",
+		"organization-preferences=OrganizationPreferences",
+		"provider-config=ProviderConfig",
+		"stack=Stack",
+		"stack-service-account=StackServiceAccount",
+		"stack-token=StackServiceAccountRotatingToken",
+		"telemetry-access-policy=AccessPolicy",
+		"telemetry-credentials=PushSecret",
+	}
+	sort.Strings(want)
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Fatalf("staged desired resources differ (-want +got):\n%s", diff)
+	}
+}
+
+func TestStackLocalResourcesAreNeverWithdrawnOnceObserved(t *testing.T) {
+	// A desired resource that disappears is deleted, so an already-created
+	// folder must survive the stack reporting not-Ready.
+	observed := map[string]*fnv1.Resource{
+		"billing-folder": observedResource(`{
+			"apiVersion":"oss.grafana.m.crossplane.io/v1alpha1",
+			"kind":"Folder",
+			"metadata":{"name":"teamdemo01-billing","namespace":"grafana-vending"}
+		}`),
+	}
+	rsp := runStack(t, minimalStack(), observed)
+
+	resources := rsp.GetDesired().GetResources()
+	if _, ok := resources["billing-folder"]; !ok {
+		t.Fatal("an already-observed folder was withdrawn from the desired set")
+	}
+	if _, ok := resources["endpoints-folder"]; ok {
+		t.Fatal("an unobserved folder was rendered before the stack was serving")
+	}
+}
+
+func TestPluginInstallationWaitsOnlyForTheStackToServe(t *testing.T) {
+	observed := map[string]*fnv1.Resource{
+		"stack": observedResource(`{
+			"apiVersion":"cloud.grafana.m.crossplane.io/v1alpha1",
+			"kind":"Stack",
+			"metadata":{"name":"teamdemo01","namespace":"grafana-vending"},
+			"status":{"conditions":[{"type":"Ready","status":"True","reason":"Available"}]}
+		}`),
+	}
+	claim := stackDocument(map[string]any{"plugins": []any{
+		map[string]any{"slug": "grafana-clock-panel", "version": "2.1.3"},
+	}})
+	rsp := runStack(t, claim, observed)
+
+	resources := rsp.GetDesired().GetResources()
+	if _, ok := resources["plugin-grafana-clock-panel"]; !ok {
+		t.Fatal("plugin installation was withheld after the stack began serving")
+	}
+	if _, ok := resources["billing-folder"]; ok {
+		t.Fatal("baseline content was rendered before the per-stack credential was published")
+	}
+}
+
+func foundationReadyObserved() map[string]*fnv1.Resource {
+	return map[string]*fnv1.Resource{
+		"stack": observedResource(`{
+			"apiVersion":"cloud.grafana.m.crossplane.io/v1alpha1",
+			"kind":"Stack",
+			"metadata":{"name":"teamdemo01","namespace":"grafana-vending"},
+			"status":{
+				"atProvider":{"id":"12345","slug":"teamdemo01","url":"https://teamdemo01.grafana.net"},
+				"conditions":[{"type":"Ready","status":"True","reason":"Available"}]
+			}
+		}`),
+		"stack-service-account": observedResource(`{
+			"apiVersion":"cloud.grafana.m.crossplane.io/v1alpha1",
+			"kind":"StackServiceAccount",
+			"metadata":{"name":"teamdemo01-admin","namespace":"grafana-vending"},
+			"status":{
+				"atProvider":{"id":"67890"},
+				"conditions":[{"type":"Ready","status":"True","reason":"Available"}]
+			}
+		}`),
+		"instance-credentials": observedResource(`{
+			"apiVersion":"external-secrets.io/v1",
+			"kind":"ExternalSecret",
+			"metadata":{"name":"teamdemo01-provider-credentials","namespace":"grafana-vending"},
+			"status":{"conditions":[{"type":"Ready","status":"True","reason":"SecretSynced"}]}
+		}`),
+	}
 }
