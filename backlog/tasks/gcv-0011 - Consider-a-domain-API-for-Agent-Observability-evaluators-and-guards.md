@@ -1,0 +1,36 @@
+---
+id: GCV-0011
+title: Consider a domain API for Agent Observability evaluators and guards
+status: To Do
+assignee: []
+created_date: '2026-08-21 12:14'
+labels: []
+dependencies:
+  - GCV-0010
+ordinal: 11000
+---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+Once the provider pin carries the agento11y family, five kinds become available: Collection, Evaluator, EvaluationRule, HookRule and RuleAction. They configure LLM and agent observability on a stack: evaluator definitions, online evaluation rules that sample and score live generations, and request-path guard rules that can redact or filter tools.
+
+This is a candidate domain module, not stack-baseline content. Evaluators and rules depend on the workload being observed, so nothing here can be inferred from a stack request. The guard rules are the interesting part for a platform team, because they are a policy surface rather than a workload concern.
+
+Decide whether this belongs in the reference at all before designing it. The README provider-family table already assigns unowned families to separate opt-in modules, and that may remain the right answer.
+
+Verified: these five kinds are absent from the provider generated against Terraform v4.40.1 and are the whole Agent Observability upstream family.
+<!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [ ] #1 A decision is recorded on whether Agent Observability is in scope for this reference, with the reasoning
+- [ ] #2 If in scope, the API distinguishes platform-owned guard policy from workload-owned evaluators
+- [ ] #3 If out of scope, the README provider-family table row states that and why
+<!-- AC:END -->
+
+## Definition of Done
+<!-- DOD:BEGIN -->
+- [ ] #1 ./scripts/validate.sh passes locally
+- [ ] #2 hosted Validate workflow passes on the completing commit
+<!-- DOD:END -->
