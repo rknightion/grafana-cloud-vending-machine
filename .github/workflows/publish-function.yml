@@ -31,7 +31,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.25.11
+  GO_VERSION: 1.27.0
   CROSSPLANE_VERSION: v2.3.4
   CROSSPLANE_LINUX_AMD64_SHA256: 6423a01981a701315cbf978a6dbcd45575f6b881bc80f4c25f9c09dd403bc1c5
   XPKG: ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending
