@@ -4,6 +4,7 @@ title: Vend baseline Fleet Management pipelines as a telemetry hygiene control
 status: To Do
 assignee: []
 created_date: '2026-08-21 12:15'
+updated_date: '2026-08-27 09:27'
 labels: []
 dependencies: []
 ordinal: 20000
@@ -37,3 +38,40 @@ Keep matchers and label values generic; real attribute values are environment-ow
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Decision, taken by the repository owner: pipelines only, platform-owned
+
+Crossplane owns baseline Pipelines selected by profile. Collectors are read through the observe-only
+family for inventory and never written. Collectors self-register when the agent starts, so a written
+Collector means Crossplane contests the attributes the collector reports about itself on every
+reconcile, and a collector that never starts leaves a phantom object. Full Terraform parity minus the
+one resource that fights back.
+
+## Provider coverage verified at the current pin, so no bump is needed for this
+
+`fleetmanagement.grafana.m.crossplane.io` Collectors and Pipelines are present at v2.13.0 and at the
+pinned main build, plus observe-only Collector and CollectorSet. Pipeline field parity with the
+Terraform resource is exact: name, contents, matchers, enabled, configType (ALLOY or OTEL) and
+terraformSourceNamespace. Collector carries collectorType, enabled and remoteAttributes.
+
+## Half the credential plumbing already exists
+
+The provider merges the stack connection secret into the ProviderConfig credential map, and
+`fleet_management_url` is one of the keys it lands. The per-stack ProviderConfig already sets
+`stackSecretRef`, so the URL is present today with no change. What is missing is
+`fleet_management_auth`, which is `<stack id>:<token>` where the token comes from an access policy
+carrying `fleet-management:read` and `fleet-management:write`. Both scope names verified against the
+Terraform resource documentation.
+
+That is an exact clone of the existing telemetry-publisher chain in platform/function/access.go:
+stack-realm AccessPolicy, AccessPolicyRotatingToken, PushSecret, then one extra key in the
+`instance-credentials` ExternalSecret template. Reuse the 720h expiry and 168h early-rotation window
+rather than inventing new ones.
+
+Upstream note for whoever implements this: Terraform provider 4.43.0 double-canonicalizes Alloy
+configs for multiline consistency, so pipeline contents round-trip differently than they did at the
+old pin. Diff a rendered pipeline against the API before assuming drift is real.
+<!-- SECTION:NOTES:END -->

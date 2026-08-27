@@ -4,6 +4,7 @@ title: Consider a domain API for Agent Observability evaluators and guards
 status: To Do
 assignee: []
 created_date: '2026-08-21 12:14'
+updated_date: '2026-08-27 09:27'
 labels: []
 dependencies:
   - GCV-0010
@@ -34,3 +35,21 @@ Verified: these five kinds are absent from the provider generated against Terraf
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Decision, taken by the repository owner: in scope as a full domain module
+
+All five agento11y kinds behind an opt-in module, with the API distinguishing platform-owned guard
+policy from workload-owned evaluators. HookRule and RuleAction are the request-path guards and are
+platform policy; Collection, Evaluator and EvaluationRule are workload-owned and cannot be inferred
+from a stack request.
+
+The dependency on GCV-0010 is cleared: the pinned main build carries all five kinds. The README
+provider-family table gained an agento11y row recording this decision and stating that no kind is
+activated until the module ships.
+
+Keep every rule body and evaluator definition inert and example-only. Real guard policy and real
+evaluator definitions are environment-owned.
+<!-- SECTION:NOTES:END -->

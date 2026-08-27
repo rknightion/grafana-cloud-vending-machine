@@ -81,6 +81,15 @@ func renderTeamAccess(xr map[string]any, observed map[resource.Name]resource.Obs
 	teamResourceName := name + "-team"
 	teamParams := map[string]any{"name": teamName}
 	copyOptionalFields(teamParams, team, "email", "members", "ignoreExternallySyncedMembers")
+	// The provider models team administrators as a set separate from members, and
+	// members carries ordinary membership only. Rendering admins claims ownership of
+	// it: an empty set demotes every administrator the team has, including ones added
+	// in the Grafana UI, while an absent one leaves them alone. So the key is emitted
+	// only when the request declares the field, and an explicitly empty list is a
+	// deliberate "this team has no administrators".
+	if administrators, ok := team["administrators"]; ok {
+		teamParams["admins"] = administrators
+	}
 	if preferences, ok := team["preferences"].(map[string]any); ok && len(preferences) > 0 {
 		teamParams["preferences"] = []any{preferences}
 	}

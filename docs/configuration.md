@@ -111,14 +111,15 @@ role bound to a directory-synced team.
 ### `GrafanaTeamAccess`
 
 One Team plus zero-to-many custom and fixed-role assignments. Use this for directory sync, direct
-membership, team preferences, additive custom roles, and existing fixed roles.
+membership and administration, team preferences, additive custom roles, and existing fixed roles.
 
 | Field | Default | Description |
 | --- | --- | --- |
 | `spec.stackRef.name` | required | Target stack. |
 | `spec.team.name` | required | Team display name (1-190 chars). |
 | `spec.team.email` | `""` | Optional team email (max 254 chars). |
-| `spec.team.members` | `[]` | Direct members by Grafana login email; each user must already exist. Max 100. |
+| `spec.team.members` | `[]` | Ordinary members by Grafana login email; each user must already exist. Max 100. |
+| `spec.team.administrators` | omitted | Team administrators by Grafana login email; each user must already exist. Max 100. Setting the field claims ownership of team administration, so an empty list demotes every administrator including ones added in the UI. Omit it to leave existing administrators alone. |
 | `spec.team.externalGroups` | `[]` | Identity-provider groups synchronized through Grafana Team Sync. Max 50. |
 | `spec.team.ignoreExternallySyncedMembers` | `true` | When true, provider membership reconciliation ignores members supplied by Team Sync while still managing the direct member set declared in Git. |
 | `spec.team.preferences.homeDashboardUid` | `""` | Team home dashboard UID (max 190 chars). |

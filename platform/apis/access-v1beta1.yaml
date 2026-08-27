@@ -23,7 +23,7 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
-          description: A Grafana team with optional directory sync, direct members, preferences, custom roles, and fixed-role assignments.
+          description: A Grafana team with optional directory sync, direct members and administrators, preferences, custom roles, and fixed-role assignments.
           required:
             - spec
           properties:
@@ -64,7 +64,16 @@ spec:
                         type: string
                         minLength: 3
                         maxLength: 254
-                      description: Direct members by Grafana login email; each user must already exist.
+                      description: Ordinary members by Grafana login email; each user must already exist. Team administrators belong in administrators, not here.
+                    administrators:
+                      type: array
+                      maxItems: 100
+                      x-kubernetes-list-type: set
+                      items:
+                        type: string
+                        minLength: 3
+                        maxLength: 254
+                      description: Team administrators by Grafana login email; each user must already exist. Setting this field claims ownership of team administration, so an empty list demotes every administrator including ones added in the Grafana UI. Omit the field to leave existing administrators alone.
                     externalGroups:
                       type: array
                       maxItems: 50

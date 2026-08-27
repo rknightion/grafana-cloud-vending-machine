@@ -6,7 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-08-21 12:18'
-updated_date: '2026-08-21 12:35'
+updated_date: '2026-08-27 09:27'
 labels: []
 dependencies: []
 ordinal: 29000
@@ -74,4 +74,19 @@ The better middle option is crossplane-contrib/provider-http, which is active an
 
 ### Auth maps cleanly
 Provider config is url plus api_key in the form tenant-id:token, with optional http_headers, retries and debug. The vending machine already mints stack access policy tokens and knows the numeric tenant identifier, so composing the credential and mirroring it to the secret store follows the existing pattern.
+
+## Decision, taken by the repository owner: out of scope, documented plainly
+
+Adaptive Metrics is not vended here, and neither are adaptive logs, traces or profiles. The Upjet
+route stays feasible and the feasibility findings above remain accurate, but neither generating a
+second provider nor adopting provider-http is work this reference takes on. The README must say so
+explicitly rather than leaving the largest cost lever unmentioned, and must name the ticket-based and
+UI routes that remain.
+
+Reversal cost is low and unchanged: nothing here depends on the decision, and the two upstream
+blockers are still about twenty lines whenever someone wants them.
+
+Remaining work on this task is documentation only: satisfy AC 1, 3 and 4. AC 2, the ruleset versus
+individual-rule merge strategy, falls away with adoption and should be recorded as not applicable
+rather than answered.
 <!-- SECTION:NOTES:END -->

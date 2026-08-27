@@ -15,13 +15,25 @@ This reference pins versions and immutable artifacts instead of following latest
 | Component | Version | Why |
 | --- | --- | --- |
 | Crossplane | 2.3.4 | Required for namespaced composite resources, namespaced managed resources, and ManagedResourceActivationPolicy |
-| Grafana Crossplane provider | 2.13.0, immutable digest | Current provider release when this reference was published; generated from Grafana Terraform provider 4.40.0 |
+| Grafana Crossplane provider | main build v2.13.0-13.gdc79560, immutable digest | Generated from Grafana Terraform provider 4.45.1, which is the first provider build carrying the complete upstream resource surface; no tagged release carries it yet |
 | ESO Helm chart | 2.6.0 | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
 | Cosign verification image | 3.1.2, immutable digest | Verifies the Grafana provider and this repository's function package |
 | Composition function SDK | 0.7.1 | Pinned by the function Go module |
 | Vending composition function | sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8 | Signed amd64/arm64 package built from commit d2343aef13da |
 
-The Grafana Crossplane provider describes itself as experimental and unsupported. Version 2.13.0 is the latest Crossplane-provider release as of 2026-08-04, but it was generated from Terraform provider 4.40.0 while Terraform provider 4.43.0 is current. In particular, Terraform provider 4.40.1 contains a Stack drift fix that is not in this Crossplane provider release. Test provider upgrades and drift behavior against non-production stacks before rollout.
+The Grafana Crossplane provider describes itself as experimental and unsupported. The pin is a
+main-branch build rather than a tagged release: v2.13.0 is the newest tag, generated from Terraform
+provider 4.40.1, and it omits ten upstream resources because the provider's generator panicked on the
+Agent Observability category. Main fixed the generator and moved to Terraform provider 4.45.1, so the
+pinned build reaches full resource parity while the tagged release does not.
+
+That build is published and signed exactly like a release. The provider's ci_tag.yaml workflow runs on
+a v* tag and on every push to main, pushes the package to both registries, and cosign-signs it, so the
+only difference is that the certificate identity ends refs/heads/main. A branch-scoped identity is
+satisfied by any main build, which makes the digest the real control: verify the digest, treat the
+identity as a provenance statement about the workflow rather than about a specific version, and move
+the pin to a tagged release once one carries the current surface. Test provider upgrades and drift
+behavior against non-production stacks before rollout.
 
 ESO issue [external-secrets/external-secrets#6593](https://github.com/external-secrets/external-secrets/issues/6593) remains open. Versions 2.7.0 and 2.8.0 send an empty replica-region request when creating an AWS Secrets Manager PushSecret target, which AWS rejects. Do not add a replica region merely to hide the bug. Upgrade after a fixed release exists and prove creation of a brand-new remote secret before removing the pin.
 
@@ -102,7 +114,7 @@ Three access APIs sit beside the stack request:
 | API | Ownership unit | Use it for |
 | --- | --- | --- |
 | GrafanaCustomRoleBinding | One Team, one custom Role, one whole-role RoleAssignment | Compact compatibility pattern for a unique custom role |
-| GrafanaTeamAccess | One Team plus zero-to-many custom and fixed-role assignments | Directory sync, direct membership, team preferences, additive custom roles, and existing fixed roles |
+| GrafanaTeamAccess | One Team plus zero-to-many custom and fixed-role assignments | Directory sync, direct membership and administration, team preferences, additive custom roles, and existing fixed roles |
 | GrafanaContentAccessPolicy | The complete ACL for one Folder or Dashboard | Basic-role, team, or user grants with one unambiguous owner per target |
 
 GrafanaTeamAccess uses RoleAssignmentItem rather than the whole-set RoleAssignment resource. That makes independently owned team bundles additive. GrafanaContentAccessPolicy deliberately uses the whole-set FolderPermission or DashboardPermission resource; only one policy may own a given target.
@@ -213,9 +225,11 @@ The current provider does not offer a resource that rewrites the global definiti
 
 GrafanaTeamAccess supports both members and externalGroups. Direct members must already exist in Grafana. External groups require the applicable Team Sync capability. With ignoreExternallySyncedMembers=true, provider membership reconciliation ignores members supplied by Team Sync while still managing the direct member set declared in Git. Give each Team one Kubernetes owner.
 
+members carries ordinary membership only; team administrators are a separate set. Declaring administrators claims ownership of team administration, and because the provider treats an empty set as authoritative, an empty list demotes every administrator including ones added in the Grafana UI. Omitting the field leaves them alone, which is what a team adopted from an existing stack normally wants.
+
 Custom role permissions are an allow list; there is no deny rule. Prefer the narrowest action and scope, keep global=false for stack-local roles, and validate actions against the Grafana version deployed to the target stack. The access-and-rbac example demonstrates alert-rule read/create/write plus the supporting folder-read and data-source-query permissions rather than granting organization Admin. Narrow folders:* and datasources:* to named UIDs in a real catalog.
 
-Provider 2.13.0 has a Role initializer defect: although autoIncrementVersion is optional in its CRD, the initializer rejects a Role that omits it. The function therefore emits autoIncrementVersion=false explicitly and never owns the deprecated, server-managed version field. Recheck this workaround when upgrading the provider.
+The pinned provider has a Role initializer defect: although autoIncrementVersion is optional in its CRD, the initializer rejects a Role that omits it. The Role CRD is byte-identical between v2.13.0 and the pinned main build, so the workaround still applies. The function therefore emits autoIncrementVersion=false explicitly and never owns the deprecated, server-managed version field. Recheck this workaround when upgrading the provider.
 
 RoleAssignment manages the entire set of actors for a role and conflicts with RoleAssignmentItem. GrafanaCustomRoleBinding is safe only because it creates a unique role and owns that role's entire assignment set. GrafanaTeamAccess uses RoleAssignmentItem so multiple team bundles can add assignments independently. Never manage the same role/actor pair through both APIs.
 
@@ -312,8 +326,8 @@ deletion defaults to a 30-day recovery window; the supplied IAM policy includes 
 
 The Grafana provider manifest:
 
-- pins the v2.13.0 OCI digest;
-- verifies Grafana's keyless signature against the exact tag workflow identity;
+- pins an immutable OCI digest, carried identically in spec.package and in the verification job's argv;
+- verifies Grafana's keyless signature against the exact publishing workflow identity, which is refs/heads/main for the pinned build;
 - runs the provider with SafeStart;
 - activates only the managed-resource kinds used by this reference.
 
@@ -472,6 +486,7 @@ Crossplane providers poll the external APIs and compare observed state with desi
 | Plugins | listed | Crossplane reconciles listed installations; omitted plugins are not adopted |
 | Custom roles, assignments, team sync | present in a binding | Crossplane repairs drift in the managed fields |
 | Team direct members and preferences | present in GrafanaTeamAccess | Crossplane restores the declared direct members and preferences; external sync members are ignored when configured |
+| Team administrators | present in GrafanaTeamAccess | Crossplane restores the declared administrator set and demotes undeclared administrators; omitting the field leaves administration unmanaged |
 | Fixed/custom RoleAssignmentItem | present in GrafanaTeamAccess | Crossplane restores the role-to-Team assignment without owning other actors assigned to that role |
 | Folder or dashboard ACL | present in GrafanaContentAccessPolicy | Crossplane restores the complete declared ACL; omitted entries are removed by Grafana's whole-set permission API |
 | OnCall outgoing-webhook data | createOnly | Initial generic payload is set; later UI template edits are preserved |
@@ -502,12 +517,13 @@ Plugin installation is list-driven. Pin plugin versions for repeatability. lates
 
 ## Complete provider surface and ownership boundaries
 
-Provider 2.13.0 exposes 111 namespaced external managed-resource kinds across 16 Grafana API families. Comprehensive architecture means assigning every family a sensible owner; it does not mean every new stack should automatically create an SLO, a k6 project, an incident schedule, an ML job, and organization members.
+The pinned provider exposes 121 namespaced external managed-resource kinds across 17 Grafana API families, plus 50 observe-only kinds generated from Terraform data sources. Comprehensive architecture means assigning every family a sensible owner; it does not mean every new stack should automatically create an SLO, a k6 project, an incident schedule, an ML job, and organization members.
 
 The activation policy enables only kinds emitted by the current Compositions. Add a kind deliberately when adding a domain API.
 
 | Provider family | Treatment in this reference |
 | --- | --- |
+| agento11y | Collection, Evaluator, EvaluationRule, HookRule, and RuleAction belong in an opt-in Agent Observability module, which distinguishes platform-owned guard policy from workload-owned evaluators. Nothing here can be inferred from a stack request, so the family is not stack-baseline content and no kind is activated until that module ships. |
 | alerting | ContactPoint is an optional stack child. Rule groups, notification policy, templates, mute timing, inhibition, recording rules, and enrichment belong in a separate per-stack alerting bundle with one owner for the routing tree; use the stack-local ProviderConfig and the same non-destructive policy pattern. |
 | asserts | Use a separate opt-in onboarding module because entitlement and additional metrics/Grafana credentials are required. |
 | assistant | MCP servers, quickstarts, rules, and skills require a separate security and content lifecycle. |
@@ -573,7 +589,7 @@ This matrix was checked resource-by-resource against the active modules in the T
 | Directory-synchronized teams | GrafanaCustomRoleBinding to Team | Equivalent |
 | Custom roles and permissions | GrafanaCustomRoleBinding to Role | Equivalent |
 | Role assignment | GrafanaCustomRoleBinding to RoleAssignment | Equivalent |
-| Direct members, team preferences, multiple custom roles | GrafanaTeamAccess | Additional reusable access pattern |
+| Direct members, administrators, team preferences, multiple custom roles | GrafanaTeamAccess | Additional reusable access pattern |
 | Existing fixed-role assignment | GrafanaTeamAccess to RoleAssignmentItem | Additional least-privilege pattern |
 | Basic-role and Team folder/dashboard ACLs | GrafanaContentAccessPolicy | Additional authoritative content-access pattern |
 | Incident outgoing webhooks | Four optional OutgoingWebhook resources with create-only or enforced data templates | Structural and reconciliation parity through a generic relay |
@@ -632,7 +648,7 @@ The provider imports external objects through the crossplane.io/external-name an
 | RoleAssignmentItem | declared role UID, literal actor type, and the observed bare Team ID: roleUID:team:teamID |
 | FolderPermission or DashboardPermission with a direct UID target | declared target UID |
 
-Do not infer the remaining import keys from Kubernetes names, display names, list order, or another resource's UID. Inventory them from the existing managed resource annotation and provider status or from the supported Grafana inventory API. Provider 2.13.0 uses keys such as stackSlug:serviceAccountID for StackServiceAccount, region:policyID for AccessPolicy, orgID:teamID for Team, region:tokenID for AccessPolicyRotatingToken, and orgID for OrganizationPreferences. A rotating service-account token and any resource without a documented importer must be recorded verbatim and rehearsed against the pinned provider; do not manufacture an ID. Whole-set content permissions that target another managed resource by reference also require the resolved target UID to be inventoried.
+Do not infer the remaining import keys from Kubernetes names, display names, list order, or another resource's UID. Inventory them from the existing managed resource annotation and provider status or from the supported Grafana inventory API. The pinned provider uses keys such as stackSlug:serviceAccountID for StackServiceAccount, region:policyID for AccessPolicy, orgID:teamID for Team, region:tokenID for AccessPolicyRotatingToken, and orgID for OrganizationPreferences. A rotating service-account token and any resource without a documented importer must be recorded verbatim and rehearsed against the pinned provider; do not manufacture an ID. Whole-set content permissions that target another managed resource by reference also require the resolved target UID to be inventoried.
 
 For a non-destructive orphan-and-adopt transition:
 
@@ -742,7 +758,7 @@ It performs:
 - YAML syntax parsing;
 - Kustomize rendering for the platform, AWS examples, and comprehensive catalog base.
 
-The unit tests pin the desired-resource contracts, deterministic external identities, gating behavior for observed IDs, rotating-token parameters, least-privilege scopes, output-document shape, reconciliation modes, OAuth and SAML rendering, SSO Secret references, incident resources, the pinned Role initializer workaround, Team membership/preferences, three-segment custom and fixed-role assignments, whole-target content ACLs, and safe composite status.
+The unit tests pin the desired-resource contracts, deterministic external identities, gating behavior for observed IDs, rotating-token parameters, least-privilege scopes, output-document shape, reconciliation modes, OAuth and SAML rendering, SSO Secret references, incident resources, the pinned Role initializer workaround, Team membership, administration and preferences, three-segment custom and fixed-role assignments, whole-target content ACLs, and safe composite status.
 
 Before making the repository public, also review repository settings, issues, workflow logs, releases, packages, and commit-author metadata. The automated history scan covers reachable local Git objects, but it cannot inspect deleted remote refs or external artifacts that are no longer present in a checkout.
 
@@ -750,7 +766,10 @@ Before making the repository public, also review repository settings, issues, wo
 
 - The Grafana provider is experimental and may lag the Terraform provider.
 - Provider schemas and Grafana APIs may expose fields that do not round-trip cleanly; test drift rather than assuming.
-- Provider 2.13.0 requires the optional Role autoIncrementVersion field to be present because of an initializer defect; this reference pins it to false and omits version.
+- The pinned provider requires the optional Role autoIncrementVersion field to be present because of an initializer defect; this reference pins it to false and omits version.
+- The pin is a main-branch provider build, not a tagged release, because no release yet carries the complete upstream resource surface. It is published and cosign-signed by the same workflow that publishes releases, but its certificate identity is branch-scoped, so the digest rather than the identity is what pins a specific artifact. Move to a tagged release when one reaches parity.
+- AccessPolicy realm is a Block List at the pinned build where v2.13.0 generated a Block Set. This reference emits exactly one realm entry, so element ordering is not load-bearing here; a multi-realm policy would need to treat order as significant.
+- Stack status gained per-service allowlist URL fields at the pinned build. They are endpoint references for retrieving source IP addresses to allow, not a means of restricting inbound access to a stack.
 - The reference has no one-command destructive workflow; the authorized Delete path still requires
   three reviewed stages and a readiness wait.
 - It does not provision Kubernetes, AWS infrastructure, DNS, identity providers, or incident relays.

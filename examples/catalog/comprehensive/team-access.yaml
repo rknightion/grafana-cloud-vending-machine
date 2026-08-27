@@ -13,6 +13,11 @@ spec:
     # consumer has not provisioned the example identity.
     members:
       - engineer@example.com
+    # Declaring administrators claims ownership of team administration: an empty
+    # list demotes every administrator, including ones added in the Grafana UI.
+    # Omit the field entirely to leave existing administrators alone.
+    administrators:
+      - lead@example.com
     externalGroups:
       - idp-example-observability-engineers
     ignoreExternallySyncedMembers: true

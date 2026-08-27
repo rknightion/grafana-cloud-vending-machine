@@ -9,9 +9,11 @@ description: Supply-chain verification, credential handling, and the Retain-by-d
 
 The Grafana provider manifest (`platform/provider/provider-grafana.yaml`):
 
-- Pins the v2.13.0 OCI digest.
-- Verifies Grafana's keyless signature against the exact tag workflow identity, using a
-  PreSync Argo CD hook Job running Cosign 3.1.2 at an immutable digest.
+- Pins an immutable OCI digest, carried identically in spec.package and in the verification job's argv.
+- Verifies Grafana's keyless signature against the exact publishing workflow identity, using a
+  PreSync Argo CD hook Job running Cosign 3.1.2 at an immutable digest. The pinned build comes from
+  main rather than a tag, so that identity ends `refs/heads/main` and is satisfied by any main build;
+  the digest is what pins this artifact.
 - Runs the provider with `--safe-start`.
 - Activates only the managed-resource kinds used by this reference, through a
   `ManagedResourceActivationPolicy`.

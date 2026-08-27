@@ -41,16 +41,18 @@ This reference pins versions and immutable artefacts rather than following lates
 | Component | Version | Why |
 | --- | --- | --- |
 | Crossplane | 2.3.4 | Namespaced composite resources, namespaced managed resources, `ManagedResourceActivationPolicy` |
-| Grafana Crossplane provider | 2.13.0, immutable digest | Current provider release when this reference was published; generated from Grafana Terraform provider 4.40.0 |
+| Grafana Crossplane provider | main build v2.13.0-13.gdc79560, immutable digest | Generated from Grafana Terraform provider 4.45.1; no tagged release carries the complete resource surface yet |
 | ESO Helm chart | 2.6.0 | Last release before the open AWS `PushSecret` creation regression in 2.7.0 and 2.8.0 |
 | Cosign verification image | 3.1.2, immutable digest | Verifies the Grafana provider and this repository's function package |
 | Composition function SDK | 0.7.1 | Pinned by the function Go module |
 | Vending composition function | `sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8` | Signed amd64/arm64 package built from commit `d2343aef13da` |
 
-The Grafana Crossplane provider describes itself as experimental and unsupported. It was
-generated from Terraform provider 4.40.0 while a newer Terraform provider release exists and
-contains fixes not yet in this Crossplane provider release — test provider upgrades against
-non-production stacks before rollout. See [Installation](installation.md) for how the provider
+The Grafana Crossplane provider describes itself as experimental and unsupported. The pin is a
+main-branch build, generated from Terraform provider 4.45.1, because the newest tagged release omits
+ten upstream resources. It is published and cosign-signed by the same workflow that publishes
+releases, with a certificate identity ending `refs/heads/main` instead of a tag, so the immutable
+digest is what pins the artifact — test provider upgrades against non-production stacks before
+rollout. See [Installation](installation.md) for how the provider
 and function packages are verified before Crossplane installs them.
 
 ## The copy-edit-review-commit path

@@ -26,11 +26,25 @@ spec:
         - name: cosign
           image: ghcr.io/sigstore/cosign/cosign:v3.1.2@sha256:d91bc4e7e95e8d2f549c747a72dc174f90579e410a1695f57f686674f84ce849
           imagePullPolicy: IfNotPresent
+          # This is a main-branch build, not a tagged release, so the certificate
+          # identity ends refs/heads/main rather than refs/tags/vX.Y.Z. The provider
+          # publishes both from the same workflow file: ci_tag.yaml runs on a v* tag
+          # and on every push to main, pushes the package to xpkg and GHCR, and signs
+          # both. The identity is therefore branch-scoped and any main build satisfies
+          # it — the digest below is what actually pins the artifact, and every upgrade
+          # must move the digest in both places.
+          #
+          # The reference carries a tag as well as a digest because the registry
+          # publishes no floating tag: there is no latest and no main, so a digest-only
+          # reference gives Renovate nothing to compare and it cannot see a newer build.
+          # The tag is git describe output, so its build number counts commits since the
+          # last release and orders monotonically. cosign resolves the digest and
+          # ignores the tag.
           args:
             - verify
             - --certificate-oidc-issuer=https://token.actions.githubusercontent.com
-            - --certificate-identity=https://github.com/grafana/crossplane-provider-grafana/.github/workflows/ci_tag.yaml@refs/tags/v2.13.0
-            - xpkg.upbound.io/grafana/provider-grafana@sha256:0a2666019348807b05ce1a96cb5b99e8c422b7a12beaa9713d3e051576e3ec3e
+            - --certificate-identity=https://github.com/grafana/crossplane-provider-grafana/.github/workflows/ci_tag.yaml@refs/heads/main
+            - xpkg.upbound.io/grafana/provider-grafana:v2.13.0-13.gdc79560@sha256:3f442e480da05f80be443663976cfd433d33d1d4acd30653a71b6be6eb157766
           env:
             - name: HOME
               value: /tmp
@@ -96,7 +110,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  package: xpkg.upbound.io/grafana/provider-grafana@sha256:0a2666019348807b05ce1a96cb5b99e8c422b7a12beaa9713d3e051576e3ec3e
+  package: xpkg.upbound.io/grafana/provider-grafana:v2.13.0-13.gdc79560@sha256:3f442e480da05f80be443663976cfd433d33d1d4acd30653a71b6be6eb157766
   packagePullPolicy: IfNotPresent
   revisionActivationPolicy: Automatic
   revisionHistoryLimit: 1

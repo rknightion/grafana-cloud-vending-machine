@@ -916,6 +916,50 @@ func TestTeamAccessRendersMembershipPreferencesAndAdditiveRoleAssignments(t *tes
 	if got := desiredExternalName(t, fixedAssignmentResource); got != "fixed_C2x8IxkiBc1KZVjyYH775T9jNMQ:team:42" {
 		t.Fatalf("fixed role assignment external name = %q", got)
 	}
+	if _, ok := team["admins"]; ok {
+		t.Fatal("team owns admins although the request declared no administrators")
+	}
+}
+
+// The provider gained a separate admins set, and members now means ordinary
+// membership only. Absent admins leaves administrators created outside Crossplane
+// alone; an explicitly empty admins demotes them. So an unset request field must
+// not render the key at all, and a set one must render exactly what was asked for,
+// empty list included.
+func TestTeamAccessOwnsAdministratorsOnlyWhenTheRequestDeclaresThem(t *testing.T) {
+	claim := func(administrators any) string {
+		team := map[string]any{"name": "Example Editors", "members": []any{"engineer@example.com"}}
+		if administrators != nil {
+			team["administrators"] = administrators
+		}
+		return mustJSON(map[string]any{
+			"apiVersion": "platform.example.org/v1beta1", "kind": "GrafanaTeamAccess",
+			"metadata": map[string]any{"name": "example-editors", "namespace": "grafana-vending"},
+			"spec": map[string]any{
+				"stackRef": map[string]any{"name": "teamdemo01"},
+				"team":     team,
+			},
+		})
+	}
+
+	declared := nestedMap(t, desiredResource(t, runAccess(t, claim([]any{"lead@example.com"}), nil), "team"), "spec", "forProvider")
+	if got := declared["admins"].([]any); len(got) != 1 || got[0] != "lead@example.com" {
+		t.Fatalf("team admins = %v", got)
+	}
+	if got := declared["members"].([]any); len(got) != 1 || got[0] != "engineer@example.com" {
+		t.Fatalf("team members = %v, want the ordinary member only", got)
+	}
+
+	emptied := nestedMap(t, desiredResource(t, runAccess(t, claim([]any{}), nil), "team"), "spec", "forProvider")
+	admins, ok := emptied["admins"].([]any)
+	if !ok || len(admins) != 0 {
+		t.Fatalf("explicitly empty administrators must render an empty admins set, got %v", emptied["admins"])
+	}
+
+	omitted := nestedMap(t, desiredResource(t, runAccess(t, claim(nil), nil), "team"), "spec", "forProvider")
+	if _, ok := omitted["admins"]; ok {
+		t.Fatal("omitted administrators must not render admins, which would demote administrators set outside Crossplane")
+	}
 }
 
 func TestTeamAccessRoleResourceIdentityDoesNotDependOnListOrder(t *testing.T) {
