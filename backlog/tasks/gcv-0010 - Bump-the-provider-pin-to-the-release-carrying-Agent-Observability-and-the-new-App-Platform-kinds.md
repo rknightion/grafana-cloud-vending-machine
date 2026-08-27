@@ -3,10 +3,10 @@ id: GCV-0010
 title: >-
   Bump the provider pin to the release carrying Agent Observability and the new
   App Platform kinds
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-21 12:13'
-updated_date: '2026-08-27 09:26'
+updated_date: '2026-08-27 09:29'
 labels: []
 dependencies: []
 references:
@@ -32,13 +32,13 @@ Do not activate kinds speculatively. Activation is driven by what the Compositio
 - [x] #2 ManagedResourceActivationPolicy activates only kinds that a Composition emits after this change
 - [x] #3 The README provider-family table gains a row for the agento11y family stating its ownership decision
 - [x] #4 Known limitations records the provider version and the resource-count parity reached
-- [ ] #5 ./scripts/validate.sh passes and the hosted validation run is green on the completing commit
+- [x] #5 ./scripts/validate.sh passes and the hosted validation run is green on the completing commit
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Notes
@@ -132,4 +132,6 @@ Local `./scripts/validate.sh` green: public-release scan, gofmt, go mod tidy, ra
 coverage, vet, YAML parse, four Kustomize renders, example READMEs, ApplicationSet watch path.
 CodeRabbit review raised two major findings, both fixed: the stale "exact tag workflow identity"
 wording in docs/security.md and the `revision` capture group above.
+
+Completed at 66e415a0. Hosted `Validate public reference` run 33058679814 green on that commit.
 <!-- SECTION:NOTES:END -->
