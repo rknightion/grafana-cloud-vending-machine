@@ -1,10 +1,10 @@
 ---
 id: GCV-0031
 title: Migrate the repo task surface to just and retire Makefiles and ad-hoc scripts
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-28 19:20'
-updated_date: '2026-08-29 10:42'
+updated_date: '2026-08-29 13:55'
 labels:
   - 'wave:2-fleet'
 dependencies: []
@@ -356,6 +356,15 @@ changes.
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Inspect the current task surface and workflow while preserving the two retained validation programs.
+2. Add the frozen justfile and update only the specified validation workflow, invocation documentation, agent contract, and Backlog definition of done.
+3. Validate formatting, recipe discovery, standalone recipe behavior, the full public-reference gate, and the final tracked diff.
+4. Commit named paths, push main, verify hosted validation at the completing SHA, then finalize the task with evidence.
+<!-- SECTION:PLAN:END -->
 
 ## Comments
 

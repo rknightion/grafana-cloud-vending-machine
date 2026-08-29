@@ -20,7 +20,7 @@ identity, no credentials, and no live requests.** Examples are inert by construc
 ## The gate
 
 ```bash
-./scripts/validate.sh
+just check
 ```
 
 One command, and it is the whole local gate: the public-release scan, `gofmt`, `go mod tidy` with a
@@ -31,6 +31,21 @@ script.
 
 **Completion claims carry evidence: the completing SHA and the hosted validation run ID.** A green
 local run alone is not `Done`.
+
+## Task interface
+
+This repo's task surface is a `justfile`. Discover it, don't guess it:
+
+    just --list                        # human-readable
+    just --dump --dump-format json     # machine-readable
+    just --show <recipe>               # what a recipe actually runs
+
+- `just check` is the full gate and is exactly what CI enforces. It must pass before you commit.
+- Prefer `just <recipe>` over the underlying tool. If you are typing `go test`, you want `just test`.
+- Run `just` with stdin from /dev/null. This repo defines no `[confirm]` recipes today, but if one is
+  added later, stop and ask before running it; never pass `--yes` or `JUST_YES=1`.
+- If a task you need does not exist, add a recipe with a `#` doc comment and a `[group(...)]`
+  rather than running a bare command.
 
 ## The publication constraint
 
@@ -44,7 +59,7 @@ home-directory prefix case-sensitively, and tooling instructions, hook tests and
 lines carry them by default. Anything committed here derives its paths from `git rev-parse
 --show-toplevel` or `CLAUDE_PROJECT_DIR`, or uses relative paths. Never hard-code one.
 
-Before committing, run the scan. It is the first stage of the gate, so `./scripts/validate.sh`
+Before committing, run the scan. It is the first stage of the gate, so `just check`
 covers it.
 
 ## Task tracking
@@ -69,7 +84,7 @@ and structural findings are fine. This is easy to break by accident precisely be
 feels private, and here it also fails the publication scan permanently. Sweep before committing:
 
 ```bash
-./scripts/public-release-scan.sh
+just public-release-scan
 ```
 
 **Never use `--notes` or `--plan` bare.** They *silently replace* the whole section, destroying

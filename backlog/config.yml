@@ -1,7 +1,7 @@
 project_name: "Grafana Cloud Vending Machine"
 default_status: "To Do"
 statuses: ["To Do", "In Progress", "Parked", "Done"]
-definition_of_done: ["./scripts/validate.sh passes locally", "hosted Validate workflow passes on the completing commit"]
+definition_of_done: ["just check passes locally", "hosted Validate workflow passes on the completing commit"]
 labels: []
 date_format: yyyy-mm-dd
 max_column_width: 20

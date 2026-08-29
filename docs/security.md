@@ -90,10 +90,10 @@ for the ordered procedure.
 
 ## Public-release scanning
 
-`scripts/validate.sh` runs `scripts/public-release-scan.sh`, which scans the working tree and
+`just check` runs `scripts/public-release-scan.sh`, which scans the working tree and
 reachable Git history for source identifiers, credential prefixes, private keys, local paths,
 private endpoints, account IDs, JWT-like values, Kubernetes Secret manifests, sensitive file
-names, and tracked archives/key containers. Run it before making a fork public — see
+names, and tracked archives/key containers. Run `just public-release-scan` before making a fork public — see
 [Troubleshooting](troubleshooting.md#running-the-validation-gate).
 
 This scan covers reachable local Git objects; it cannot inspect deleted remote refs or external

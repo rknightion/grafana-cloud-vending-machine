@@ -124,7 +124,7 @@ another backend must be checked for Delete support.
 Run the complete local gate before opening a change:
 
 ```bash
-./scripts/validate.sh
+just check
 ```
 
 It performs public-release scanning, Go formatting and module consistency checks, race-enabled

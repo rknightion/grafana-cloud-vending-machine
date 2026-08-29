@@ -33,8 +33,13 @@ jobs:
           go-version: 1.27.0
           cache-dependency-path: platform/function/go.sum
 
+      - name: Set up just
+        uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b # v3
+        with:
+          just-version: '1.58.0'
+
       - name: Validate
-        run: ./scripts/validate.sh
+        run: just check
 
   # Single aggregator the branch ruleset gates. Keeping the ruleset pinned to one
   # check means the job list above can change without touching branch protection.

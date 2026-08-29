@@ -746,7 +746,7 @@ are orphaned.
 Run the complete local gate:
 
 ~~~bash
-./scripts/validate.sh
+just check
 ~~~
 
 It performs:
