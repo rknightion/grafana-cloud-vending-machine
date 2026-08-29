@@ -21,7 +21,7 @@ jobs:
     permissions:
       contents: read
       packages: write # delete package versions
-    uses: rknightion/.github/.github/workflows/ghcr-cleanup.yml@30d43409fab7266a749ccf1a1c72ebcf79242d2c # v1.9.11
+    uses: rknightion/.github/.github/workflows/ghcr-cleanup.yml@b3f1cef6e76ce206b01e1a3bae63ce115a1cf570 # v1.10.0
     with:
       packages: "grafana-cloud-vending-machine/function-grafana-vending"
       # Scheduled runs prune for real; a manual dispatch defaults to dry-run.
