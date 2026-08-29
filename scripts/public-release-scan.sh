@@ -122,9 +122,23 @@ scan_fixed_allowing() {
 scan_fixed "source customer identifier" "ro""che"
 # The organisation name is also the public documentation hub this repository
 # publishes into, so hub references pass and environment identity still fails.
+#
+# The allowed forms are ENUMERATED, never a bare `<org>/`. That distinction is
+# the whole control: a wildcard would pass any repository under the org and the
+# rule would stop meaning anything. Each entry below is a named repository or
+# domain that is already public, or a phrase that names the org without naming
+# an environment.
+#
+# Longest forms first -- the alternation is tried left to right and each hit has
+# its allowed substrings removed before being re-tested, so a shorter prefix
+# matching first would leave the remainder behind and fail the line.
+#
+# Added 2026-08-29: the backlog task in this repo (GCV-0031, one of a fleet-wide
+# set) names the shared CI tooling and Renovate config repositories and the
+# self-hosted runner pool. Rob confirmed those four forms are publishable.
 org_identifier="m7""kni"
 scan_fixed_allowing "source API/domain identifier" "$org_identifier" \
-  "$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs"
+  "$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs|$org_identifier/ci-tools|$org_identifier/renovate-config|$org_identifier self-hosted|rknightion/$org_identifier"
 scan_fixed "source account identifier" "rob""knight"
 scan_fixed "source proof-of-concept identifier" "crossplane""avm"
 scan_fixed "source architecture acronym" "a""vm"
