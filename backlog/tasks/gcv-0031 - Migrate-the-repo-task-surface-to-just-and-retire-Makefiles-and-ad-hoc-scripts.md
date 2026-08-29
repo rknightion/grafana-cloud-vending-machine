@@ -1,10 +1,10 @@
 ---
 id: GCV-0031
 title: Migrate the repo task surface to just and retire Makefiles and ad-hoc scripts
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-28 19:20'
-updated_date: '2026-08-29 13:55'
+updated_date: '2026-08-29 14:00'
 labels:
   - 'wave:2-fleet'
 dependencies: []
@@ -339,22 +339,22 @@ changes.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Top-level justfile exists defining default, setup, fmt, fmt-check, lint, test and check with the frozen header (set shell bash -euo pipefail) and no unstable just features
-- [ ] #2 just check passes locally and its body is exactly ./scripts/validate.sh — byte-identical to what .github/workflows/validate.yml runs, so there is zero drift between the local gate and CI
-- [ ] #3 just --fmt --check passes on the justfile
-- [ ] #4 just --list shows a # doc comment and a [group(...)] for every public recipe, including public-release-scan, build and image
-- [ ] #5 No Makefile or GNUmakefile is added or needed to be deleted — none existed before this task and confirmedly none exist after
-- [ ] #6 scripts/validate.sh and scripts/public-release-scan.sh remain on disk unmodified and are reachable only via just check and just public-release-scan respectively
-- [ ] #7 .github/workflows/validate.yml calls just check via a setup-just step pinned to just-version 1.58.0 with a real resolved SHA, with permissions, concurrency, checkout persist-credentials:false and the ripgrep apt-get install step unchanged
-- [ ] #8 AGENTS.md, README.md, docs/troubleshooting.md and docs/security.md invoke just check / just public-release-scan instead of the bare script paths, and AGENTS.md gains the Task interface section
-- [ ] #9 backlog/config.yml's definition_of_done names just check passes locally instead of ./scripts/validate.sh passes locally, hand-edited per the repo's documented exception
-- [ ] #10 No file under backlog/docs or backlog/tasks is hand-edited, and .github/workflows/publish-function.yml and trigger-docs-sync.yml are untouched
+- [x] #1 Top-level justfile exists defining default, setup, fmt, fmt-check, lint, test and check with the frozen header (set shell bash -euo pipefail) and no unstable just features
+- [x] #2 just check passes locally and its body is exactly ./scripts/validate.sh — byte-identical to what .github/workflows/validate.yml runs, so there is zero drift between the local gate and CI
+- [x] #3 just --fmt --check passes on the justfile
+- [x] #4 just --list shows a # doc comment and a [group(...)] for every public recipe, including public-release-scan, build and image
+- [x] #5 No Makefile or GNUmakefile is added or needed to be deleted — none existed before this task and confirmedly none exist after
+- [x] #6 scripts/validate.sh and scripts/public-release-scan.sh remain on disk unmodified and are reachable only via just check and just public-release-scan respectively
+- [x] #7 .github/workflows/validate.yml calls just check via a setup-just step pinned to just-version 1.58.0 with a real resolved SHA, with permissions, concurrency, checkout persist-credentials:false and the ripgrep apt-get install step unchanged
+- [x] #8 AGENTS.md, README.md, docs/troubleshooting.md and docs/security.md invoke just check / just public-release-scan instead of the bare script paths, and AGENTS.md gains the Task interface section
+- [x] #9 backlog/config.yml's definition_of_done names just check passes locally instead of ./scripts/validate.sh passes locally, hand-edited per the repo's documented exception
+- [x] #10 No file under backlog/docs or backlog/tasks is hand-edited, and .github/workflows/publish-function.yml and trigger-docs-sync.yml are untouched
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -365,6 +365,18 @@ changes.
 3. Validate formatting, recipe discovery, standalone recipe behavior, the full public-reference gate, and the final tracked diff.
 4. Commit named paths, push main, verify hosted validation at the completing SHA, then finalize the task with evidence.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented the justfile migration in 1a07424ad5d36c715f28b8c7610bf96dae240b9e. The frozen fleet standard leaves default and setup ungrouped; all other public recipes are grouped and documented.
+
+Just 1.58.0 parses the task template’s @require lines as shell commands, so setup uses equivalent command -v guards; just setup completed successfully.
+
+Validation passed: just --fmt --check; just --dump --dump-format json; just --list; just setup; just fmt-check; just lint; just test (90.7% coverage); just public-release-scan; just check; direct ./scripts/validate.sh; and actionlint .github/workflows/validate.yml. CodeRabbit was skipped because this changed declarative task-runner/workflow configuration and documentation only, with no application or script logic change.
+
+Hosted Validate public reference run 33256408705 passed at 1a07424ad5d36c715f28b8c7610bf96dae240b9e; both Validate reference and ci-success succeeded.
+<!-- SECTION:NOTES:END -->
 
 ## Comments
 
@@ -409,3 +421,9 @@ Eleven of the 42 lanes arrived at this shape independently before it was ratifie
 **If this repo has no such legs, it has no `ci` recipe at all** and `check` is the whole gate. Do not add an empty one.
 ---
 <!-- COMMENTS:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added the standard justfile task surface, routed local and CI validation through just check, preserved both validation programs, and updated the documented entry points. Local validation and hosted Validate public reference run 33256408705 passed at 1a07424ad5d36c715f28b8c7610bf96dae240b9e.
+<!-- SECTION:FINAL_SUMMARY:END -->
