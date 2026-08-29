@@ -35,3 +35,19 @@ jobs:
 
       - name: Validate
         run: ./scripts/validate.sh
+
+  # Single aggregator the branch ruleset gates. Keeping the ruleset pinned to one
+  # check means the job list above can change without touching branch protection.
+  ci-success:
+    name: ci-success
+    runs-on: ubuntu-24.04
+    if: always()
+    needs: [validate]
+    steps:
+      - name: Fail if any required job did not pass
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: |
+          echo "A required job failed or was cancelled: ${{ join(needs.*.result, ', ') }}"
+          exit 1
+      - name: All required jobs passed
+        run: echo "ci-success — ${{ join(needs.*.result, ', ') }}"
