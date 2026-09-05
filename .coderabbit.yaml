@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Product-specific additions to the central CodeRabbit defaults.
+# Keep inheritance enabled; shared review policy lives in the owner/coderabbit repository.
+inheritance: true
+reviews:
+  path_instructions:
+  - path: platform/function/**/*.go
+    instructions: >-
+      Review composed resources as ownership contracts. Preserve omission versus explicit empty values:
+      an empty administrator set is authoritative and demotes all administrators, while omission leaves
+      it unmanaged. Whole-set ACL resources need one owner and all intended grants; item resources remain
+      additive. Keep enforced, createOnly, observeOnly and disabled management semantics distinct.
+  - path: platform/**/*.yaml
+    instructions: >-
+      External resources retain by default. Delete is accepted only for an exact platform-authorized request
+      identity/profile and only for state that can outlive the Stack. Preserve dependency order, Secret
+      references instead of literal credentials, least-privilege RBAC and provider/package signature identity.
+  - path: examples/catalog/**/*.yaml
+    instructions: >-
+      Examples remain inert, portable and free of source-environment identity, credentials and live requests.
+      Do not introduce absolute local paths, private endpoints, real account identifiers or token-like
+      placeholders. Keep each example renderable as its documented Kustomize base.
