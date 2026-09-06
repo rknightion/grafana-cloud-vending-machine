@@ -1,115 +1,69 @@
-# Grafana Cloud Vending Machine — contributor and agent instructions
-
-This is the canonical instruction file. `CLAUDE.md` imports it, so Claude Code and Codex read the
-same thing and the two cannot drift apart.
-
-## What this repository is
+# Grafana Cloud Vending Machine
 
 A portable, public reference implementation of a Grafana Cloud stack vending machine, built on
-Crossplane reconciliation and the Grafana Crossplane provider. It carries **no source-environment
-identity, no credentials, and no live requests.** Examples are inert by construction.
+Crossplane reconciliation and the Grafana Crossplane provider. It carries no source-environment
+identity, no credentials and no live requests. Examples are inert by construction.
 
-- `platform/` — the product: namespaced APIs, pipeline Compositions, the repository-owned Go
-  composition function, provider wiring, composition RBAC.
-- `examples/catalog/*` — inert consumer examples, each a renderable Kustomize base with a README.
-- `enabled/` — the only Argo-watched live-request directory. Starts empty and inert.
-- `deploy/` — optional installation and GitOps integration.
-- `docs/` + `README.md` — the published documentation site and the single comprehensive guide.
-- `archive/` — the pre-Backlog GitHub Issues archive. See `archive/README.md`.
+`enabled/` is the only Argo-watched live-request directory, and it starts empty. `scripts/validate.sh`
+asserts the ApplicationSet watches `enabled/*` and nothing else, so adding a second watch path breaks
+the gate deliberately.
 
 ## The gate
 
-```bash
-just check
-```
+`just check` runs `scripts/validate.sh`, byte for byte the same script the hosted
+`Validate public reference` workflow runs. It is the whole local gate and must pass before you commit.
 
-One command, and it is the whole local gate: the public-release scan, `gofmt`, `go mod tidy` with a
-`git diff --exit-code` on `go.mod`/`go.sum`, race-enabled tests with coverage, `go vet`, a YAML parse
-of every tracked YAML document, four Kustomize renders, example-README coverage, and the
-ApplicationSet watch-path assertion. The hosted `Validate public reference` workflow runs the same
-script.
-
-**Completion claims carry evidence: the completing SHA and the hosted validation run ID.** A green
-local run alone is not `Done`.
-
-## Task interface
-
-This repo's task surface is a `justfile`. Discover it, don't guess it:
-
-    just --list                        # human-readable
-    just --dump --dump-format json     # machine-readable
-    just --show <recipe>               # what a recipe actually runs
-
-- `just check` is the full gate and is exactly what CI enforces. It must pass before you commit.
-- Prefer `just <recipe>` over the underlying tool. If you are typing `go test`, you want `just test`.
-- Run `just` with stdin from /dev/null. This repo defines no `[confirm]` recipes today, but if one is
-  added later, stop and ask before running it; never pass `--yes` or `JUST_YES=1`.
-- If a task you need does not exist, add a recipe with a `#` doc comment and a `[group(...)]`
-  rather than running a bare command.
+Completion claims carry evidence: the completing SHA and the hosted validation run ID. A green local
+run alone is not `Done`.
 
 ## The publication constraint
 
-`scripts/public-release-scan.sh` scans the working tree **and every reachable Git revision** for
-source-environment identifiers, token prefixes, private endpoints, key material and forbidden
-filenames. Because it scans history, a banned literal that reaches a commit is **not** fixed by a
-later commit that removes it, and rewriting published history is not an option here.
+`scripts/public-release-scan.sh` (also `just public-release-scan`, and the first stage of the gate)
+scans the working tree and every reachable Git revision for source-environment identifiers, token
+prefixes, private endpoints, key material and forbidden filenames. Because it scans history, a banned
+literal that reaches a commit is not fixed by a later commit that removes it, and rewriting published
+history is not an option here.
 
-The trap that catches agents specifically is **absolute local paths** — the scan rejects the macOS
-home-directory prefix case-sensitively, and tooling instructions, hook tests and pasted command
-lines carry them by default. Anything committed here derives its paths from `git rev-parse
---show-toplevel` or `CLAUDE_PROJECT_DIR`, or uses relative paths. Never hard-code one.
-
-Before committing, run the scan. It is the first stage of the gate, so `just check`
-covers it.
+The trap that catches agents specifically is absolute local paths: the scan rejects the macOS
+home-directory prefix case-sensitively, and tooling instructions, hook tests and pasted command lines
+carry them by default. Derive paths from `git rev-parse --show-toplevel` or use relative paths. Never
+hard-code one, in this file included.
 
 ## Task tracking
 
-Work is tracked with Backlog.md in `backlog/`, committed to git. Two documents carry the operating
-model — `backlog doc list --plain` shows them:
+Work is tracked with Backlog.md in `backlog/`, committed to git. `backlog doc list --plain` shows the
+two operating-model documents: **Agent fan-out protocol (canonical)**, imported verbatim from the
+upstream sourcebook and re-imported in the same change whenever upstream moves, and **Wave operating
+model**, this project's own lane conventions, recurring defects, exclusive publishing resource and
+run-end. Read both before designing a wave.
 
-- **Agent fan-out protocol (canonical)** — the campaign model, imported verbatim. Read it before
-  designing a wave. When the upstream sourcebook changes, re-import this copy in the same change.
-- **Wave operating model** — this project's own rules, recurring defects, lane conventions, the
-  exclusive publishing resource, and run-end. Read it before starting work.
+`backlog/` is committed to git and is inside the publication scan, so tasks, docs and decisions must
+never contain real account identifiers or personal data: no email addresses, handles, usernames,
+account IDs, stack slugs, device names, addresses or coordinates. Write the shape, not the instance.
+Aggregate counts, timings and structural findings are fine. A leak here fails the scan permanently.
 
-A third, **Closed GitHub issues — pre-Backlog history index**, indexes the work that predates the
-tracker.
+Backlog CLI traps beyond the global "drive it through the CLI" rule:
 
-### Rules that are not negotiable
+- `--notes` and `--plan` bare **silently replace** the whole section and exit 0, destroying another
+  session's writes. Open upstream bug. Use `--append-notes` and `--append-plan`.
+- Hand-editing tracker markdown breaks the HTML-comment section markers, and the section is silently
+  dropped at exit 0: the data stays in the file, invisible to the CLI, until the next write destroys
+  it. There is no repair command; `backlog doctor` only fixes duplicate task IDs. A global `PreToolUse`
+  hook denies both this and the bare `--notes`/`--plan` forms.
+- `backlog/config.yml` is the deliberate exception and is edited by hand, because list-valued keys
+  cannot be set through `backlog config set`.
+- Finalize in one call so an interrupted run cannot leave finished work looking unfinished:
+  `backlog task edit GCV-0007 --check-ac 1 --check-ac 2 -s Done`.
+- Two agents must never edit the same task. The v1.50.x fix covers the edit funnel but not reorder,
+  draft saves, the TUI path, `doc update` or decision updates.
+- Statuses are `To Do`, `In Progress`, `Parked`, `Done`. `Parked` means attempted, blocked, and left
+  with a concrete resume boundary. It is not `To Do`, and flattening it loses the most valuable thing
+  a long run produces.
 
-**`backlog/` is committed to git, so tasks, docs and decisions must never contain real account
-identifiers or personal data** — no email addresses, handles, usernames, account IDs, stack slugs,
-device names, addresses or coordinates. Write the shape, not the instance. Aggregate counts, timings
-and structural findings are fine. This is easy to break by accident precisely because a tracker
-feels private, and here it also fails the publication scan permanently. Sweep before committing:
+## Deeper references
 
-```bash
-just public-release-scan
-```
-
-**Never use `--notes` or `--plan` bare.** They *silently replace* the whole section, destroying
-another session's writes with no warning and exit 0. This is an open upstream bug, not a
-misunderstanding. Use `--append-notes` and `--append-plan`. A global `PreToolUse` hook in the agent config denies the unsafe forms rather than trusting anyone to remember.
-
-**Never hand-edit task, draft, doc, decision or milestone markdown.** Section boundaries are
-HTML-comment markers; break one and the section is *silently dropped* at exit 0 — the data stays in
-the file but is invisible to the CLI until the next write destroys it for real. There is no repair
-command; `backlog doctor` only fixes duplicate task IDs. The same hook denies these edits.
-`backlog/config.yml` is the deliberate exception and may be edited by hand, because list-valued keys
-cannot be set through `backlog config set`.
-
-**Finalize in one call**, so an interrupted agent cannot leave finished work looking unfinished:
-
-```bash
-backlog task edit GCV-0007 --check-ac 1 --check-ac 2 -s Done
-```
-
-**Never let two agents edit the same task.** The v1.50.x fix covers the edit funnel but not reorder,
-draft saves, the TUI path, `doc update` or decision updates.
-
-**Statuses are `To Do`, `In Progress`, `Parked`, `Done`.** `Parked` means attempted, blocked, and
-left with a concrete resume boundary — it is not `To Do`, and flattening it loses the most valuable
-thing a long run produces.
+- `archive/README.md` - read before citing pre-Backlog history; the closed GitHub issues live there
+  and are indexed by the **Closed GitHub issues (pre-Backlog history index)** Backlog doc.
 
 <!-- BACKLOG.MD GUIDELINES START -->
 <!-- backlog.md-instructions-version: 1.50.1 -->
