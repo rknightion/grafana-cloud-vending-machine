@@ -10,7 +10,7 @@ Use this example for the smallest production-oriented vending request. It create
 ## Prerequisites
 
 - The platform, Grafana provider, vending function, and External Secrets Operator are healthy.
-- The `grafana-cloud-org` organization ProviderConfig and `grafana-vending-secrets` SecretStore exist, or the Composition input has been adapted to your names.
+- The registry's organization ProviderConfig and `grafana-vending-secrets` SecretStore exist in this request's namespace, or the Composition input has been adapted to your names. Repeat those namespaced resources before moving the request to another namespace.
 - The organization credential can create stacks in the selected Grafana Cloud region.
 
 ## Values to replace

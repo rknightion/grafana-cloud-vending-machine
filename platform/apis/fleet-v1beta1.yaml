@@ -1,0 +1,87 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanafleetpipelines.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaFleetPipelines
+    plural: grafanafleetpipelines
+    singular: grafanafleetpipeline
+    shortNames:
+      - gcfleet
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-fleet-pipelines-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: Selects a platform-owned Fleet Management baseline pipeline profile for one stack.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - profile
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: GrafanaCloudStackRequest name and per-stack Fleet Management ProviderConfig name in this namespace.
+                profile:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                  pattern: ^[a-z0-9-]+$
+                  description: Selects a platform-owned baseline profile. Requests cannot supply pipeline contents, matchers, or attribution values.
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-fleet-pipelines-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaFleetPipelines
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-fleet-pipelines
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          fleetPipelineProfiles:
+            - name: standard
+              matchers:
+                - '{environment=~".+"}'
+              labels:
+                team: platform-team
+                cost-centre: platform-cost-centre
+                environment: platform-environment
+            - name: regulated
+              matchers:
+                - '{environment=~".+"}'
+              labels:
+                team: platform-team
+                cost-centre: platform-cost-centre
+                environment: platform-environment

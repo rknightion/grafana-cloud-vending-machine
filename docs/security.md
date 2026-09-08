@@ -11,9 +11,8 @@ The Grafana provider manifest (`platform/provider/provider-grafana.yaml`):
 
 - Pins an immutable OCI digest, carried identically in spec.package and in the verification job's argv.
 - Verifies Grafana's keyless signature against the exact publishing workflow identity, using a
-  PreSync Argo CD hook Job running Cosign 3.1.2 at an immutable digest. The pinned build comes from
-  main rather than a tag, so that identity ends `refs/heads/main` and is satisfied by any main build;
-  the digest is what pins this artifact.
+  PreSync Argo CD hook Job running Cosign 3.1.2 at an immutable digest. The identity is scoped to
+  `refs/tags/v2.14.0`, and the package reference also pins the verified artifact digest.
 - Runs the provider with `--safe-start`.
 - Activates only the managed-resource kinds used by this reference, through a
   `ManagedResourceActivationPolicy`.
@@ -40,12 +39,13 @@ token.
 ## Credential handling
 
 No Grafana credential belongs in Git, a request object, Composition input, status, or function
-log. See [Secrets](secrets.md) for the full organization-credential and rotating-token model.
+log. See [Secrets](secrets.md) for the per-organization credential and rotating-token model.
 Key properties:
 
-- The organization credential and every generated per-stack token are rotated automatically
-  (30-day lifetime, 7-day early rotation window) rather than issued as static, indefinite-lived
-  values.
+- Organization credentials are supplied and rotated by the environment's credential owner; this
+  repository does not set their lifetime or automate their rotation. Generated per-stack
+  administrator, telemetry, and Fleet Management tokens use a 30-day lifetime and a 7-day early
+  rotation window.
 - Static `StackServiceAccountToken`, `AccessPolicyToken`, and `ServiceAccountToken` resources
   remain available in the upstream provider but are deliberately not used — their rotating
   counterparts avoid a permanent credential lifecycle outside the control plane.
@@ -65,6 +65,8 @@ The platform-owned Composition input controls the exceptional `Delete` mode:
 
 - `allowedUsages` must contain the immutable `spec.usage`; the reference vocabulary is
   `development` and `production`.
+- `spec.organization` is immutable and must resolve to a registry entry whose ProviderConfig,
+  allowed regions, and allowed usages match the request. There is no organization fallback.
 - `deletionAuthorizations` binds permission to an exact request namespace, name, Kubernetes UID, and immutable
   profile and is empty by default. Selecting a profile cannot authorize a consumer's request.
 - An authorized `Delete` value is first an intent change. `status.deletionArmed=true` confirms the
@@ -125,9 +127,12 @@ GitHub settings, issues, workflow logs, releases, packages, and commit-author me
 - Secret-store publication is eventually consistent with the configured ESO refresh interval.
 - A successful render or unit test does not prove acceptance by a specific Grafana Cloud region
   or account — use a disposable stack for live acceptance.
+- This reference supports Grafana Cloud only, not self-managed Grafana.
+- Adaptive Metrics, Logs, Traces, and Profiles are deliberately out of scope; the API exposes no
+  adaptive-product configuration.
 
 ## Next steps
 
-- [Secrets](secrets.md) — the organization credential and rotating-token model.
+- [Secrets](secrets.md) — the per-organization credential and rotating-token model.
 - [Architecture](architecture.md) — the ownership boundaries that keep controllers from stepping
   on each other.

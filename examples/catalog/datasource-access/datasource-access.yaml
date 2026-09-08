@@ -1,0 +1,26 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaDatasourceAccess
+metadata:
+  name: shared-metrics
+  namespace: grafana-vending
+spec:
+  # This must name a Ready GrafanaCloudStackRequest in the same namespace.
+  stackRef:
+    name: replacewithunique03
+  datasource:
+    # The UID must equal metadata.name. Connection settings are supplied only
+    # by an environment overlay and remain absent from this public catalog.
+    uid: shared-metrics
+    name: Shared metrics
+    type: prometheus
+    authMode: basicAuth
+  teams:
+    - uid: team-blue
+      id: "101"
+      rules:
+        - '{ namespace = "blue" }'
+    - uid: team-green
+      id: "202"
+      rules:
+        - '{ namespace = "green" }'
+        - '{ environment = "production" }'

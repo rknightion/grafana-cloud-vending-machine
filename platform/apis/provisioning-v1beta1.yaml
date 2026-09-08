@@ -1,0 +1,122 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanaprovisioningrepositories.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaProvisioningRepository
+    plural: grafanaprovisioningrepositories
+    singular: grafanaprovisioningrepository
+    shortNames:
+      - gcprovisioningrepo
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-provisioning-repository-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: A Git-backed Grafana folder subtree with a separately managed Grafana connection.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - repository
+              x-kubernetes-validations:
+                - rule: '!has(self.dashboard)'
+                  message: GrafanaProvisioningRepository owns its subtree through Git; use GrafanaCloudStackRequest for classic Crossplane Dashboard ownership.
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: GrafanaCloudStackRequest name and per-stack ProviderConfig name in this namespace.
+                repository:
+                  type: object
+                  required:
+                    - uid
+                    - title
+                    - url
+                    - branch
+                    - path
+                    - connectionRef
+                  properties:
+                    uid:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                      pattern: ^[a-zA-Z0-9._-]+$
+                      description: Stable Grafana repository UID and Crossplane external name.
+                    title:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                    description:
+                      type: string
+                      maxLength: 1024
+                    url:
+                      type: string
+                      minLength: 9
+                      maxLength: 2048
+                      pattern: ^https://.+$
+                      description: HTTPS Git repository URL.
+                    branch:
+                      type: string
+                      minLength: 1
+                      maxLength: 255
+                    path:
+                      type: string
+                      minLength: 1
+                      maxLength: 1024
+                      description: Repository path that is the Git-provisioned folder subtree.
+                    connectionRef:
+                      type: object
+                      required:
+                        - name
+                      properties:
+                        name:
+                          type: string
+                          minLength: 1
+                          maxLength: 190
+                          pattern: ^[a-zA-Z0-9._-]+$
+                          description: Existing Grafana ConnectionV0Alpha1 name containing the Git credential. This request references it but never manages its secure values.
+                dashboard:
+                  type: object
+                  description: Rejected compatibility guard. Classic dashboard ownership belongs to GrafanaCloudStackRequest, never to this Git-provisioned subtree.
+                  properties:
+                    uid:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-provisioning-repository-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaProvisioningRepository
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-provisioning-repository
+      functionRef:
+        name: function-grafana-vending

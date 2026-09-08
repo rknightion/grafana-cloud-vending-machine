@@ -5,45 +5,49 @@ description: Every example under examples/catalog, what it demonstrates, and wha
 
 # Catalog Reference
 
-Nothing in `examples/catalog` is live. Each directory demonstrates one ownership decision and
-uses reserved example values. The supplied `ApplicationSet` watches only the repository's
-top-level `enabled/` directory, which is empty by default — see
-[Getting started](../getting-started.md) for the copy-edit-review-commit path to using one of
-these.
+Nothing in `examples/catalog` is live. The supplied ApplicationSet watches only top-level
+`enabled/*`, which starts empty. Each catalog directory is a renderable Kustomize base with a
+README describing its ownership boundary.
 
 ## Catalog directories
 
-| Directory | What it demonstrates | What an adopter changes |
+| Directory | What it demonstrates | What an adopter changes or verifies |
 | --- | --- | --- |
-| [minimal](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/minimal) | Safe stack baseline, rotating credentials, create-only content, no SSO | Slug, region, immutable usage (`development` or `production` in the reference), API group, secret backend |
-| [comprehensive](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/comprehensive) | Every public API kind: enforced content and OAuth SSO, report, plugin, incident relay, compact custom-role binding, direct and synchronized Team access, multiple custom/fixed roles, preferences, and folder/dashboard ACLs | All profile names, endpoints, recipients, identities, verified fixed-role UIDs, plugins, role actions/scopes, and ACL targets |
-| [sso-create-only](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/sso-create-only) | Platform initializes OAuth, then stack administrators own later SSO edits | Approved OAuth profile and handoff policy |
-| [sso-azuread](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/sso-azuread) | Azure AD OAuth profile selected from platform policy | Tenant/application IDs, group claims, role expression, client-secret path |
-| [sso-saml](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/sso-saml) | SAML metadata and role-value mapping | Metadata URL, attributes, signing requirements, role values |
-| [access-and-rbac](https://github.com/rknightion/grafana-cloud-vending-machine/tree/main/examples/catalog/access-and-rbac) | Direct and directory Team membership, preferences, custom/fixed roles, folder/dashboard ACLs | Team/group names, verified role UIDs, actions/scopes, ACL targets |
+| [minimal](../../examples/catalog/minimal/) | Safe stack baseline, rotating credentials, create-only content, no SSO | Organization, slug, region, permitted usage, API group, and secret backend |
+| [comprehensive](../../examples/catalog/comprehensive/) | The original stack and access API surface in one renderable base | Approved profiles, entitlements, identities, role UIDs/actions, and ACL targets |
+| [access-and-rbac](../../examples/catalog/access-and-rbac/) | Teams, Team Sync, direct membership, roles, and content ACLs | Existing users, IdP groups, reviewed role scopes, and targets |
+| [stack-inventory](../../examples/catalog/stack-inventory/) | Observe-only declared/managed/unmanaged inventory for migration and adoption | A Ready stack and healthy per-stack ProviderConfig; exact declared selectors |
+| [fleet-pipelines](../../examples/catalog/fleet-pipelines/) | Selection of a platform-owned Fleet baseline pipeline profile | Fleet entitlement, approved profile, and stack reference |
+| [alerting-bundle](../../examples/catalog/alerting-bundle/) | Stack-scoped alert rules, contact points, mute timings, templates, and inhibitions | Folder UID, recipient, rules, and the deliberate provenance mode |
+| [agent-observability](../../examples/catalog/agent-observability/) | Separate platform guards and workload-owned evaluation resources | Plugin/permission prerequisites and reviewed workload policy |
+| [assistant-governance](../../examples/catalog/assistant-governance/) | Terms-gated Assistant rules and MCP allow-list | Accepted terms, reviewed platform profiles, endpoint, and Secret-backed headers |
+| [datasource-access](../../examples/catalog/datasource-access/) | One datasource's authoritative team Query grants and aggregated LBAC tree | Observed team UID and numeric ID, basic-auth connection Secret, entitlement, and rules |
+| [observability-products](../../examples/catalog/observability-products/) | Stack-request product activation toggles | Organization, stack identity, and product-specific configuration outside this API |
+| [provisioning-repository](../../examples/catalog/provisioning-repository/) | Preview Git-provisioned dashboard subtree | Existing Grafana Connection, Git URL/branch/path, and exclusive subtree ownership |
+| [sso-create-only](../../examples/catalog/sso-create-only/) | OAuth initialization followed by administrator ownership | Approved OAuth profile and handoff policy |
+| [sso-azuread](../../examples/catalog/sso-azuread/) | Enforced Azure AD OAuth with group role mapping | Tenant/application values, group claims, and client-secret path |
+| [sso-saml](../../examples/catalog/sso-saml/) | Enforced SAML metadata and role mapping | Metadata, attributes, signing requirements, and a tested administrator login path |
 
 Each directory's own `README.md` explains what its manifests own, the expected reconciliation
 behaviour, and every value that must be replaced.
 
-The `comprehensive` directory is a renderable Kustomize base. It intentionally contains every
-current public API kind so it can be used for schema validation, platform evaluation, and
-consumer overlays. It is not a claim that every feature should be enabled for every stack — a
-production catalog normally offers a few reviewed profiles (such as `standard`, `regulated`, and
-`administrator-owned-SSO`) rather than exposing raw provider fields to request authors.
+The `comprehensive` directory remains a renderable base for the original stack/access surface; the
+specialist modules intentionally have their own catalog directories because each has a different
+prerequisite and lifecycle. A catalog example demonstrates an activation or ownership choice, not
+a production configuration.
 
 ## Enabling an example
 
-Install and verify Crossplane, the Grafana provider, the vending function, ESO, the external
-secret store, and the organization `ProviderConfig` first (see [Installation](../installation.md)).
-Then:
+Install Crossplane, the Grafana provider and vending function, ESO, the secret store, and the
+ProviderConfigs for every registered organization first. Then:
 
 1. Copy one catalog directory to a uniquely named subdirectory of top-level `enabled/`.
-2. Replace `platform.example.org`, all `replacewithunique...` values, the example region, and
-   environment-specific profile or identity values.
-3. Remove optional resources and fields whose prerequisites or entitlements are not available.
+2. Replace `platform.example.org`, all placeholders, the stack organization, region, and usage.
+   The organization registry must recognize the organization and permit both the selected region
+   and usage.
+3. Remove optional resources whose entitlement, connection, plugin, profile, or other prerequisite
+   is unavailable.
 4. Render and review the directory before committing it.
-5. Commit it to the Git repository watched by the `ApplicationSet`, or apply it directly only for
-   a disposable evaluation.
 
 ```bash
 cp -R examples/catalog/minimal enabled/my-stack
@@ -52,13 +56,12 @@ kubectl apply -k enabled/my-stack
 ```
 
 Grafana Cloud stack slugs are globally unique. `metadata.name` and `spec.slug` must remain
-identical. `spec.usage` is also immutable and must be in the platform-owned `allowedUsages` list;
-the reference vocabulary is `development` and `production`. It forms part of the generated
-credential path `{outputSecretPrefix}/{region}/{usage}/{slug}`, so changing it would orphan
-documents at the previous path. A production deployment should keep real enabled requests in a private GitOps
+identical. A stack is in one organization, but the platform installation may serve several
+registry entries. Generated credentials use
+`{outputSecretPrefix}/{organization}/{usage}/{slug}` so secret-store IAM can be scoped to an
+organization. Keep real enabled requests and organization credential Secrets in a private GitOps
 repository rather than publishing stack identities, recipients, users, groups, or environment
-profile names in a public fork — see
-[Configuration → Public base, private environment overlay](../configuration.md#public-base-private-environment-overlay).
+profile names in a public fork.
 
 Deleting an enabled request uses `spec.lifecycle.externalResources: Retain` by default: it prunes
 Kubernetes objects and orphans external resources. `Delete` requires an exact request

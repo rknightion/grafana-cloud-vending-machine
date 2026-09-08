@@ -1,0 +1,43 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaAgentObservability
+metadata:
+  name: example-agent-observability
+  namespace: example-platform
+spec:
+  stackRef:
+    name: replacewithunique03
+  guards:
+    hookRules:
+      - ruleId: example-block-destructive-tools
+        phase: preflight
+        actionOnFail: deny
+        blockedTools:
+          - delete_*
+          - drop_*
+        redact:
+          - id: example-redaction
+            regex: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+'
+    ruleActions:
+      - name: example-save-failed-evaluations
+        ruleId: example-score-turns
+        condition: all_evaluators_fail
+        collectionRefs:
+          - name: example-failed-evaluations
+  workload:
+    collections:
+      - name: example-failed-evaluations
+        description: Example collection; workload owners decide membership.
+    evaluators:
+      - evaluatorId: example-quality
+        kind: regex
+        config: '{"pattern":"example"}'
+        outputKeys: '[{"key":"matched","type":"bool"}]'
+        version: "1"
+        description: Inert example evaluator; replace with workload-owned policy.
+    evaluationRules:
+      - ruleId: example-score-turns
+        evaluatorIds:
+          - example-quality
+        executionMode: parallel
+        sampleRate: 0.1
+        selector: user_visible_turn

@@ -4,7 +4,7 @@ title: Prohibit public dashboards by construction in vended custom roles
 status: In Progress
 assignee: []
 created_date: '2026-08-21 12:17'
-updated_date: '2026-09-08 11:10'
+updated_date: '2026-09-08 11:53'
 labels: []
 dependencies: []
 ordinal: 27000
@@ -33,6 +33,12 @@ Note the related constraint already recorded in known limitations: built-in View
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 2: verify the exact public-dashboard action, filter it by platform profile in vended custom roles, and add focused tests; root integrates and gates.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

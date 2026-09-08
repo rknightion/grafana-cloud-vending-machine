@@ -28,8 +28,8 @@ Before you begin, you need:
 - An external secret store ESO can reach — the reference targets AWS Secrets Manager, but the
   vending function only emits `SecretStore` references, so another ESO provider works if it
   supports `ExternalSecret` and `PushSecret` with structured values.
-- A **Grafana Cloud organization access policy token** with only the organization-level
-  capabilities needed to manage stacks, stored in your secret manager (see
+- A **Grafana Cloud organization access policy token** for every registered organization, with only
+  the organization-level capabilities needed to manage stacks and stored in your secret manager (see
   [Secrets](secrets.md)).
 - A Grafana Cloud **region slug** for the stack you intend to create (e.g.
   `prod-us-central-0`).
@@ -41,19 +41,17 @@ This reference pins versions and immutable artefacts rather than following lates
 | Component | Version | Why |
 | --- | --- | --- |
 | Crossplane | 2.3.4 | Namespaced composite resources, namespaced managed resources, `ManagedResourceActivationPolicy` |
-| Grafana Crossplane provider | main build v2.13.0-13.gdc79560, immutable digest | Generated from Grafana Terraform provider 4.45.1; no tagged release carries the complete resource surface yet |
+| Grafana Crossplane provider | v2.14.0, immutable digest | Tagged release generated from Grafana Terraform provider 4.45.1 with the complete resource surface used here |
 | ESO Helm chart | 2.6.0 | Last release before the open AWS `PushSecret` creation regression in 2.7.0 and 2.8.0 |
 | Cosign verification image | 3.1.2, immutable digest | Verifies the Grafana provider and this repository's function package |
 | Composition function SDK | 0.7.1 | Pinned by the function Go module |
 | Vending composition function | `sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8` | Signed amd64/arm64 package built from commit `d2343aef13da` |
 
-The Grafana Crossplane provider describes itself as experimental and unsupported. The pin is a
-main-branch build, generated from Terraform provider 4.45.1, because the newest tagged release omits
-ten upstream resources. It is published and cosign-signed by the same workflow that publishes
-releases, with a certificate identity ending `refs/heads/main` instead of a tag, so the immutable
-digest is what pins the artifact — test provider upgrades against non-production stacks before
-rollout. See [Installation](installation.md) for how the provider
-and function packages are verified before Crossplane installs them.
+The Grafana Crossplane provider describes itself as experimental and unsupported. This reference pins
+the v2.14.0 release by digest. Cosign verifies it against the provider's tag-publishing workflow
+identity scoped to `refs/tags/v2.14.0`. Test provider upgrades against non-production stacks before
+rollout. See [Installation](installation.md) for how the provider and function packages are verified
+before Crossplane installs them.
 
 ## The copy-edit-review-commit path
 
@@ -82,10 +80,12 @@ At minimum, replace:
 - `metadata.name` and `spec.slug` — these must be identical, and Grafana Cloud stack slugs are
   globally unique.
 - `spec.region` — a real Grafana Cloud region slug.
+- `spec.organization` — an immutable registered organization key. Its registry entry must permit
+  both this region and the selected usage.
 - `spec.usage` — an immutable platform-approved classification (`development` or `production` in
   the reference vocabulary) that becomes part of the output path
-  `{outputSecretPrefix}/{region}/{usage}/{slug}`. It cannot be changed after creation because it
-  is part of external credential identity.
+  `{outputSecretPrefix}/{organization}/{usage}/{slug}`. It cannot be changed after creation because
+  it is part of external credential identity.
 - `platform.example.org`, if you have forked the repository and repointed the API group.
 
 The minimal example:
@@ -171,6 +171,6 @@ before its credentials exist.
 
 - [Installation](installation.md) — bootstrapping Crossplane, ESO, and the platform components.
 - [Configuration](configuration.md) — the complete request API field reference.
-- [Secrets](secrets.md) — how the organization credential gets in, and how per-stack tokens get
+- [Secrets](secrets.md) — how per-organization credentials get in, and how per-stack tokens get
   out.
 - [Architecture](architecture.md) — the three-controller split and reconciliation model.

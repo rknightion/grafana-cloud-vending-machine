@@ -1,0 +1,67 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaAlertingBundle
+metadata:
+  name: example-alerts
+  namespace: grafana-vending
+spec:
+  # This must name a GrafanaCloudStackRequest in the same namespace.
+  stackRef:
+    name: replacewithunique02
+  # Choose deliberately: enforced retains the provisioning API provenance and
+  # locks UI edits; createOnly permits later UI editing after the initial seed.
+  provenance: createOnly
+  contactPoints:
+    - name: operations
+      email:
+        addresses:
+          - alerts@example.invalid
+        subject: '{{ template "bundle.title" . }}'
+  muteTimings:
+    - name: maintenance
+      intervals:
+        - weekdays:
+            - saturday
+            - sunday
+  messageTemplates:
+    - name: default-message
+      template: |
+        {{ define "bundle.title" }}Example alert{{ end }}
+  inhibitionRules:
+    - uid: suppress-warning-while-critical
+      sourceMatchers:
+        - label: severity
+          type: "="
+          value: critical
+      targetMatchers:
+        - label: severity
+          type: "="
+          value: warning
+  ruleGroups:
+    - name: primary
+      # Replace with the UID of a folder managed in this stack.
+      folderUid: replace-with-alert-folder-uid
+      intervalSeconds: 60
+      rules:
+        - name: Alerting bundle health
+          uid: alerting-bundle-health
+          condition: B
+          data:
+            - refId: A
+              queryType: ""
+              datasourceUid: "-100"
+              model: '{"expression":"1","refId":"A","type":"math"}'
+              relativeTimeRange:
+                - from: 0
+                  to: 0
+          noDataState: NoData
+          execErrState: Alerting
+          labels:
+            severity: warning
+          notificationSettings:
+            contactPoint: operations
+            groupBy:
+              - alertname
+              - grafana_folder
+            groupWait: 30s
+            muteTimings:
+              - maintenance

@@ -7,3 +7,10 @@ resources:
   - apis/stack-v1beta1.yaml
   - apis/custom-role-binding-v1beta1.yaml
   - apis/access-v1beta1.yaml
+  - apis/inventory-v1beta1.yaml
+  - apis/fleet-v1beta1.yaml
+  - apis/alerting-v1beta1.yaml
+  - apis/agent-observability-v1beta1.yaml
+  - apis/assistant-v1beta1.yaml
+  - apis/datasource-access-v1beta1.yaml
+  - apis/provisioning-v1beta1.yaml

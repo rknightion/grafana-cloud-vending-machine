@@ -54,7 +54,7 @@ plan and test the login path and a rollback before doing it.
 
 ## Example profiles in this repository
 
-`platform/apis/v1beta1.yaml` embeds three example profiles in its Composition input, matching
+`platform/apis/stack-v1beta1.yaml` embeds three example profiles in its Composition input, matching
 the `sso-create-only`, `sso-azuread`, and `sso-saml` catalog examples:
 
 - **`example-oidc`** — a `generic_oauth` profile pointed at `identity.example.com`, mapping

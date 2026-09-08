@@ -7,8 +7,9 @@ image: assets/social-card.png
 # grafana-cloud-vending-machine
 
 **A reference architecture for vending Grafana Cloud stacks through a small, declarative API.**
-Argo CD owns what is in Git, Crossplane continuously reconciles Grafana Cloud, and External
-Secrets Operator (ESO) moves credentials between Kubernetes and an external secret store.
+It supports Grafana Cloud only. Argo CD owns what is in Git, Crossplane continuously reconciles
+Grafana Cloud, and External Secrets Operator (ESO) moves credentials between Kubernetes and an
+external secret store.
 
 It is deliberately more than a minimal stack example. The baseline includes rotating
 administrator and telemetry credentials, deletion protection, stack-local provider
@@ -48,8 +49,8 @@ repository's top-level `enabled/`. From there:
 3. **Crossplane's Grafana provider** continuously reconciles those managed resources against
    Grafana Cloud — creating what is missing and repairing drift on anything the request's
    reconciliation mode marks as enforced.
-4. **External Secrets Operator** moves the organization credential from an external secret store
-   into the cluster so the provider can authenticate, and moves the stack's generated
+4. **External Secrets Operator** moves each registered organization's credential from an external
+   secret store into the cluster so the provider can authenticate, and moves the stack's generated
    administrator and telemetry tokens back out to the external store as structured per-stack
    documents.
 
@@ -80,6 +81,7 @@ Every enabled request gets, by default or by opt-in field:
 | Fixed-role assignments | Existing Grafana-managed fixed roles assigned to a team by UID |
 | Custom roles | Stack-local roles built from explicit action/scope permission pairs |
 | Role assignments | Whole-set or item-level bindings of a role to a team |
+| Explicit modules | Inventory, Fleet pipelines, alerting, Agent Observability, Assistant governance, datasource access, Git provisioning repositories, and product toggles have their own ownership boundaries and prerequisites |
 
 ## Reading further
 

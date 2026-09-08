@@ -1,0 +1,186 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanadatasourceaccesses.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaDatasourceAccess
+    plural: grafanadatasourceaccesses
+    singular: grafanadatasourceaccess
+    shortNames:
+      - gcdatasourceaccess
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-datasource-access-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: A single-owner Grafana datasource, its authoritative team query permissions, and its aggregated LBAC rule tree. LBAC requires Grafana 11.5 or later, Grafana Cloud or an Enterprise entitlement, and basic-auth datasource authentication.
+          x-kubernetes-validations:
+            - rule: self.metadata.name == self.spec.datasource.uid
+              message: metadata.name must match spec.datasource.uid so a namespace cannot admit a second owner for the datasource
+            - rule: self.spec.datasource.uid == oldSelf.spec.datasource.uid
+              message: datasource.uid is immutable
+            - rule: self.spec.stackRef.name == oldSelf.spec.stackRef.name
+              message: stackRef.name is immutable
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - datasource
+                - teams
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: GrafanaCloudStackRequest name and per-stack ProviderConfig name in this namespace.
+                datasource:
+                  type: object
+                  required:
+                    - uid
+                    - name
+                    - type
+                    - authMode
+                  properties:
+                    uid:
+                      type: string
+                      minLength: 1
+                      maxLength: 63
+                      pattern: ^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$
+                      description: Caller-selected Grafana datasource UID. It must also be the composite metadata.name, making Kubernetes namespace/name uniqueness the admission-level single-owner lock.
+                    name:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                    type:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                      pattern: ^[a-zA-Z0-9._-]+$
+                      description: Grafana datasource plugin type.
+                    authMode:
+                      type: string
+                      enum:
+                        - basicAuth
+                      description: LBAC supports only a datasource configured for basic authentication, so no unsupported mode is admitted.
+                    connection:
+                      type: object
+                      description: Environment-owned connection settings. Catalog examples deliberately omit these values, and sensitive JSON is accepted only by Secret reference.
+                      properties:
+                        accessMode:
+                          type: string
+                          enum:
+                            - proxy
+                            - direct
+                        url:
+                          type: string
+                          minLength: 1
+                          maxLength: 2048
+                        basicAuthUsername:
+                          type: string
+                          maxLength: 190
+                        databaseName:
+                          type: string
+                          maxLength: 190
+                        username:
+                          type: string
+                          maxLength: 190
+                        isDefault:
+                          type: boolean
+                        jsonDataEncoded:
+                          type: string
+                          maxLength: 65536
+                          description: Non-sensitive datasource plugin configuration encoded as JSON. Credentials belong in secureJsonDataEncodedSecretRef.
+                        secureJsonDataEncodedSecretRef:
+                          type: object
+                          required:
+                            - name
+                            - key
+                          properties:
+                            name:
+                              type: string
+                              minLength: 1
+                              maxLength: 253
+                            key:
+                              type: string
+                              minLength: 1
+                              maxLength: 253
+                        httpHeadersSecretRef:
+                          type: object
+                          required:
+                            - name
+                          properties:
+                            name:
+                              type: string
+                              minLength: 1
+                              maxLength: 253
+                teams:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - uid
+                  description: Every entry receives Query permission and at least one LBAC rule. The whole set is authoritative, so omitted managed, non-inherited datasource grants are removed.
+                  items:
+                    type: object
+                    required:
+                      - uid
+                      - id
+                      - rules
+                    properties:
+                      uid:
+                        type: string
+                        minLength: 1
+                        maxLength: 190
+                        pattern: ^[a-zA-Z0-9._-]+$
+                        description: Provider-assigned Grafana team UID used as the LBAC rules-map key.
+                      id:
+                        type: string
+                        pattern: ^[1-9][0-9]*$
+                        maxLength: 19
+                        description: Provider-assigned numeric Grafana team ID used by datasource permissions.
+                      rules:
+                        type: array
+                        minItems: 1
+                        maxItems: 100
+                        x-kubernetes-list-type: set
+                        items:
+                          type: string
+                          minLength: 1
+                          maxLength: 2048
+                        description: Complete LBAC selector list for this team and datasource. An empty or omitted list is rejected because LBAC otherwise allows all labels.
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-datasource-access-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaDatasourceAccess
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-datasource-access
+      functionRef:
+        name: function-grafana-vending

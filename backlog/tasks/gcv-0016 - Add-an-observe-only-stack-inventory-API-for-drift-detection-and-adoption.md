@@ -4,7 +4,7 @@ title: Add an observe-only stack inventory API for drift detection and adoption
 status: In Progress
 assignee: []
 created_date: '2026-08-21 12:14'
-updated_date: '2026-09-08 11:10'
+updated_date: '2026-09-08 11:53'
 labels: []
 dependencies: []
 ordinal: 16000
@@ -36,6 +36,12 @@ Nothing here can mutate a tenant, which makes it unusually safe to ship early. N
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 2: implement and validate the observe-only inventory composite, provider-kind set, status classification, and inert catalog; root wires shared registries and performs final gates.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

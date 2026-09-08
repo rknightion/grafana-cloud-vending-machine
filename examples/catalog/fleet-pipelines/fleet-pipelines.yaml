@@ -1,0 +1,9 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaFleetPipelines
+metadata:
+  name: example-fleet-baseline
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique01
+  profile: standard

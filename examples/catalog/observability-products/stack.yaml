@@ -1,0 +1,25 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCloudStackRequest
+metadata:
+  name: replacewithunique07
+  namespace: grafana-vending
+spec:
+  organization: example-primary
+  displayName: Observability product activation example
+  slug: replacewithunique07
+  region: prod-us-central-0
+  usage: development
+  profile: standard
+  products:
+    applicationObservability: true
+    kubernetesObservability: false
+    databaseObservability: false
+  reconciliation:
+    dashboards: createOnly
+    homePreference: createOnly
+  sso:
+    mode: disabled
+  monthlyReport:
+    enabled: false
+  incidentIntegration:
+    enabled: false

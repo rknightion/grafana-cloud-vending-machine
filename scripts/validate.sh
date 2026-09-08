@@ -27,6 +27,14 @@ kubectl kustomize platform >/dev/null
 kubectl kustomize deploy/aws >/dev/null
 kubectl kustomize examples/catalog/comprehensive >/dev/null
 kubectl kustomize examples/catalog/minimal >/dev/null
+kubectl kustomize examples/catalog/stack-inventory >/dev/null
+kubectl kustomize examples/catalog/fleet-pipelines >/dev/null
+kubectl kustomize examples/catalog/alerting-bundle >/dev/null
+kubectl kustomize examples/catalog/agent-observability >/dev/null
+kubectl kustomize examples/catalog/assistant-governance >/dev/null
+kubectl kustomize examples/catalog/datasource-access >/dev/null
+kubectl kustomize examples/catalog/observability-products >/dev/null
+kubectl kustomize examples/catalog/provisioning-repository >/dev/null
 
 test -f examples/README.md
 for example_dir in examples/catalog/*; do

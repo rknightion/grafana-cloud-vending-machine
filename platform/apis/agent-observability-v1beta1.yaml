@@ -1,0 +1,329 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanaagentobservabilities.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaAgentObservability
+    plural: grafanaagentobservabilities
+    singular: grafanaagentobservability
+    shortNames:
+      - gcagento11y
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-agent-observability-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: Opt-in Agent Observability configuration. Platform-owned request guards and workload-owned evaluation resources are declared in separate sections.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+              properties:
+                stackRef:
+                  type: object
+                  description: The GrafanaCloudStackRequest whose per-stack ProviderConfig serves the Agent Observability resources.
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                guards:
+                  type: object
+                  description: Platform-owned request-path guard policy. Only this section declares HookRule and RuleAction resources.
+                  properties:
+                    hookRules:
+                      type: array
+                      maxItems: 100
+                      x-kubernetes-list-type: map
+                      x-kubernetes-list-map-keys:
+                        - ruleId
+                      items:
+                        type: object
+                        required:
+                          - ruleId
+                        properties:
+                          ruleId:
+                            type: string
+                            minLength: 1
+                            maxLength: 190
+                            pattern: ^[a-zA-Z0-9._-]+$
+                          enabled:
+                            type: boolean
+                            default: true
+                          phase:
+                            type: string
+                            default: preflight
+                            enum:
+                              - preflight
+                              - postflight
+                          priority:
+                            type: number
+                            default: 0
+                          selector:
+                            type: string
+                            default: all
+                            enum:
+                              - all
+                              - user_visible_turn
+                              - all_assistant_generations
+                              - tool_call_steps
+                              - errored_generations
+                          match:
+                            type: string
+                            maxLength: 8192
+                          evaluatorIds:
+                            type: array
+                            maxItems: 100
+                            x-kubernetes-list-type: set
+                            items:
+                              type: string
+                              minLength: 1
+                              maxLength: 190
+                          actionOnFail:
+                            type: string
+                            default: deny
+                            enum:
+                              - deny
+                              - warn
+                          shortCircuit:
+                            type: boolean
+                            default: true
+                          blockedTools:
+                            type: array
+                            maxItems: 100
+                            x-kubernetes-list-type: set
+                            items:
+                              type: string
+                              minLength: 1
+                              maxLength: 190
+                          redact:
+                            type: array
+                            maxItems: 100
+                            items:
+                              type: object
+                              required:
+                                - regex
+                              properties:
+                                id:
+                                  type: string
+                                  maxLength: 190
+                                regex:
+                                  type: string
+                                  minLength: 1
+                                  maxLength: 4096
+                    ruleActions:
+                      type: array
+                      maxItems: 100
+                      x-kubernetes-list-type: map
+                      x-kubernetes-list-map-keys:
+                        - name
+                      items:
+                        type: object
+                        description: A platform-owned action attached to an explicitly named workload evaluation rule. Collection IDs are resolved from observed Collection resources.
+                        required:
+                          - name
+                          - ruleId
+                          - condition
+                          - collectionRefs
+                        properties:
+                          name:
+                            type: string
+                            minLength: 1
+                            maxLength: 190
+                            pattern: ^[a-zA-Z0-9._-]+$
+                          ruleId:
+                            type: string
+                            minLength: 1
+                            maxLength: 190
+                            pattern: ^[a-zA-Z0-9._-]+$
+                          condition:
+                            type: string
+                            enum:
+                              - all_evaluators_pass
+                              - all_evaluators_fail
+                          enabled:
+                            type: boolean
+                            default: true
+                          collectionRefs:
+                            type: array
+                            minItems: 1
+                            maxItems: 50
+                            x-kubernetes-list-type: set
+                            items:
+                              type: object
+                              required:
+                                - name
+                              properties:
+                                name:
+                                  type: string
+                                  minLength: 1
+                                  maxLength: 190
+                                  pattern: ^[a-zA-Z0-9._-]+$
+                workload:
+                  type: object
+                  description: Workload-owned Agent Observability definitions. These resources are never inferred from a stack request.
+                  properties:
+                    collections:
+                      type: array
+                      maxItems: 100
+                      x-kubernetes-list-type: map
+                      x-kubernetes-list-map-keys:
+                        - name
+                      items:
+                        type: object
+                        required:
+                          - name
+                        properties:
+                          name:
+                            type: string
+                            minLength: 1
+                            maxLength: 190
+                          description:
+                            type: string
+                            maxLength: 1024
+                    evaluators:
+                      type: array
+                      maxItems: 100
+                      x-kubernetes-list-type: map
+                      x-kubernetes-list-map-keys:
+                        - evaluatorId
+                      items:
+                        type: object
+                        required:
+                          - evaluatorId
+                          - kind
+                          - config
+                          - outputKeys
+                          - version
+                        properties:
+                          evaluatorId:
+                            type: string
+                            minLength: 1
+                            maxLength: 190
+                            pattern: ^[a-zA-Z0-9._-]+$
+                          kind:
+                            type: string
+                            enum:
+                              - llm_judge
+                              - json_schema
+                              - regex
+                              - heuristic
+                          config:
+                            type: string
+                            minLength: 2
+                            maxLength: 32768
+                            description: Inert JSON evaluator configuration. Real evaluator definitions belong to the workload owner.
+                          description:
+                            type: string
+                            maxLength: 1024
+                          outputKeys:
+                            type: string
+                            minLength: 2
+                            maxLength: 32768
+                          version:
+                            type: string
+                            minLength: 1
+                            maxLength: 64
+                    evaluationRules:
+                      type: array
+                      maxItems: 100
+                      x-kubernetes-list-type: map
+                      x-kubernetes-list-map-keys:
+                        - ruleId
+                      items:
+                        type: object
+                        required:
+                          - ruleId
+                          - evaluatorIds
+                        properties:
+                          ruleId:
+                            type: string
+                            minLength: 1
+                            maxLength: 190
+                            pattern: ^[a-zA-Z0-9._-]+$
+                          enabled:
+                            type: boolean
+                            default: true
+                          evaluatorIds:
+                            type: array
+                            minItems: 1
+                            maxItems: 100
+                            x-kubernetes-list-type: set
+                            items:
+                              type: string
+                              minLength: 1
+                              maxLength: 190
+                          executionMode:
+                            type: string
+                            default: parallel
+                            enum:
+                              - parallel
+                              - sequential
+                          filterableTagKeys:
+                            type: array
+                            maxItems: 10
+                            x-kubernetes-list-type: set
+                            items:
+                              type: string
+                              minLength: 1
+                              maxLength: 190
+                          match:
+                            type: string
+                            maxLength: 8192
+                          minIdleSeconds:
+                            type: number
+                            minimum: 0
+                          sampleRate:
+                            type: number
+                            minimum: 0
+                            maximum: 1
+                            default: 0.01
+                          selector:
+                            type: string
+                            default: user_visible_turn
+                            enum:
+                              - user_visible_turn
+                              - all_assistant_generations
+                              - tool_call_steps
+                              - errored_generations
+                              - conversation
+                          alertRuleUids:
+                            type: array
+                            maxItems: 100
+                            x-kubernetes-list-type: set
+                            items:
+                              type: string
+                              minLength: 1
+                              maxLength: 190
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-agent-observability-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaAgentObservability
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-agent-observability
+      functionRef:
+        name: function-grafana-vending

@@ -1,0 +1,50 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+# Minimal default; write scopes are granted per-job only where needed.
+permissions:
+  contents: read
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # create release + tag
+      pull-requests: write  # open/maintain the release PR
+      id-token: write       # exchanged for a tailnet identity and an OpenBao token
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      # Mints a short-lived GitHub App installation token scoped to THIS repo,
+      # replacing a repository-wide long-lived credential. Nothing durable is stored here to leak.
+      # The release PR's author becomes the App, so release automation remains
+      # unattended without a long-lived credential.
+      #
+      # Releases depend on the broker service being reachable and unsealed; a
+      # failure here is release infrastructure, not the source commit.
+      - name: Mint a scoped release token
+        id: bao
+        uses: rknightion/.github/.github/actions/broker-token@bc58399e49a8d8131a379f530fffe8c9659667f9
+        with:
+          permission-set: release-please-grafana-cloud-vending-machine
+          tailscale-client-id: ${{ secrets.TS_WIF_CLIENT_ID }}
+          tailscale-audience: ${{ secrets.TS_WIF_AUDIENCE }}
+
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: .release-please-config.json
+          manifest-file: .release-please-manifest.json
+          token: ${{ steps.bao.outputs.token }}

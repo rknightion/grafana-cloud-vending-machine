@@ -4,6 +4,10 @@ import "github.com/crossplane/function-sdk-go/resource"
 
 func addObservabilityProducts(desired map[resource.Name]*resource.DesiredComposed, namespace, providerConfig string, spec map[string]any) error {
 	products, _ := spec["products"].(map[string]any)
+	// A false or omitted toggle intentionally emits no desired resource. Crossplane
+	// then removes the previously desired composed singleton; the standard
+	// managementPolicies below omit Delete, so the provider retains the external
+	// product configuration while its managed Kubernetes object is withdrawn.
 	for _, product := range []struct {
 		field, resourceName, kind string
 	}{

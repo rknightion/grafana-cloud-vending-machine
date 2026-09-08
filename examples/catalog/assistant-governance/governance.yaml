@@ -1,0 +1,31 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaAssistantGovernance
+metadata:
+  name: assistant-example
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique01
+  termsAcceptance:
+    accepted: true
+  rules:
+    - name: inert-guidance
+      profile: inert-guidance
+      scope: tenant
+      priority: 10
+      applications:
+        - assistant
+  mcpServers:
+    - name: inert-tools
+      scope: tenant
+      enabled: true
+      applications:
+        - assistant
+      configuration:
+        url: https://mcp.example.com/
+        toolPreferences:
+          read: enabled
+          write: enabled
+        toolApprovalPolicies:
+          read: auto_approve
+          write: always_ask

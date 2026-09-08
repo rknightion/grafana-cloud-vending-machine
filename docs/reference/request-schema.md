@@ -1,53 +1,69 @@
 ---
 title: Request Schema Reference
-description: The four CompositeResourceDefinitions this repository ships, their kinds, short names, and CRD identity
+description: The CompositeResourceDefinitions this repository ships, their kinds, short names, and CRD identity
 ---
 
 # Request Schema Reference
 
-Field-by-field defaults and descriptions live on [Configuration](../configuration.md). This page
-is the CRD-identity reference: what kind maps to what plural/short name, and where each type is
-defined.
+This is the CRD-identity reference. Field-level defaults and ownership details are in
+[Configuration](../configuration.md); worked manifests are in the
+[catalog](catalog.md). All types are namespaced, use
+`platform.example.org/v1beta1` as a placeholder group, set
+`defaultCompositionUpdatePolicy: Automatic`, and enforce one Pipeline Composition.
 
 ## CompositeResourceDefinitions
 
-All four are `apiextensions.crossplane.io/v2`, `scope: Namespaced`, group
-`platform.example.org` (a placeholder — see [Configuration](../configuration.md)), version
-`v1beta1`, `defaultCompositionUpdatePolicy: Automatic`. Defined in
-`platform/apis/v1beta1.yaml` and `platform/apis/access-v1beta1.yaml`.
-
-| Kind | Plural | Short name | Enforced Composition | Required top-level fields |
+| Kind | Plural | Short name | Enforced Composition | Required `spec` fields |
 | --- | --- | --- | --- | --- |
-| `GrafanaCloudStackRequest` | `grafanacloudstackrequests` | `gcstackrequest` | `grafana-cloud-stack-request-v1beta1` | `displayName`, `slug`, `region`, `usage` |
+| `GrafanaCloudStackRequest` | `grafanacloudstackrequests` | `gcstackrequest` | `grafana-cloud-stack-request-v1beta1` | `displayName`, `slug`, `region`, `usage`, `organization` |
 | `GrafanaCustomRoleBinding` | `grafanacustomrolebindings` | `gcrole` | `grafana-custom-role-binding-v1beta1` | `stackRef`, `team`, `role` |
 | `GrafanaTeamAccess` | `grafanateamaccesses` | `gcteamaccess` | `grafana-team-access-v1beta1` | `stackRef`, `team` |
 | `GrafanaContentAccessPolicy` | `grafanacontentaccesspolicies` | `gccontentaccess` | `grafana-content-access-policy-v1beta1` | `stackRef`, `target`, `permissions` |
+| `GrafanaStackInventory` | `grafanastackinventories` | `gcinventory` | `grafana-stack-inventory-v1beta1` | `stackRef` |
+| `GrafanaFleetPipelines` | `grafanafleetpipelines` | `gcfleet` | `grafana-fleet-pipelines-v1beta1` | `stackRef`, `profile` |
+| `GrafanaAlertingBundle` | `grafanaalertingbundles` | `gcalerts` | `grafana-alerting-bundle-v1beta1` | `stackRef`, `provenance` |
+| `GrafanaAgentObservability` | `grafanaagentobservabilities` | `gcagento11y` | `grafana-agent-observability-v1beta1` | `stackRef` |
+| `GrafanaAssistantGovernance` | `grafanaassistantgovernances` | `gcassistant` | `grafana-assistant-governance-v1beta1` | `stackRef`, `termsAcceptance` |
+| `GrafanaDatasourceAccess` | `grafanadatasourceaccesses` | `gcdatasourceaccess` | `grafana-datasource-access-v1beta1` | `stackRef`, `datasource`, `teams` |
+| `GrafanaProvisioningRepository` | `grafanaprovisioningrepositories` | `gcprovisioningrepo` | `grafana-provisioning-repository-v1beta1` | `stackRef`, `repository` |
 
-Every Composition is `mode: Pipeline` with a single step calling the `function-grafana-vending`
-composition function — there is no templating layer to inspect separately from the function's Go
-source (`platform/function/fn.go`, `access.go`, `plugins.go`, `roles.go`).
+The XRDs and Compositions are split by API under `platform/apis/`. Every Composition has one
+Pipeline step that calls `function-grafana-vending`; the function, rather than a separate
+templating language, renders the managed resources.
 
-## Quick lookups by shortName
+## Key admission and ownership guards
+
+- A stack request requires immutable `spec.organization`, `spec.slug`, `spec.usage`, and
+  `spec.profile`. Its organization key must resolve in the platform-owned registry; the selected
+  organization must allow the requested region and usage.
+- `GrafanaDatasourceAccess.metadata.name` must equal `spec.datasource.uid`; its datasource UID and
+  stack reference are immutable. This gives one namespace-local owner for the datasource access
+  set.
+- `GrafanaProvisioningRepository` rejects a `dashboard` field. A Git-provisioned subtree and a
+  classic Crossplane Dashboard must never claim the same content route.
+- `GrafanaAlertingBundle.provenance` is required: `enforced` retains provisioning provenance and
+  locks UI changes, while `createOnly` seeds values and preserves later UI edits.
+- `GrafanaAssistantGovernance.termsAcceptance.accepted` is the safety gate. Rules and MCP servers
+  are withheld until acceptance is observed, and a false value withdraws them.
+
+## Quick lookups by short name
 
 ```bash
-kubectl get gcstackrequest -A
-kubectl get gcrole -A
-kubectl get gcteamaccess -A
-kubectl get gccontentaccess -A
+kubectl get gcstackrequest,gcrole,gcteamaccess,gccontentaccess -A
+kubectl get gcinventory,gcfleet,gcalerts,gcagento11y,gcassistant -A
+kubectl get gcdatasourceaccess,gcprovisioningrepo -A
 ```
 
 ## Status conditions
 
-Every kind reports the standard Crossplane composite conditions (`Synced`, `Ready`) plus, for
-`GrafanaCloudStackRequest`, the additional `status` fields documented on
-[Configuration](../configuration.md#status-fields): `outputSecretPath`, `telemetrySecretPath`,
-`deletionArmed`, `deletionReady`, `stack.id`, and `stack.url`. `deletionReady` is the observed
-provider-state gate for Stage 2 of the three-stage decommission; it is true only after the Stack
-reports `deleteProtection=false` and ESO has finalized and currently synced every enabled
-credential PushSecret, and Stage 3 request removal waits for the access-claim objects and
-finalizers to be gone.
+Every kind reports standard Crossplane `Synced` and `Ready` conditions. The stack request also
+publishes `status.outputSecretPath`, `status.telemetrySecretPath` when enabled,
+`status.deletionArmed`, `status.deletionReady`, `status.stack.id`, and `status.stack.url`.
+`GrafanaStackInventory` additionally publishes its declared, managed, and unmanaged observation
+classification. These status values are observations, not credentials or a substitute for an
+inventory/adoption review.
 
 ## Next steps
 
-- [Configuration](../configuration.md) — every `spec` field, its default, and what it does.
-- [Catalog Reference](catalog.md) — worked examples for each kind.
+- [Configuration](../configuration.md) - API fields, activation choices, and limitations.
+- [Catalog Reference](catalog.md) - inert examples for every public API.

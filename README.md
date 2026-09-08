@@ -1,6 +1,8 @@
 # Grafana Cloud vending machine with Crossplane
 
-This repository is a portable reference architecture for vending Grafana Cloud stacks through a small, declarative API. Argo CD owns what is in Git, Crossplane continuously reconciles Grafana Cloud, and External Secrets Operator (ESO) moves credentials between Kubernetes and an external secret store.
+This repository is a portable reference architecture for vending Grafana Cloud stacks through a small, declarative API. It supports Grafana Cloud only; self-managed Grafana is deliberately out of scope. Argo CD owns what is in Git, Crossplane continuously reconciles Grafana Cloud, and External Secrets Operator (ESO) moves credentials between Kubernetes and an external secret store.
+
+One stack belongs to one Grafana Cloud organization. One vending-machine installation can serve several registered organizations, each with its own permitted regions and usages. Every namespace that accepts requests carries a same-named organization ProviderConfig and credential Secret for each registry entry because the v2 provider resolves `ProviderConfig` references in the managed resource's namespace. The request selects an immutable `spec.organization`; there is no implicit single-organization fallback.
 
 It is deliberately more than a minimal stack example. The baseline includes rotating administrator and telemetry credentials, deletion protection, stack-local provider configuration, starter content, configurable drift behavior, OAuth and SAML SSO, reports, plugins, incident relay resources, teams, basic-role ACLs, fixed-role assignments, custom roles, and role assignments.
 
@@ -15,25 +17,17 @@ This reference pins versions and immutable artifacts instead of following latest
 | Component | Version | Why |
 | --- | --- | --- |
 | Crossplane | 2.3.4 | Required for namespaced composite resources, namespaced managed resources, and ManagedResourceActivationPolicy |
-| Grafana Crossplane provider | main build v2.13.0-13.gdc79560, immutable digest | Generated from Grafana Terraform provider 4.45.1, which is the first provider build carrying the complete upstream resource surface; no tagged release carries it yet |
+| Grafana Crossplane provider | v2.14.0, immutable digest | Tagged release generated from Grafana Terraform provider 4.45.1 with the complete upstream resource surface used here |
 | ESO Helm chart | 2.6.0 | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
 | Cosign verification image | 3.1.2, immutable digest | Verifies the Grafana provider and this repository's function package |
 | Composition function SDK | 0.7.1 | Pinned by the function Go module |
 | Vending composition function | sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8 | Signed amd64/arm64 package built from commit d2343aef13da |
 
-The Grafana Crossplane provider describes itself as experimental and unsupported. The pin is a
-main-branch build rather than a tagged release: v2.13.0 is the newest tag, generated from Terraform
-provider 4.40.1, and it omits ten upstream resources because the provider's generator panicked on the
-Agent Observability category. Main fixed the generator and moved to Terraform provider 4.45.1, so the
-pinned build reaches full resource parity while the tagged release does not.
-
-That build is published and signed exactly like a release. The provider's ci_tag.yaml workflow runs on
-a v* tag and on every push to main, pushes the package to both registries, and cosign-signs it, so the
-only difference is that the certificate identity ends refs/heads/main. A branch-scoped identity is
-satisfied by any main build, which makes the digest the real control: verify the digest, treat the
-identity as a provenance statement about the workflow rather than about a specific version, and move
-the pin to a tagged release once one carries the current surface. Test provider upgrades and drift
-behavior against non-production stacks before rollout.
+The Grafana Crossplane provider describes itself as experimental and unsupported. The v2.14.0 tag is
+generated from Terraform provider 4.45.1 and carries the resource surface used by this reference. It
+is pinned by digest and Cosign-verified against the provider's `ci_tag.yaml` identity scoped to
+`refs/tags/v2.14.0`. Test provider upgrades and drift behavior against non-production stacks before
+rollout.
 
 ESO issue [external-secrets/external-secrets#6593](https://github.com/external-secrets/external-secrets/issues/6593) remains open. Versions 2.7.0 and 2.8.0 send an empty replica-region request when creating an AWS Secrets Manager PushSecret target, which AWS rejects. Do not add a replica region merely to hide the bug. Upgrade after a fixed release exists and prove creation of a brand-new remote secret before removing the pin.
 
@@ -97,7 +91,9 @@ The primary API is GrafanaCloudStackRequest at platform.example.org/v1beta1. It 
 | spec.slug | Immutable Grafana Cloud slug; must equal metadata.name |
 | spec.region | Grafana Cloud region slug |
 | spec.usage | Immutable platform-approved classification and output-secret path segment |
+| spec.organization | Required immutable platform registry key selecting the organization ProviderConfig and its allowed regions/usages |
 | spec.profile | Platform-defined policy/profile label |
+| spec.products | Activation toggles only for Application, Kubernetes, and Database Observability singletons; configuration stays in product-specific Helm/onboarding surfaces |
 | spec.lifecycle.externalResources | `Retain` (default) or reviewed `Delete` lifecycle for external resources that can outlive the stack |
 | spec.changeReference | Optional request or change identifier published in output metadata |
 | spec.configurationItemReference | Optional inventory identifier published in output metadata |
@@ -119,24 +115,33 @@ Three access APIs sit beside the stack request:
 
 GrafanaTeamAccess uses RoleAssignmentItem rather than the whole-set RoleAssignment resource. That makes independently owned team bundles additive. GrafanaContentAccessPolicy deliberately uses the whole-set FolderPermission or DashboardPermission resource; only one policy may own a given target.
 
+The specialist APIs are opt-in modules rather than stack-request fields. Each names a stack in the
+same namespace and uses its selected per-stack ProviderConfig:
+
+| API | Activation or configuration boundary | Important limitation |
+| --- | --- | --- |
+| GrafanaStackInventory | Explicit observe-only inventory request | Reports declared, managed, and unmanaged objects; never emits a mutating child |
+| GrafanaFleetPipelines | Selects a platform-owned pipeline profile | Collectors self-register; usage groups are UI-only and Advanced-tier |
+| GrafanaAlertingBundle | Explicit alert resources plus required `enforced`/`createOnly` provenance | Never owns the organization-wide NotificationPolicy/Routingtree singleton |
+| GrafanaAgentObservability | Explicit `guards` and `workload` sections | Does not install a plugin, mint credentials, or infer workload policy |
+| GrafanaAssistantGovernance | Terms-acceptance-gated rule profile and MCP allow-list | Withholds rules/MCP servers until acceptance is observed; headers are write-only Secret data |
+| GrafanaDatasourceAccess | One datasource's connection and authoritative team/LBAC set | Requires basic auth and entitlement; inherited or independent grants can bypass LBAC |
+| GrafanaProvisioningRepository | Preview Git-provisioned folder subtree | References an existing credential-managed Grafana Connection; classic Dashboards remain the default |
+
 The XRD uses defaultCompositionUpdatePolicy: Automatic and an enforced Composition reference. Existing requests therefore move to the latest Composition revision automatically after a platform update. Treat an XRD or function change like a production API release: render it, inspect the desired-resource diff, and roll it through a non-production request first.
 
 ## Platform configuration
 
-The Composition input in platform/apis/v1beta1.yaml is the platform-owned policy boundary. It controls:
+The Composition input in `platform/apis/stack-v1beta1.yaml` is the platform-owned policy boundary. It controls:
 
-- organizationProviderConfigName: the namespaced ProviderConfig used for organization-level Cloud operations;
+- organizations: a registry keyed by name; every entry provides the organization ProviderConfig name, resolved in the request namespace, plus allowed regions and usages;
 - outputSecretPrefix: the external path prefix for generated per-stack documents;
-- allowedUsages: the platform-owned usage vocabulary; the reference allows `development` and `production`;
 - deletionAuthorizations: platform-owned, exact request namespace/name/UID/profile tuples allowed to select `spec.lifecycle.externalResources: Delete` (empty by default);
 - secretStoreRef: either a namespaced SecretStore or a ClusterSecretStore;
 - ssoProfiles: approved OAuth or SAML settings and Secret references;
 - incidentProfiles: approved relay URLs and authorization Secret references.
 
-Consumers select a profile by name. They cannot supply an arbitrary identity endpoint, client secret, incident URL, or authorization value in a stack request. `spec.usage` must be in
-`allowedUsages` and is immutable because it is part of the external credential identity. The
-generated documents use the path `{outputSecretPrefix}/{region}/{usage}/{slug}`; the reference
-vocabulary is `development` and `production`.
+Consumers select a profile by name. They cannot supply an arbitrary identity endpoint, client secret, incident URL, or authorization value in a stack request. The organization registry fails closed: an unknown organization, a region absent from its allowed list, or a usage absent from its allowed list rejects the request. The generated documents use `{outputSecretPrefix}/{organization}/{usage}/{slug}`, allowing secret-store IAM to be scoped by organization.
 
 `spec.lifecycle.externalResources` defaults to `Retain`. `Delete` is accepted only when the
 request's namespace, name, Kubernetes UID, and immutable `spec.profile` match an entry in `deletionAuthorizations`.
@@ -150,12 +155,20 @@ Nothing in examples/catalog is live. Each directory demonstrates one ownership d
 
 | Directory | What it demonstrates | What an adopter changes |
 | --- | --- | --- |
-| minimal | Safe stack baseline, rotating credentials, create-only content, no SSO | Slug, region, immutable usage (`development` or `production` in the reference), API group, secret backend |
-| comprehensive | Every public API kind: enforced content and OAuth SSO, report, plugin, incident relay, compact custom-role binding, direct and synchronized Team access, multiple custom/fixed roles, preferences, and folder/dashboard ACLs | All profile names, endpoints, recipients, identities, verified fixed-role UIDs, plugins, role actions/scopes, and ACL targets |
+| minimal | Safe stack baseline, rotating credentials, create-only content, no SSO | Organization, slug, allowed region/usage, API group, secret backend |
+| comprehensive | Original stack/access API surface: enforced content and OAuth SSO, report, plugin, incident relay, role and content access | All profile names, endpoints, recipients, identities, verified fixed-role UIDs, plugins, role actions/scopes, and ACL targets |
 | sso-create-only | Platform initializes OAuth, then stack administrators own later SSO edits | Approved OAuth profile and handoff policy |
 | sso-azuread | Azure AD OAuth profile selected from platform policy | Tenant/application IDs, group claims, role expression, client-secret path |
 | sso-saml | SAML metadata and role-value mapping | Metadata URL, attributes, signing requirements, role values |
 | access-and-rbac | Direct and directory Team membership, preferences, custom/fixed roles, folder/dashboard ACLs | Team/group names, verified role UIDs, actions/scopes, ACL targets |
+| stack-inventory | Observe-only declared/managed/unmanaged inventory for migration and adoption | Existing Ready stack and reviewed declarations |
+| fleet-pipelines | Platform-owned Fleet Management baseline pipeline profile | Fleet entitlement and approved profile |
+| alerting-bundle | Stack-scoped alerting with a deliberate UI-provenance choice | Folder UID, contact points, rules, and `enforced` or `createOnly` |
+| agent-observability | Platform guards separate from workload-owned evaluation resources | Plugin/permission prerequisites and reviewed policy |
+| assistant-governance | Terms-gated Assistant rules and MCP allow-list | Accepted terms, platform profile, endpoint, and Secret-backed headers |
+| datasource-access | One datasource's authoritative Query grants and LBAC tree | Observed team UID/numeric ID, basic-auth connection, entitlement, and rules |
+| observability-products | Application, Kubernetes, and Database Observability toggles | Product-specific Helm/onboarding configuration outside the request |
+| provisioning-repository | Preview Git-provisioned dashboard subtree | Existing Grafana Connection and one exclusive content route |
 
 The comprehensive directory is a renderable Kustomize base. It intentionally contains every current public API kind so it can be used for schema validation, platform evaluation, and consumer overlays. It is not a claim that every feature should be enabled for every stack.
 
@@ -173,9 +186,9 @@ The reusable implementation and the live environment have different publication 
 | Placeholder SSO and incident profile shapes | Real endpoints and ExternalSecret remote paths |
 | Comprehensive request with reserved example identities | Globally unique stack slug, intended recipients, user IDs, groups, and verified fixed-role UIDs |
 
-An Argo CD Application can source `platform/` directly from this repository at an immutable commit. Its Kustomize patches can replace the four XRD group-qualified names, each XRD `spec.group`, and each Composition `spec.compositeTypeRef.apiVersion`; the stack Composition input `apiVersion` must be patched as well. A second source in the same Application can point at a small private directory containing only the environment SecretStore, ExternalSecrets, and organization ProviderConfig. This keeps one Argo owner while avoiding a copied platform implementation.
+An Argo CD Application can source `platform/` directly from this repository at an immutable commit. Its Kustomize patches must replace every XRD group-qualified name, every XRD `spec.group`, every Composition `spec.compositeTypeRef.apiVersion`, and the stack Composition input `apiVersion`. A second source in the same Application can hold the environment SecretStore, ExternalSecrets, and one ProviderConfig/credential Secret per registered organization in every namespace allowed to contain requests. The copies use the registry's same ProviderConfig name because v2 managed resources resolve that namespaced reference locally. This keeps one Argo owner while avoiding a copied platform implementation.
 
-The comprehensive request can be consumed the same way from `examples/catalog/comprehensive`. Apply private Kustomize patches for all four custom kinds rather than editing generated managed resources:
+The comprehensive request can be consumed the same way from `examples/catalog/comprehensive`. Apply private Kustomize patches for every custom kind you use rather than editing generated managed resources:
 
 1. replace the request `metadata.name`, `spec.slug`, display name, region, immutable usage (`development` or `production` in the reference vocabulary), and request references;
 2. replace every `spec.stackRef.name` and any baseline managed-resource names containing the example slug;
@@ -229,7 +242,7 @@ members carries ordinary membership only; team administrators are a separate set
 
 Custom role permissions are an allow list; there is no deny rule. Prefer the narrowest action and scope, keep global=false for stack-local roles, and validate actions against the Grafana version deployed to the target stack. The access-and-rbac example demonstrates alert-rule read/create/write plus the supporting folder-read and data-source-query permissions rather than granting organization Admin. Narrow folders:* and datasources:* to named UIDs in a real catalog.
 
-The pinned provider has a Role initializer defect: although autoIncrementVersion is optional in its CRD, the initializer rejects a Role that omits it. The Role CRD is byte-identical between v2.13.0 and the pinned main build, so the workaround still applies. The function therefore emits autoIncrementVersion=false explicitly and never owns the deprecated, server-managed version field. Recheck this workaround when upgrading the provider.
+The pinned provider has a Role initializer defect: although autoIncrementVersion is optional in its CRD, the initializer rejects a Role that omits it. The workaround still applies at v2.14.0. The function therefore emits autoIncrementVersion=false explicitly and never owns the deprecated, server-managed version field. Recheck this workaround when upgrading the provider.
 
 RoleAssignment manages the entire set of actors for a role and conflicts with RoleAssignmentItem. GrafanaCustomRoleBinding is safe only because it creates a unique role and owns that role's entire assignment set. GrafanaTeamAccess uses RoleAssignmentItem so multiple team bundles can add assignments independently. Never manage the same role/actor pair through both APIs.
 
@@ -249,9 +262,12 @@ Create a Grafana Cloud access policy token with only the organization-level capa
 }
 ~~~
 
-The example expects this document at /platform/grafana-cloud/organization/credentials. Do not put the real token directly in a shell command, terminal history, CI variable dump, or Kubernetes manifest. Use your secret-management workflow or the AWS CLI file input mechanism from a permission-restricted temporary file.
+The example expects one document per registry entry at `/platform/grafana-cloud/organizations/<organization>/credentials`. In every namespace that accepts requests, the environment overlay maps each path to that organization's same-named Secret and ProviderConfig. Do not put the real token directly in a shell command, terminal history, CI variable dump, or Kubernetes manifest. Use your secret-management workflow or the AWS CLI file input mechanism from a permission-restricted temporary file.
 
-deploy/aws/secret-store-and-credentials.yaml materializes the value into a Kubernetes Secret formatted for the provider. The namespaced grafana-cloud-org ProviderConfig references that Secret. Namespace RBAC should prevent request authors from reading it.
+The environment overlay materializes each organization credential into a separate Kubernetes Secret
+formatted for the provider. Each namespaced organization ProviderConfig references only its own
+Secret. Repeat those resources for every request namespace, keeping the registry name identical;
+namespace RBAC should prevent request authors from reading any of them.
 
 ### Rotating administrator token
 
@@ -278,7 +294,7 @@ The exported document has this shape:
   "change_reference": "CHANGE-EXAMPLE",
   "configuration_item_reference": "CONFIG-EXAMPLE",
   "stack_service_account_token": "GENERATED",
-  "telemetry_access_policy_secret_path": "{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher"
+  "telemetry_access_policy_secret_path": "{outputSecretPrefix}/{organization}/{usage}/{slug}/telemetry-publisher"
 }
 ~~~
 
@@ -295,9 +311,9 @@ When telemetryAccess.enabled is true, the Composition creates a stack-realm Acce
 
 An AccessPolicyRotatingToken uses the same 30-day lifetime and seven-day early rotation window. A
 separate PushSecret publishes the token and policy metadata under
-`{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher`. The immutable, platform-approved
-usage segment keeps this identity stable. Workloads should use this token for telemetry and never
-receive the administrator token.
+`{outputSecretPrefix}/{organization}/{usage}/{slug}/telemetry-publisher`. The immutable,
+platform-approved organization and usage segments keep this identity stable. Workloads should use
+this token for telemetry and never receive the administrator token.
 
 Static StackServiceAccountToken, AccessPolicyToken, and ServiceAccountToken resources remain available in the upstream provider but are deliberately not used. Their rotating counterparts avoid creating a permanent credential lifecycle outside the control plane.
 
@@ -327,7 +343,7 @@ deletion defaults to a 30-day recovery window; the supplied IAM policy includes 
 The Grafana provider manifest:
 
 - pins an immutable OCI digest, carried identically in spec.package and in the verification job's argv;
-- verifies Grafana's keyless signature against the exact publishing workflow identity, which is refs/heads/main for the pinned build;
+- verifies Grafana's keyless signature against the exact publishing workflow identity scoped to `refs/tags/v2.14.0`;
 - runs the provider with SafeStart;
 - activates only the managed-resource kinds used by this reference.
 
@@ -344,6 +360,16 @@ platform/function/install.yaml must pin the resulting signed digest for producti
 
 The supplied install manifest verifies the pinned function package against this repository's exact main-branch workflow identity before Crossplane installs it. The verification Job name contains the digest prefix, so changing the digest creates a new gate rather than reusing an old successful Job.
 
+## Releases
+
+Pushes to `main` run release-please. Use Conventional Commits: `feat:` creates a minor release;
+`fix:` and `perf:` create patch releases; a `!` marker or `BREAKING CHANGE:` footer records a
+breaking change. The manifest starts at `0.1.0`; a pre-1.0 breaking change advances to `1.0.0`.
+
+Release automation mints a short-lived, repository-scoped broker token. It never needs a
+long-lived personal token. Broker or OpenBao reachability and unseal state are infrastructure
+prerequisites, not evidence that the source validation gate failed.
+
 ## Follow along: direct installation
 
 These steps are suitable for a disposable or evaluation cluster. Review every manifest and replace the API group, region, repository, secret paths, profiles, and package reference before treating the result as production.
@@ -352,7 +378,8 @@ These steps are suitable for a disposable or evaluation cluster. Review every ma
 
 Fork or copy the repository, choose an API group under a domain you control, and update platform.example.org everywhere. Change the repository URLs and function package path to your fork.
 
-Keep `enabled/` empty until the controllers, provider, secret store, and organization ProviderConfig are healthy.
+Keep `enabled/` empty until the controllers, provider, secret store, and every registered
+organization ProviderConfig are healthy.
 
 ### 2. Install Crossplane
 
@@ -378,7 +405,8 @@ helm upgrade --install external-secrets external-secrets \
   --values deploy/external-secrets/values.yaml
 ~~~
 
-Configure workload identity before applying the SecretStore. Confirm that the organization credential exists at the configured remote path.
+Configure workload identity before applying the SecretStore. Confirm every organization credential
+exists at its configured remote path.
 
 ### 4. Install the platform and environment configuration
 
@@ -399,8 +427,7 @@ kubectl wait function.pkg.crossplane.io/function-grafana-vending \
   --for=condition=HealthyPackageRevision \
   --timeout=10m
 
-kubectl get providerconfig.grafana.m.crossplane.io \
-  -n grafana-vending grafana-cloud-org
+kubectl get providerconfig.grafana.m.crossplane.io -n grafana-vending
 ~~~
 
 The optional profile secrets are intentionally excluded from deploy/aws/kustomization.yaml. Apply deploy/aws/optional-profile-secrets.yaml only after the corresponding remote secrets and profile definitions are ready. The file includes OAuth inputs for example-oidc and example-azuread plus the incident relay input; the example-saml profile uses public IdP metadata and needs no committed key material.
@@ -492,6 +519,10 @@ Crossplane providers poll the external APIs and compare observed state with desi
 | OnCall outgoing-webhook data | createOnly | Initial generic payload is set; later UI template edits are preserved |
 | OnCall outgoing-webhook data | enforced | Later UI template edits are restored from the Composition |
 | Alerting contact-point payload | enabled | Crossplane always restores the relay payload and Secret-backed authorization contract |
+| Alerting bundle | `enforced` or `createOnly` provenance | Enforced locks UI edits; create-only seeds values and preserves later UI edits |
+| Assistant governance | observed terms acceptance | Rules and MCP servers are withheld until accepted; withdrawal prunes them |
+| Datasource access | present whole permission/LBAC set | Omitted managed non-inherited Query grants are removed; other additive grants remain outside the composite |
+| Observability product | toggle enabled | Removing the desired child does not request external Delete under the standard management policy |
 
 Changing SSO from enforced to createOnly moves oauth2Settings or samlSettings from forProvider to initProvider while retaining a stable external name for the provider. This is the supported handoff from platform ownership to administrator ownership. Changing to observeOnly removes write authority. Changing to disabled removes the managed-resource object from the Composition; under the retain-by-default lifecycle, the external SSO configuration remains but is no longer observed.
 
@@ -515,6 +546,72 @@ The incident option creates four OnCall outgoing webhooks—test/production firi
 
 Plugin installation is list-driven. Pin plugin versions for repeatability. latest is convenient for an evaluation but delegates upgrade timing to Grafana Cloud.
 
+## Opt-in modules
+
+### Stack inventory
+
+`GrafanaStackInventory` is an explicit, stack-gated observe-only request for migration and adoption
+review. It classifies declared, observed-and-managed, and observed-but-unmanaged objects across the
+supported inventory families. It cannot emit a mutating child, and inventory output is not an
+adoption command.
+
+### Fleet pipelines
+
+`GrafanaFleetPipelines` selects a platform-owned Pipeline profile; it is not a pipeline
+configuration API. The baseline enforces team, cost-centre, and environment labels, while
+Collectors self-register. The module mints and publishes `fleet_management_auth` through the
+external secret store. Usage groups remain a UI-only Advanced-tier feature.
+
+### Alerting bundle
+
+`GrafanaAlertingBundle` owns stack-scoped rule groups, contact points, mute timings, templates,
+and inhibitions. Its required provenance is the activation/ownership choice: `enforced` locks UI
+edits, while `createOnly` seeds them and preserves later UI changes. It routes per rule and never
+claims the destructive, organization-wide NotificationPolicy/Routingtree singleton.
+
+### Agent Observability
+
+`GrafanaAgentObservability` is an explicit policy declaration, not a stack-request default.
+Platform `guards` render HookRule/RuleAction, while workload `workload` renders collections,
+evaluators, and evaluation rules. It neither installs a plugin nor supplies credentials; plugin
+availability and permissions are prerequisites.
+
+### Assistant governance
+
+`GrafanaAssistantGovernance` terms-gates platform-selected Rules and MCPServers. A request cannot
+provide rule content; MCP approvals default to `always_ask`, and headers are write-only Secret
+data. Rules and MCP servers appear only after accepted terms are observed and are withdrawn when
+acceptance is withdrawn.
+
+### Datasource access
+
+`GrafanaDatasourceAccess` owns one datasource plus its authoritative whole team Query permission
+set and aggregated LBAC rule tree. The UID is the composite name, teams require observed UID and
+numeric ID, and basic authentication is required. It cannot remove inherited or independently
+managed additive grants that may bypass LBAC; PDC is out of scope.
+
+### Observability products
+
+`spec.products` activates Application, Kubernetes, and Database Observability global singletons.
+It carries no configuration fields: Kubernetes configuration belongs in Helm values, while
+Application and Database configuration belongs in their onboarding flows. Disabling a toggle
+removes the composed child but the standard policy does not request external Delete.
+
+### Git provisioning repositories
+
+`GrafanaProvisioningRepository` is an opt-in preview for a Git-provisioned dashboard folder
+subtree. It references a separately managed Grafana Connection and never embeds its credential.
+It rejects classic Dashboard ownership for that subtree. Classic Crossplane Dashboard remains the
+default route until the preview matures.
+
+### Role safety
+
+`GrafanaCustomRoleBinding` and `GrafanaTeamAccess` filter the exact
+`dashboards.public:write` action from custom roles unless the referenced stack's platform-owned
+profile is in `publicDashboardProfiles`; request authors cannot grant that exception. Built-in
+Viewer, Editor, and Admin roles are unchanged, and custom roles explicitly keep
+`autoIncrementVersion: false`.
+
 ## Complete provider surface and ownership boundaries
 
 The pinned provider exposes 121 namespaced external managed-resource kinds across 17 Grafana API families, plus 50 observe-only kinds generated from Terraform data sources. Comprehensive architecture means assigning every family a sensible owner; it does not mean every new stack should automatically create an SLO, a k6 project, an incident schedule, an ML job, and organization members.
@@ -523,24 +620,25 @@ The activation policy enables only kinds emitted by the current Compositions. Ad
 
 | Provider family | Treatment in this reference |
 | --- | --- |
-| agento11y | Collection, Evaluator, EvaluationRule, HookRule, and RuleAction belong in an opt-in Agent Observability module, which distinguishes platform-owned guard policy from workload-owned evaluators. Nothing here can be inferred from a stack request, so the family is not stack-baseline content and no kind is activated until that module ships. |
-| alerting | ContactPoint is an optional stack child. Rule groups, notification policy, templates, mute timing, inhibition, recording rules, and enrichment belong in a separate per-stack alerting bundle with one owner for the routing tree; use the stack-local ProviderConfig and the same non-destructive policy pattern. |
+| agento11y | `GrafanaAgentObservability` activates the family only from explicit `guards` and `workload` sections. Guards own HookRule/RuleAction; workload owners define Collection/Evaluator/EvaluationRule. Plugin availability and credentials remain environment prerequisites. |
+| alerting | Core retains optional incident-relay ContactPoints. `GrafanaAlertingBundle` owns RuleGroup, ContactPoint, MuteTiming, MessageTemplate, and InhibitionRuleV1Beta1 with explicit provenance and per-rule routing; it never renders the destructive organization-wide NotificationPolicy/Routingtree singleton. |
 | asserts | Use a separate opt-in onboarding module because entitlement and additional metrics/Grafana credentials are required. |
-| assistant | MCP servers, quickstarts, rules, and skills require a separate security and content lifecycle. |
-| cloud | Core owns Stack, StackServiceAccount, StackServiceAccountRotatingToken, AccessPolicy, AccessPolicyRotatingToken, and optional PluginInstallation. Organization membership, private data-source networking, and observability onboarding belong in separate approved modules. |
+| assistant | `GrafanaAssistantGovernance` terms-gates platform-selected Rules and MCPServers. Restrictive `always_ask` is the default; headers are write-only Secret data. |
+| cloud | Core owns Stack, StackServiceAccount, StackServiceAccountRotatingToken, AccessPolicy, AccessPolicyRotatingToken, optional PluginInstallation, and the three product global singletons selected by `spec.products`. Product configuration is not part of the stack request. |
 | cloudintegrations | CloudIntegration belongs in an integration module selected after stack creation. |
 | cloudprovider | AWS scrape jobs/accounts and Azure credentials require separate cloud trust and approval. |
 | connections | Metrics endpoint scrape jobs are workload-owned connection objects. |
-| enterprise | Core optionally owns Report; access APIs own Role, RoleAssignment, and RoleAssignmentItem. Data-source policy, SCIM, Keeper, secure values, and standalone external-group mapping are separate security-sensitive modules. |
-| fleetmanagement | Collectors and pipelines have an independent rollout lifecycle. |
+| enterprise | Core optionally owns Report; access APIs own Role, RoleAssignment, and RoleAssignmentItem. `GrafanaDatasourceAccess` owns one DataSource, its whole permission set, and aggregated LBAC tree. SCIM, Keeper, and standalone external-group mapping remain separate security-sensitive modules. |
+| fleetmanagement | `GrafanaFleetPipelines` selects a platform-owned pipeline baseline and publishes a Fleet credential chain. Collectors self-register; usage groups remain UI-only and Advanced-tier. |
 | frontendobservability | Applications require workload identity and origin inputs unavailable at stack creation. |
 | grafana | Namespaced ProviderConfig is created per stack. ClusterProviderConfig is avoided to preserve namespace isolation. |
 | k6 | Projects, tests, load zones, limits, and schedules are independent domain objects. |
 | ml | Alerts, holidays, jobs, and outlier detectors depend on real queries and service ownership. |
 | oncall | Core optionally creates relay-backed OutgoingWebhook resources. Users, routes, schedules, shifts, integrations, and escalation policy belong in an incident-management module. |
-| oss | Core owns Folder, Dashboard, OrganizationPreferences, and SsoSettings; access APIs own Team, FolderPermission, and DashboardPermission. Data sources, playlists, library panels, annotations, repositories, users, and additional service accounts belong in content or integration modules. |
+| observe-only inventory | `GrafanaStackInventory` activates only provider data sources and classifies declared, managed, and unmanaged folders, dashboards, teams, users, library panels, probes, collectors, and selected organization users. It never renders a mutating child. |
+| oss | Core owns Folder, Dashboard, OrganizationPreferences, and SsoSettings; access APIs own Team, FolderPermission, and DashboardPermission. `GrafanaProvisioningRepository` is an opt-in preview Git subtree route referencing an existing Connection. Inventory observes folders, dashboards, teams, users, and library panels; playlists, annotations, and additional service accounts remain separate. |
 | slo | SLO objectives and queries are service-owned, not inferred from a stack request. |
-| sm | Synthetic Monitoring installation, probes, checks, and alerting require approved targets, execution locations, and a separate credential chain. |
+| sm | Synthetic Monitoring installation, probes, checks, and alerting require approved targets, execution locations, and a separate credential chain. `GrafanaStackInventory` may observe probes but never writes them. |
 
 This leads to a clean GitOps tree:
 
@@ -553,8 +651,9 @@ stack-request Applications
   zero or more GrafanaCustomRoleBinding objects
 
 optional domain Applications
-  stack content and permissions
-  alerting
+  stack content, inventory, and permissions
+  alerting, Fleet, Assistant, and Agent Observability
+  datasource access or Git provisioning repositories
   cloud integrations and connections
   incident management
   Synthetic Monitoring and SLOs
@@ -575,7 +674,7 @@ This matrix was checked resource-by-resource against the active modules in the T
 | Administrator service account | StackServiceAccount | Equivalent |
 | Static administrator token | StackServiceAccountRotatingToken | Superset through automatic rotation |
 | Stack-local provider | ESO-built credentials plus namespaced ProviderConfig | Equivalent without credentials in code or state |
-| External credential document | PushSecret document containing name, slug, URL, region, immutable platform-approved usage, request references, token, and `{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher` | Field parity through a backend-neutral secret manager |
+| External credential document | PushSecret document containing name, slug, URL, region, immutable organization/usage, request references, token, and `{outputSecretPrefix}/{organization}/{usage}/{slug}/telemetry-publisher` | Field parity through a backend-neutral secret manager |
 | Telemetry publisher | Stack-realm AccessPolicy, rotating token, separate output | Superset through least privilege |
 | Plugins | PluginInstallation list | Equivalent provider support |
 | Billing/usage, endpoints, and home folders/dashboards | Three Folder and Dashboard pairs | Resource and lifecycle parity; neutral starter JSON replaces source-specific content |
@@ -607,19 +706,33 @@ This matrix was checked resource-by-resource against the active modules in the T
 
 | Use case | Reference position | Why it is not automatic |
 | --- | --- | --- |
-| Alert rules, notification policy, mute timings, templates | Separate per-stack alerting bundle | The notification-policy tree is a whole-set singleton and needs one owner |
-| Data sources and data-source permissions | Separate connection/access bundle with Secret references | Endpoints, credentials, and network trust are workload-specific |
+| Alert rules, mute timings, templates, and inhibitions | `GrafanaAlertingBundle` | Per-rule routing avoids owning the organization-wide notification-policy singleton |
+| Data sources and data-source permissions | `GrafanaDatasourceAccess` | One composite owns a whole permission/LBAC set; connection settings remain Secret-backed and workload-specific |
 | Private data-source connect | Separate approved network module | Creates network trust and tokens outside ordinary stack vending |
 | Cloud integrations and scrape jobs | Separate cloud-integration module | Requires cloud-account permissions and approval |
 | Additional service accounts and service-account permissions | Separate automation identity bundle | Role, token audience, owner, and rotation policy differ per workload |
 | SLOs and Synthetic Monitoring | Service-owned definitions using the stack ProviderConfig | Objectives, queries, probes, and targets cannot be inferred safely |
 | OnCall schedules, escalation chains, routes, and integrations | Incident-management bundle | People, rotations, and escalation policy have an independent lifecycle |
-| Frontend Observability, k6, Fleet Management, ML, Asserts, Assistant | Dedicated domain modules | Each has entitlement, identity, content, and rollout inputs beyond stack creation |
+| Frontend Observability, k6, ML, Asserts | Dedicated domain modules | Each has entitlement, identity, content, and rollout inputs beyond stack creation |
 
 The complete provider-family table above is the extension index. New modules should reuse the namespaced
 stack ProviderConfig, keep secrets in external stores, choose whole-set versus item resources
 deliberately, retain by default, and document their reconciliation owner in this README. The armed
 Delete contract does not turn stack-local content into independently deletable resources.
+
+## Adaptive products: deliberately out of scope
+
+Adaptive Metrics is Grafana Cloud's largest cost lever, but this reference does not vend it.
+Adaptive Logs, Adaptive Traces, and Adaptive Profiles are also out of scope. This is a deliberate
+non-adoption decision, not an unsupported activation toggle hidden in the API: the stack request
+does not expose any adaptive-product configuration.
+
+Use the Grafana Cloud UI and the applicable ticket-based service route for those products. The
+reversal cost is low because no request, credential, or composition here depends on this decision.
+The feasible future route is a dedicated provider/module once upstream packaging is ready; any
+future Adaptive Metrics design must choose either rulesets or individual rules as the sole owner
+per segment, because mixing them overwrites rules. That merge question is not applicable while the
+product remains out of scope.
 
 ## Migration and adoption
 
@@ -627,7 +740,7 @@ Do not point this platform at existing stacks casually. Adoption is a change of 
 
 A safe adoption rehearsal should:
 
-1. record the stack slug, numeric ID, URL, region, deletion protection, SSO owner, service accounts, tokens, plugins, and current content;
+1. render and apply the `GrafanaStackInventory` example for the existing stack, then review its `status.declared`, `status.observedAndManaged`, and `status.observedButUnmanaged` output;
 2. back up the existing configuration through the supported Grafana APIs or its current IaC state;
 3. render the request and inspect every desired managed resource before applying;
 4. begin with create-only or observe-only modes where available;
@@ -635,6 +748,12 @@ A safe adoption rehearsal should:
 6. confirm no unrelated service account, token, SSO provider, plugin, role, or dashboard would be claimed;
 7. hand over one resource family at a time;
 8. retain a tested rollback that removes Kubernetes ownership without deleting external resources.
+
+The inert `examples/catalog/stack-inventory` catalog is the migration entry point. Copy and adapt it
+into the deliberate live-request path only after the referenced stack and its per-stack
+`ProviderConfig` are healthy. It composes only the provider's observe-only data sources, so it cannot
+create, update, or delete Grafana objects. Use its observed lists to identify out-of-band objects
+before adding declarations or moving a resource family into an owning Composition.
 
 The provider imports external objects through the crossplane.io/external-name annotation. This reference emits an identity only when it can derive the provider's import key without consulting a live environment:
 
@@ -767,7 +886,7 @@ Before making the repository public, also review repository settings, issues, wo
 - The Grafana provider is experimental and may lag the Terraform provider.
 - Provider schemas and Grafana APIs may expose fields that do not round-trip cleanly; test drift rather than assuming.
 - The pinned provider requires the optional Role autoIncrementVersion field to be present because of an initializer defect; this reference pins it to false and omits version.
-- The pin is a main-branch provider build, not a tagged release, because no release yet carries the complete upstream resource surface. It is published and cosign-signed by the same workflow that publishes releases, but its certificate identity is branch-scoped, so the digest rather than the identity is what pins a specific artifact. Move to a tagged release when one reaches parity.
+- The pinned v2.14.0 release is digest-pinned and signed by the provider's tag workflow; future upgrades must move the tag-scoped certificate identity and both digest occurrences together.
 - AccessPolicy realm is a Block List at the pinned build where v2.13.0 generated a Block Set. This reference emits exactly one realm entry, so element ordering is not load-bearing here; a multi-realm policy would need to treat order as significant.
 - Stack status gained per-service allowlist URL fields at the pinned build. They are endpoint references for retrieving source IP addresses to allow, not a means of restricting inbound access to a stack.
 - The reference has no one-command destructive workflow; the authorized Delete path still requires
@@ -782,6 +901,14 @@ Before making the repository public, also review repository settings, issues, wo
 - Crossplane readiness reports only the child resources currently desired; an optional disabled domain is not health-checked.
 - Secret-store publication is eventually consistent with the configured ESO refresh interval.
 - A successful render or unit test does not prove acceptance by a specific Grafana Cloud region or account. Use a disposable stack for live acceptance.
+- This is Grafana Cloud only; self-managed Grafana feature toggles and deployment variants are not
+  supported.
+- Adaptive Metrics, Logs, Traces, and Profiles are deliberately out of scope. Use the UI and
+  ticket-based routes until a separately designed module is adopted.
+- Datasource LBAC requires Grafana 11.5 or later, a Cloud or Enterprise entitlement, basic auth,
+  and governance of inherited/fixed/independently managed grants that can bypass its rules.
+- Fleet usage groups are UI-only and Advanced-tier. Agent Observability plugin availability and
+  permissions, and Assistant terms, remain environment prerequisites.
 
 ## License
 

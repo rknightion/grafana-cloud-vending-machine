@@ -32,16 +32,22 @@ type compositeRenderer struct {
 	implemented bool
 }
 
+const resolvedStackProfileConfigKey = "_resolvedStackProfile"
+
 var compositeRenderers = map[string]compositeRenderer{
 	"GrafanaCloudStackRequest": {render: renderStack, implemented: true},
 	"GrafanaCustomRoleBinding": {
-		render: func(xr map[string]any, _ map[resource.Name]resource.ObservedComposed, _ map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
-			return renderRoleBinding(xr)
+		render: func(xr map[string]any, _ map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+			profile, _ := config[resolvedStackProfileConfigKey].(string)
+			spec, _ := config["spec"].(map[string]any)
+			return renderRoleBindingWithPlatformProfile(xr, profile, stringListValue(spec, "publicDashboardProfiles", nil))
 		}, gateOnStack: true, implemented: true,
 	},
 	"GrafanaTeamAccess": {
-		render: func(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, _ map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
-			return renderTeamAccess(xr, observed)
+		render: func(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+			profile, _ := config[resolvedStackProfileConfigKey].(string)
+			spec, _ := config["spec"].(map[string]any)
+			return renderTeamAccessWithPlatformProfile(xr, observed, profile, stringListValue(spec, "publicDashboardProfiles", nil))
 		}, gateOnStack: true, implemented: true,
 	},
 	"GrafanaContentAccessPolicy": {
@@ -90,10 +96,19 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		response.Fatal(rsp, errors.Errorf("composite kind %q is registered but not implemented", kind))
 		return rsp, nil
 	}
-	desired, err := renderer.render(content, observed, config)
-	if kind == "GrafanaCloudStackRequest" && err == nil {
-		if err = response.SetDesiredCompositeResource(rsp, desiredStackStatus(content, observed, config)); err != nil {
-			err = errors.Wrap(err, "cannot set desired composite status")
+	desired, err := renderer.render(content, observed, rendererConfig(req, content, config))
+	if err == nil {
+		var status *resource.Composite
+		switch kind {
+		case "GrafanaCloudStackRequest":
+			status = desiredStackStatus(content, observed, config)
+		case "GrafanaStackInventory":
+			status = desiredStackInventoryStatus(content, observed)
+		}
+		if status != nil {
+			if err = response.SetDesiredCompositeResource(rsp, status); err != nil {
+				err = errors.Wrap(err, "cannot set desired composite status")
+			}
 		}
 	}
 	if err != nil {
@@ -133,8 +148,37 @@ func gateAccessResources(req *fnv1.RunFunctionRequest, rsp *fnv1.RunFunctionResp
 		return nil, false, err
 	}
 	desired := map[resource.Name]*resource.DesiredComposed{}
+	if assistantGovernanceChildrenBlocked(xr, observed) {
+		// The normal access gate intentionally retains an already-observed child
+		// across a transient stack readiness loss. Assistant terms are a second,
+		// stricter gate: an explicit withdrawal or an observed non-acceptance must
+		// remove every rule and MCP server immediately, even when those children
+		// were present in the previous desired set. Keep only the terms singleton
+		// itself, and only when the stack gate permits it or it already exists.
+		if terms, ok := staged["terms"]; ok && (admit || observedExists(observed, "terms")) {
+			desired["terms"] = terms
+		}
+		return desired, admit, nil
+	}
 	admitStaged(desired, staged, observed, admit)
 	return desired, admit, nil
+}
+
+func assistantGovernanceChildrenBlocked(xr map[string]any, observed map[resource.Name]resource.ObservedComposed) bool {
+	if xr["kind"] != "GrafanaAssistantGovernance" {
+		return false
+	}
+	spec, _ := xr["spec"].(map[string]any)
+	terms, _ := spec["termsAcceptance"].(map[string]any)
+	if terms == nil {
+		terms, _ = spec["terms"].(map[string]any)
+	}
+	accepted, ok := terms["accepted"].(bool)
+	if !ok || !accepted {
+		return true
+	}
+	observedAccepted, present := observedBool(observed, "terms", "status", "atProvider", "accepted")
+	return !present || !observedAccepted
 }
 
 func accessResourcesAdmittedWithRequest(req *fnv1.RunFunctionRequest, rsp *fnv1.RunFunctionResponse, xr map[string]any) (bool, error) {
@@ -191,6 +235,40 @@ func accessStackReference(xr map[string]any) string {
 	stackRef, _ := spec["stackRef"].(map[string]any)
 	name, _ := stackRef["name"].(string)
 	return name
+}
+
+// rendererConfig adds request-derived context that a renderer must not accept
+// from the composite itself. In particular, public-dashboard permission is
+// selected only by the profile on the validated referenced stack and the
+// platform-owned allow-list in the Composition input.
+func rendererConfig(req *fnv1.RunFunctionRequest, xr, config map[string]any) map[string]any {
+	kind, _ := xr["kind"].(string)
+	if kind != "GrafanaCustomRoleBinding" && kind != "GrafanaTeamAccess" {
+		return config
+	}
+	result := make(map[string]any, len(config)+1)
+	for key, value := range config {
+		result[key] = value
+	}
+	result[resolvedStackProfileConfigKey] = requiredReferencedStackProfile(req, xr)
+	return result
+}
+
+func requiredReferencedStackProfile(req *fnv1.RunFunctionRequest, xr map[string]any) string {
+	resources, resolved, err := request.GetRequiredResource(req, referencedStackRequirement)
+	if err != nil || !resolved || len(resources) != 1 || resources[0].Resource == nil {
+		return ""
+	}
+	metadata, _ := xr["metadata"].(map[string]any)
+	name := accessStackReference(xr)
+	namespace, _ := metadata["namespace"].(string)
+	apiVersion, _ := xr["apiVersion"].(string)
+	object := resources[0].Resource.UnstructuredContent()
+	if !requiredStackIdentityMatches(object, name, namespace, apiVersion) {
+		return ""
+	}
+	spec, _ := object["spec"].(map[string]any)
+	return stringValue(spec, "profile", defaultStackProfile)
 }
 
 func referencedStackAPIVersion(xr map[string]any) (string, error) {
@@ -523,15 +601,17 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 				"name": credentialSecret, "creationPolicy": "Owner", "deletionPolicy": "Retain",
 				"template": map[string]any{
 					"engineVersion": "v2",
-					"data":          map[string]any{"credentials": `{"auth":{{ .stackServiceAccountToken | toJson }},"url":{{ .stackURL | toJson }}}`},
+					"data":          map[string]any{"credentials": `{"auth":{{ .stackServiceAccountToken | toJson }},"url":{{ .stackURL | toJson }},"fleet_management_auth":{{ .fleetManagementAuth | toJson }}}`},
 				},
 			},
 			"data": []any{
 				map[string]any{"secretKey": "stackServiceAccountToken", "remoteRef": map[string]any{"key": outputPath, "property": "stack_service_account_token"}},
 				map[string]any{"secretKey": "stackURL", "remoteRef": map[string]any{"key": outputPath, "property": "stack_url"}},
+				map[string]any{"secretKey": "fleetManagementAuth", "remoteRef": map[string]any{"key": outputPath + "/fleet-management", "property": "fleet_management_auth"}},
 			},
 		})
 
+	addFleetAccess(desired, observed, namespace, slug, region, outputPath, settings, organizationProviderConfigName, deletingExternalResources)
 	if err := addTelemetryAccess(desired, observed, namespace, slug, region, telemetryOutputPath, spec, settings, organizationProviderConfigName, deletingExternalResources); err != nil {
 		return nil, err
 	}
@@ -575,11 +655,13 @@ func desiredStackStatus(xr map[string]any, observed map[resource.Name]resource.O
 	deletionArmed := lifecycle == "Delete"
 	deleteProtection, protectionObserved := observedBool(observed, "stack", "status", "atProvider", "deleteProtection")
 	credentialsPrepared := observedPushSecretDeletionPrepared(observed, "credentials")
+	fleetCredentialsPrepared := observedPushSecretDeletionPrepared(observed, "fleet-management-credentials")
 	telemetryPrepared := !telemetryAccessEnabled(spec) || observedPushSecretDeletionPrepared(observed, "telemetry-credentials")
 	administratorTokenPrepared := observedRotatingTokenDeletionPrepared(observed, "stack-token")
+	fleetTokenPrepared := observedRotatingTokenDeletionPrepared(observed, "fleet-management-token")
 	telemetryTokenPrepared := !telemetryAccessEnabled(spec) || observedRotatingTokenDeletionPrepared(observed, "telemetry-token")
 	status["deletionArmed"] = deletionArmed
-	status["deletionReady"] = deletionArmed && protectionObserved && !deleteProtection && administratorTokenPrepared && telemetryTokenPrepared && credentialsPrepared && telemetryPrepared
+	status["deletionReady"] = deletionArmed && protectionObserved && !deleteProtection && administratorTokenPrepared && fleetTokenPrepared && telemetryTokenPrepared && credentialsPrepared && fleetCredentialsPrepared && telemetryPrepared
 	stack := map[string]any{}
 	if id := observedString(observed, "stack", "status.atProvider.id"); id != "" {
 		stack["id"] = id

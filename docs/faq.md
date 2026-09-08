@@ -52,9 +52,9 @@ policy/token, and administrator/telemetry credential documents. AWS Secrets Mana
 recovery window by default for deleted `PushSecret` documents, and other backends must be checked
 for Delete support. See [Security → external-resource lifecycle](security.md#external-resource-lifecycle).
 
-The request's `spec.usage` is also immutable and must be in platform-owned `allowedUsages` (the
-reference values are `development` and `production`); generated documents use
-`{outputSecretPrefix}/{region}/{usage}/{slug}`.
+The request's `spec.organization` and `spec.usage` are immutable and must be allowed by the
+platform-owned organization registry; generated documents use
+`{outputSecretPrefix}/{organization}/{usage}/{slug}`.
 
 ## Can I point this at an existing Grafana Cloud stack?
 
@@ -73,11 +73,18 @@ created and observed. See [Architecture](architecture.md).
 
 ## How many Grafana Cloud resource kinds does this actually manage?
 
-The pinned provider release exposes 111 namespaced external managed-resource kinds across 16
-Grafana API families. This reference activates only the subset its Compositions emit, deliberately
-leaving alerting rule groups, data sources, cloud integrations, SLOs, Synthetic Monitoring,
-OnCall schedules, Fleet Management, k6, ML, Asserts, and Assistant as separately owned domains.
-See [Architecture → baseline and optional resources](architecture.md#baseline-and-optional-resources).
+The pinned provider exposes 121 namespaced external managed-resource kinds across 17 families,
+plus 50 observe-only kinds. This reference activates only the subset its Compositions emit. It now
+has explicit modules for inventory, Fleet pipelines, alerting, Agent Observability, Assistant
+governance, datasource access, Git provisioning repositories, and product activation; cloud
+integrations, SLOs, Synthetic Monitoring, OnCall schedules, k6, ML, and Asserts remain separately
+owned. See [Architecture → baseline and optional resources](architecture.md#baseline-and-optional-resources).
+
+## Does this manage Adaptive Metrics or other adaptive products?
+
+No. Adaptive Metrics, Logs, Traces, and Profiles are deliberately out of scope, and the stack API
+has no hidden adaptive toggle. Use the Grafana Cloud UI and the applicable ticket-based route. The
+decision is inexpensive to reverse because no current request or composition depends on it.
 
 ## Where do I report a bug or ask a question?
 

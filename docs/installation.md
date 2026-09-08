@@ -20,8 +20,8 @@ Suitable for a disposable or evaluation cluster.
 
 Fork or copy the repository, choose an API group under a domain you control, and replace
 `platform.example.org` everywhere. Change the repository URLs and function package path to your
-fork. Keep `enabled/` empty until the controllers, provider, secret store, and organization
-`ProviderConfig` are healthy.
+fork. Keep `enabled/` empty until the controllers, provider, secret store, and every registered
+organization `ProviderConfig` is healthy in every namespace that will accept requests.
 
 ### 2. Install Crossplane
 
@@ -47,8 +47,8 @@ helm upgrade --install external-secrets external-secrets \
   --values deploy/external-secrets/values.yaml
 ```
 
-Configure workload identity before applying the `SecretStore`. Confirm the organization
-credential exists at the configured remote path first — see [Secrets](secrets.md).
+Configure workload identity before applying the `SecretStore`. Confirm every organization
+credential exists at its configured remote path first — see [Secrets](secrets.md).
 
 ### 4. Install the platform and environment configuration
 
@@ -61,8 +61,9 @@ kubectl apply -k deploy/aws
 `platform/` installs the Grafana provider (with signature verification), the vending
 composition function (also signature-verified), the `ManagedResourceActivationPolicy`, the
 XRDs and Compositions, and the extra composition RBAC needed for ESO's `PushSecret` and
-`ExternalSecret` resources. `deploy/aws` installs the `SecretStore`, the organization
-`ExternalSecret`, and the organization `ProviderConfig`.
+`ExternalSecret` resources. `deploy/aws` is an example for one request namespace: a real overlay
+needs the `SecretStore`, one organization `ExternalSecret`, and one same-named ProviderConfig per
+registry entry in every namespace that will accept requests.
 
 Wait for the provider and function to become healthy:
 
@@ -75,8 +76,7 @@ kubectl wait function.pkg.crossplane.io/function-grafana-vending \
   --for=condition=HealthyPackageRevision \
   --timeout=10m
 
-kubectl get providerconfig.grafana.m.crossplane.io \
-  -n grafana-vending grafana-cloud-org
+kubectl get providerconfig.grafana.m.crossplane.io -n grafana-vending
 ```
 
 The optional profile secrets are intentionally excluded from `deploy/aws/kustomization.yaml`.
@@ -161,6 +161,6 @@ the project [README](https://github.com/rknightion/grafana-cloud-vending-machine
 ## Next steps
 
 - [Getting started](getting-started.md) — vend your first stack.
-- [Secrets](secrets.md) — the organization credential and per-stack token flow in detail.
+- [Secrets](secrets.md) — the per-organization credential and per-stack token flow in detail.
 - [Architecture](architecture.md) — the ownership boundaries between Argo CD, Crossplane, and
   ESO.

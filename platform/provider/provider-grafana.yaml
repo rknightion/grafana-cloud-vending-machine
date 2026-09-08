@@ -140,3 +140,32 @@ spec:
     - roles.enterprise.grafana.m.crossplane.io
     - roleassignments.enterprise.grafana.m.crossplane.io
     - roleassignmentitems.enterprise.grafana.m.crossplane.io
+    - foldersets.oss.grafana.o.crossplane.io
+    - dashboardsets.oss.grafana.o.crossplane.io
+    - teamsets.oss.grafana.o.crossplane.io
+    - usersets.oss.grafana.o.crossplane.io
+    - librarypanelsets.oss.grafana.o.crossplane.io
+    - probesets.sm.grafana.o.crossplane.io
+    - collectorsets.fleetmanagement.grafana.o.crossplane.io
+    - organizationusers.oss.grafana.o.crossplane.io
+    - pipelines.fleetmanagement.grafana.m.crossplane.io
+    - rulegroups.alerting.grafana.m.crossplane.io
+    - mutetimings.alerting.grafana.m.crossplane.io
+    - messagetemplates.alerting.grafana.m.crossplane.io
+    - inhibitionrulev1beta1s.alerting.grafana.m.crossplane.io
+    - collections.agento11y.grafana.m.crossplane.io
+    - evaluators.agento11y.grafana.m.crossplane.io
+    - evaluationrules.agento11y.grafana.m.crossplane.io
+    - hookrules.agento11y.grafana.m.crossplane.io
+    - ruleactions.agento11y.grafana.m.crossplane.io
+    - rules.assistant.grafana.m.crossplane.io
+    - mcpservers.assistant.grafana.m.crossplane.io
+    - termsacceptances.assistant.grafana.m.crossplane.io
+    - datasources.oss.grafana.m.crossplane.io
+    - datasourcepermissions.enterprise.grafana.m.crossplane.io
+    - datasourceconfiglbacrules.enterprise.grafana.m.crossplane.io
+    - appo11yconfigv1alpha1s.cloud.grafana.m.crossplane.io
+    - dbo11yconfigv1alpha1s.cloud.grafana.m.crossplane.io
+    - k8so11yconfigv1alpha1s.cloud.grafana.m.crossplane.io
+    - repositoryv0alpha1s.oss.grafana.m.crossplane.io
+    - connectionv0alpha1s.oss.grafana.m.crossplane.io

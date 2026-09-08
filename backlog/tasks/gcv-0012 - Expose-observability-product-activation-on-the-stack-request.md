@@ -4,7 +4,7 @@ title: Expose observability product activation on the stack request
 status: In Progress
 assignee: []
 created_date: '2026-08-21 12:14'
-updated_date: '2026-09-08 11:10'
+updated_date: '2026-09-08 11:53'
 labels: []
 dependencies: []
 ordinal: 12000
@@ -36,6 +36,12 @@ Verified present in the pinned provider, so this needs no pin bump.
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 2: validate the product singleton rendering completed in the root prerequisite, add an inert catalog example, and document toggle semantics; root wires and gates.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

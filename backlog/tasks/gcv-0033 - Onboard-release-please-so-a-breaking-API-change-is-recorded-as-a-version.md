@@ -4,7 +4,7 @@ title: Onboard release-please so a breaking API change is recorded as a version
 status: In Progress
 assignee: []
 created_date: '2026-09-08 08:08'
-updated_date: '2026-09-08 11:10'
+updated_date: '2026-09-08 11:53'
 labels: []
 dependencies: []
 priority: medium
@@ -37,6 +37,12 @@ The OpenBao permission set, policy and JWT role are an external secret-store mut
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 2: add the self-contained broker-token release-please workflow, seed config and manifest, validate locally, then capture the first pushed run as evidence.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

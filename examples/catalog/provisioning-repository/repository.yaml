@@ -1,0 +1,19 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaProvisioningRepository
+metadata:
+  name: example-application-overview
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique06
+  repository:
+    uid: example-application-overview
+    title: Example application overview
+    description: Git-backed dashboards for the application overview folder subtree.
+    url: https://github.com/example/grafana-dashboards
+    branch: main
+    path: application-overview
+    connectionRef:
+      # This is the Grafana ConnectionV0Alpha1 name, not a Kubernetes Secret.
+      # The Connection already holds the Git credential and is managed elsewhere.
+      name: replace-with-existing-grafana-connection

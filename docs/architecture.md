@@ -11,7 +11,7 @@ flowchart LR
     Argo --> XR[GrafanaCloudStackRequest]
     XR --> XP[Crossplane composition]
     XP --> Cloud[Grafana Cloud resources]
-    AWSIn[AWS Secrets Manager\norganization and profile credentials] --> ESO[External Secrets Operator]
+    AWSIn[AWS Secrets Manager\nper-organization and profile credentials] --> ESO[External Secrets Operator]
     ESO --> K8sIn[Kubernetes Secrets]
     K8sIn --> XP
     Cloud --> Generated[Kubernetes connection Secrets]
@@ -38,26 +38,31 @@ in `deploy/argocd/argocd-values.yaml` matter — see [Installation](installation
 ## The vending API
 
 The primary API is `GrafanaCloudStackRequest`. It is namespaced so teams or environments can be
-separated with Kubernetes namespaces and RBAC. Three access APIs — `GrafanaCustomRoleBinding`,
-`GrafanaTeamAccess`, and `GrafanaContentAccessPolicy` — sit beside it; see
-[Configuration](configuration.md) for every field.
+separated with Kubernetes namespaces and RBAC. It supports Grafana Cloud only. A stack has one
+immutable `spec.organization`, but one installation can serve several registered organizations.
+Three access APIs and seven specialist APIs sit beside it; see [Configuration](configuration.md)
+for each activation boundary and limitation.
 
 The XRD uses `defaultCompositionUpdatePolicy: Automatic` and an `enforcedCompositionRef`.
 Existing requests therefore move to the latest Composition revision automatically after a
 platform update. Treat an XRD or function change like a production API release: render it,
 inspect the desired-resource diff, and roll it through a non-production request first.
 
-The platform-owned `GrafanaVendingConfig` input also owns the lifecycle vocabulary. The reference
-allows `development` and `production` in `allowedUsages`; `spec.usage` is immutable because it is
-part of the external credential identity. Generated documents use
-`{outputSecretPrefix}/{region}/{usage}/{slug}`. `spec.lifecycle.externalResources` defaults to
-`Retain`. `Delete` is accepted only for an exact request namespace/name/UID/profile tuple listed in
-`deletionAuthorizations`, which is empty by default.
+The platform-owned `GrafanaVendingConfig` input holds a registry keyed by organization name. Each
+entry supplies the organization ProviderConfig name plus permitted regions and usages. An unknown
+organization, region, or usage fails closed; there is no single-organization fallback. Every
+organization-plane child uses that name in the request namespace. Because v2 ProviderConfigs are
+namespaced, every namespace that accepts requests must carry a same-named credential Secret and
+ProviderConfig for each registry entry. Generated documents use
+`{outputSecretPrefix}/{organization}/{usage}/{slug}`, enabling IAM scoping by organization.
+`spec.lifecycle.externalResources` defaults to `Retain`. `Delete` is accepted only for an exact
+request namespace/name/UID/profile tuple listed in `deletionAuthorizations`, which is empty by
+default.
 
 ## How a request becomes managed resources
 
-Each of the four kinds is backed by a single-step Crossplane `Composition` in `Pipeline` mode
-that calls the `function-grafana-vending` composition function (a Go program built from
+Each public kind is backed by a single-step Crossplane `Composition` in `Pipeline` mode that calls
+the `function-grafana-vending` composition function (a Go program built from
 `platform/function/`). The function reads the request spec plus the platform-owned
 `GrafanaVendingConfig` Composition input and renders the complete set of desired Kubernetes
 managed resources — there is no templating language involved, the rendering logic is Go code
@@ -94,6 +99,10 @@ affected field's reconciliation mode says so:
 | OnCall outgoing-webhook data | `createOnly` | Initial generic payload is set; later UI template edits are preserved |
 | OnCall outgoing-webhook data | `enforced` | Later UI template edits are restored from the Composition |
 | Alerting contact-point payload | enabled | Crossplane always restores the relay payload and Secret-backed authorization contract |
+| Alerting bundle | `enforced` or `createOnly` provenance | Enforced locks UI edits; create-only seeds values and preserves later UI edits |
+| Assistant governance | observed terms acceptance | Rules/MCP servers wait for acceptance and are pruned on withdrawal |
+| Datasource access | declared whole permission/LBAC set | Omitted managed non-inherited Query grants are removed; other grants remain additive |
+| Product singleton | activation toggle enabled | Removing the composed child does not request external Delete under the standard policy |
 
 Changing SSO from `enforced` to `createOnly` moves `oauth2Settings`/`samlSettings` from
 `forProvider` to `initProvider` while retaining a stable external name for the provider — the
@@ -139,16 +148,19 @@ and generic; no source-specific dashboard JSON is copied or implied. Keep servic
 dashboards outside the stack identity API so an ordinary content release cannot disturb stack
 identity or credentials.
 
-Everything else is a separately owned domain — alerting rule groups and notification policy,
-data sources, cloud integrations, SLOs, Synthetic Monitoring, OnCall schedules and escalation
-chains, Fleet Management, k6, ML, Asserts, and Assistant are all out of scope for automatic
-creation. See the provider-family table in the project
+The baseline stays intentionally small. Opt-in modules now cover observe-only stack inventory,
+Fleet pipeline profiles, alerting bundles, Agent Observability, Assistant governance, datasource
+access, Git provisioning repositories, and product activation toggles. Their configuration does
+not become stack-baseline content: workload policy, connection secrets, entitlement, plugin, and
+Git-credential prerequisites stay outside ordinary stack vending. Adaptive Metrics, Logs, Traces,
+and Profiles are deliberately out of scope; use their UI and ticket-based routes. See the
+provider-family table in the project
 [README](https://github.com/rknightion/grafana-cloud-vending-machine#complete-provider-surface-and-ownership-boundaries)
 for the complete ownership map across all 111 managed-resource kinds the provider exposes.
 
 ## Where state lives
 
-- **Desired state** lives in Git, as `GrafanaCloudStackRequest` and access-API objects under
+- **Desired state** lives in Git, as stack, access, and explicit opt-in module objects under
   `enabled/`.
 - **Composed managed-resource state** lives in Kubernetes, generated by the composition function
   and never hand-edited — a hand-applied patch to a generated managed resource is overwritten on

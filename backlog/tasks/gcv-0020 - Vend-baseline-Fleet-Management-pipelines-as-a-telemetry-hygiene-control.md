@@ -4,7 +4,7 @@ title: Vend baseline Fleet Management pipelines as a telemetry hygiene control
 status: In Progress
 assignee: []
 created_date: '2026-08-21 12:15'
-updated_date: '2026-09-08 11:10'
+updated_date: '2026-09-08 11:53'
 labels: []
 dependencies: []
 ordinal: 20000
@@ -38,6 +38,12 @@ Keep matchers and label values generic; real attribute values are environment-ow
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 2: implement and validate profile-selected Fleet pipelines and the scoped rotating credential chain; root wires shared registries and final evidence.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

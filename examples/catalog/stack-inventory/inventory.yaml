@@ -1,0 +1,10 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaStackInventory
+metadata:
+  # Replace this name and spec.stackRef.name with the names in the target namespace.
+  name: example-stack-inventory
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithstack01
+  declared: []

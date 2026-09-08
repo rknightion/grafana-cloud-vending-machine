@@ -4,7 +4,7 @@ title: 'Decide who owns dashboard content: provisioning repositories or Crosspla
 status: In Progress
 assignee: []
 created_date: '2026-08-21 12:16'
-updated_date: '2026-09-08 11:10'
+updated_date: '2026-09-08 11:53'
 labels: []
 dependencies: []
 ordinal: 23000
@@ -36,6 +36,12 @@ Recommendation to evaluate, not a foregone conclusion: keep classic Dashboard re
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 2: implement and validate provisioning repositories with structural subtree ownership exclusion and credential references; root wires and gates.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

@@ -1,0 +1,154 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanastackinventories.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaStackInventory
+    plural: grafanastackinventories
+    singular: grafanastackinventory
+    shortNames:
+      - gcinventory
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-stack-inventory-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: A read-only inventory of objects visible in one referenced Grafana Cloud stack.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: GrafanaCloudStackRequest name and per-stack ProviderConfig name in this namespace.
+                declared:
+                  type: array
+                  maxItems: 500
+                  description: External objects the platform declares as managed; this list never grants write authority.
+                  items:
+                    type: object
+                    required:
+                      - apiVersion
+                      - kind
+                    x-kubernetes-validations:
+                      - rule: has(self.externalName) || has(self.name) || has(self.email) || has(self.login)
+                        message: declared object must set externalName, name, email, or login
+                    properties:
+                      apiVersion:
+                        type: string
+                        minLength: 1
+                        maxLength: 253
+                        description: API version of the managed or observe-only object being declared.
+                      kind:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                      name:
+                        type: string
+                        maxLength: 253
+                        description: Human-readable or provider object name used when no external name is available.
+                      externalName:
+                        type: string
+                        maxLength: 253
+                        description: Exact crossplane.io/external-name or provider identity for the declared object.
+                      email:
+                        type: string
+                        maxLength: 254
+                        description: Email selector for an observe-only OrganizationUser lookup.
+                      login:
+                        type: string
+                        maxLength: 254
+                        description: Login selector for an observe-only OrganizationUser lookup.
+            status:
+              type: object
+              description: Read-only classification of declarations and objects returned by the observe-only provider resources.
+              properties:
+                declared:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      apiVersion:
+                        type: string
+                      kind:
+                        type: string
+                      name:
+                        type: string
+                      externalName:
+                        type: string
+                      email:
+                        type: string
+                      login:
+                        type: string
+                observedAndManaged:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      apiVersion:
+                        type: string
+                      kind:
+                        type: string
+                      name:
+                        type: string
+                      externalName:
+                        type: string
+                      email:
+                        type: string
+                      login:
+                        type: string
+                observedButUnmanaged:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      apiVersion:
+                        type: string
+                      kind:
+                        type: string
+                      name:
+                        type: string
+                      externalName:
+                        type: string
+                      email:
+                        type: string
+                      login:
+                        type: string
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-stack-inventory-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaStackInventory
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-stack-inventory
+      functionRef:
+        name: function-grafana-vending

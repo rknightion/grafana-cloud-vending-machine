@@ -1,6 +1,6 @@
 ---
 title: Secrets
-description: How External Secrets Operator wires the organization credential in and rotating per-stack tokens out
+description: How External Secrets Operator wires per-organization credentials in and rotating per-stack tokens out
 ---
 
 # Secrets
@@ -8,10 +8,12 @@ description: How External Secrets Operator wires the organization credential in 
 No Grafana credential belongs in Git, a request object, Composition input, status, or function
 log.
 
-## Organization credential
+## Organization credentials
 
-Create a Grafana Cloud access policy token with only the organization-level capabilities needed
-to manage stacks and their Cloud resources. Store it in the external secret manager as JSON:
+For every registered organization, create a Grafana Cloud access policy token with only the
+organization-level capabilities needed to manage stacks and their Cloud resources. Store each in
+the external secret manager as JSON. Do not reuse one organization credential as a fallback for
+another.
 
 ```json
 {
@@ -19,20 +21,21 @@ to manage stacks and their Cloud resources. Store it in the external secret mana
 }
 ```
 
-The example expects this document at `/platform/grafana-cloud/organization/credentials`. Do not
+Use a separate credential path and Kubernetes Secret for each organization. Do not
 put the real token directly in a shell command, terminal history, CI variable dump, or Kubernetes
 manifest — use your secret-management workflow or a permission-restricted temporary file.
 
 `deploy/aws/secret-store-and-credentials.yaml` wires this in three pieces:
 
 1. A `SecretStore` (`grafana-vending-secrets`) pointing at AWS Secrets Manager.
-2. An `ExternalSecret` (`grafana-cloud-org-credentials`) that reads the token from
-   `/platform/grafana-cloud/organization/credentials` and templates it into the JSON shape the
-   provider expects, refreshed hourly.
-3. A namespaced `ProviderConfig` (`grafana-cloud-org`) that references the generated Kubernetes
-   Secret and is used for all organization-level Cloud operations.
+2. An `ExternalSecret` per organization and request namespace that reads that organization's token
+   and templates it into the JSON shape the provider expects, refreshed hourly.
+3. A namespaced `ProviderConfig` per organization and request namespace that references the local
+   generated Kubernetes Secret and is used only for that organization's Cloud operations. Copies
+   retain the registry's ProviderConfig name because v2 managed resources resolve it locally.
 
-Namespace RBAC should prevent request authors from reading the generated Secret directly.
+Repeat the example's `SecretStore` too when it is namespaced. Namespace RBAC should prevent request
+authors from reading the generated Secret directly.
 
 ## Rotating administrator token
 
@@ -59,11 +62,12 @@ The exported document has this shape:
   "stack_slug": "example",
   "stack_url": "https://example.grafana.net",
   "stack_region": "prod-us-central-0",
+  "organization": "example-primary",
   "usage": "development",
   "change_reference": "CHANGE-EXAMPLE",
   "configuration_item_reference": "CONFIG-EXAMPLE",
   "stack_service_account_token": "GENERATED",
-  "telemetry_access_policy_secret_path": "{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher"
+  "telemetry_access_policy_secret_path": "{outputSecretPrefix}/{organization}/{usage}/{slug}/telemetry-publisher"
 }
 ```
 
@@ -71,10 +75,9 @@ The generated token comes from the connection Secret at reconciliation time; it 
 embedded in rendered YAML.
 
 Both administrator and telemetry documents use the identity path
-`{outputSecretPrefix}/{region}/{usage}/{slug}`. `spec.usage` is immutable and must be in the
-platform-owned `allowedUsages` list (the reference vocabulary is `development` and `production`),
-so a request cannot silently move future documents to a new usage path while orphaning documents at
-the old path.
+`{outputSecretPrefix}/{organization}/{usage}/{slug}`. `spec.organization` and `spec.usage` are
+immutable and must resolve in the platform-owned organization registry, so a request cannot silently
+move future documents to a new organization or usage path while orphaning documents at the old path.
 
 ## Rotating telemetry token
 
@@ -88,9 +91,9 @@ stack-realm `AccessPolicy` with only:
 
 An `AccessPolicyRotatingToken` uses the same 30-day lifetime and seven-day early rotation window.
 A separate `PushSecret` publishes the token and policy metadata under
-`{outputSecretPrefix}/{region}/{usage}/{slug}/telemetry-publisher`. The immutable, platform-owned
-usage segment keeps this external identity stable. Workloads should use this token for telemetry and
-never receive the administrator token.
+`{outputSecretPrefix}/{organization}/{usage}/{slug}/telemetry-publisher`. The immutable,
+platform-owned organization and usage segments keep this external identity stable. Workloads should
+use this token for telemetry and never receive the administrator token.
 
 Static `StackServiceAccountToken`, `AccessPolicyToken`, and `ServiceAccountToken` resources
 remain available in the upstream provider but are deliberately not used here — their rotating
@@ -184,5 +187,5 @@ stack's composed resources, which is outside Crossplane's default RBAC surface.
 
 - [SSO](sso.md) — how a request selects a platform-owned identity profile.
 - [Security](security.md) — supply-chain verification and the Retain-by-default lifecycle.
-- [Installation](installation.md) — where the `SecretStore` and organization `ProviderConfig` are
+- [Installation](installation.md) — where the `SecretStore` and per-organization `ProviderConfig` are
   applied during bootstrap.

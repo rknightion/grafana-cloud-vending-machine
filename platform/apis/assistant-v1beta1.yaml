@@ -1,0 +1,209 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanaassistantgovernances.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaAssistantGovernance
+    plural: grafanaassistantgovernances
+    singular: grafanaassistantgovernance
+    shortNames:
+      - gcassistant
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-assistant-governance-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: Platform-owned Grafana Assistant terms, rule profiles, and MCP server allow-list for one stack.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - termsAcceptance
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: GrafanaCloudStackRequest name and per-stack ProviderConfig name in this namespace.
+                termsAcceptance:
+                  type: object
+                  required:
+                    - accepted
+                  description: The per-stack Assistant terms switch. Set accepted to false to withdraw acceptance and remove all Assistant children.
+                  properties:
+                    accepted:
+                      type: boolean
+                      description: Whether the current Grafana Assistant terms are accepted. False is an explicit withdrawal.
+                rules:
+                  type: array
+                  default: []
+                  maxItems: 50
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - name
+                  description: Assistant rules selected from platform-owned ruleProfiles in the Composition input.
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - profile
+                      - scope
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 190
+                        description: Stable rule name used for the composed resource identity.
+                      profile:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9][a-z0-9-]*$
+                        description: Platform-owned rule profile key. Rule content is resolved from Composition input, not supplied by the request.
+                      description:
+                        type: string
+                        maxLength: 1024
+                      scope:
+                        type: string
+                        enum:
+                          - tenant
+                          - user
+                      enabled:
+                        type: boolean
+                        default: true
+                      priority:
+                        type: integer
+                        format: int64
+                        minimum: 0
+                        default: 0
+                        description: Lower priorities apply first.
+                      applications:
+                        type: array
+                        maxItems: 4
+                        x-kubernetes-list-type: set
+                        items:
+                          type: string
+                          enum:
+                            - assistant
+                            - loop
+                            - infrastructure_memory
+                            - all
+                mcpServers:
+                  type: array
+                  default: []
+                  maxItems: 50
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - name
+                  description: MCP server allow-list. Tool approval defaults to always_ask when no policy is declared.
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - scope
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 190
+                        description: MCP server integration name.
+                      description:
+                        type: string
+                        maxLength: 1024
+                      scope:
+                        type: string
+                        enum:
+                          - tenant
+                          - user
+                      enabled:
+                        type: boolean
+                        default: true
+                      applications:
+                        type: array
+                        maxItems: 3
+                        x-kubernetes-list-type: set
+                        items:
+                          type: string
+                          enum:
+                            - assistant
+                            - loop
+                            - all
+                      configuration:
+                        type: object
+                        properties:
+                          url:
+                            type: string
+                            maxLength: 2048
+                          builtinId:
+                            type: string
+                            maxLength: 190
+                          toolPreferences:
+                            type: object
+                            x-kubernetes-map-type: granular
+                            additionalProperties:
+                              type: string
+                              enum:
+                                - enabled
+                                - disabled
+                          toolApprovalPolicies:
+                            type: object
+                            x-kubernetes-map-type: granular
+                            description: Per-tool policy. Omit a tool or use an empty value to select always_ask.
+                            additionalProperties:
+                              type: string
+                              enum:
+                                - auto_approve
+                                - always_ask
+                                - ""
+                      customHeadersSecretRef:
+                        type: object
+                        description: Optional Secret in this namespace containing write-only MCP HTTP header values.
+                        required:
+                          - name
+                        properties:
+                          name:
+                            type: string
+                            minLength: 1
+                            maxLength: 253
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-assistant-governance-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaAssistantGovernance
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-assistant-governance
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaAssistantGovernanceConfig
+        spec:
+          ruleProfiles:
+            - name: inert-guidance
+              ruleContent: Use only the inert example guidance.

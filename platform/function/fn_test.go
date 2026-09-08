@@ -131,6 +131,31 @@ func TestOrganizationRegistryRoutesFoundationAndSegmentsSecretPaths(t *testing.T
 	}
 }
 
+func TestOrganizationProviderConfigResolutionFollowsRequestNamespace(t *testing.T) {
+	var request map[string]any
+	if err := json.Unmarshal([]byte(minimalStack()), &request); err != nil {
+		t.Fatalf("cannot parse stack request: %v", err)
+	}
+	request["metadata"].(map[string]any)["namespace"] = "grafana-vending-secondary"
+	rsp := runStack(t, mustJSON(request), nil)
+
+	for _, name := range []string{"stack", "stack-service-account", "telemetry-access-policy"} {
+		object := desiredResource(t, rsp, name)
+		if got, want := nestedMap(t, object, "metadata")["namespace"], "grafana-vending-secondary"; got != want {
+			t.Fatalf("%s namespace = %v, want %s", name, got, want)
+		}
+		provider := nestedMap(t, object, "spec", "providerConfigRef")
+		if got, want := provider["name"], "grafana-cloud-org-example-primary"; got != want {
+			t.Fatalf("%s organization ProviderConfig = %v, want %s", name, got, want)
+		}
+	}
+
+	providerConfig := desiredResource(t, rsp, "provider-config")
+	if got, want := nestedMap(t, providerConfig, "metadata")["namespace"], "grafana-vending-secondary"; got != want {
+		t.Fatalf("stack ProviderConfig namespace = %v, want %s", got, want)
+	}
+}
+
 func TestOrganizationRegistryFailsClosed(t *testing.T) {
 	input := mustJSON(map[string]any{"spec": map[string]any{
 		"allowedUsages": []any{"development", "production"},
@@ -183,11 +208,17 @@ func TestAuthorizedDeleteLifecycleProjectsDeletionToExternalResources(t *testing
 		"metadata":{"name":"teamdemo01-telemetry-publisher","namespace":"grafana-vending"},
 		"status":{"atProvider":{"policyId":"policy-12345"}}
 	}`)
+	observed["fleet-management-access-policy"] = observedResource(`{
+		"apiVersion":"cloud.grafana.m.crossplane.io/v1alpha1",
+		"kind":"AccessPolicy",
+		"metadata":{"name":"teamdemo01-fleet-management","namespace":"grafana-vending"},
+		"status":{"atProvider":{"policyId":"fleet-policy-12345"}}
+	}`)
 	claim := stackDocument(map[string]any{"lifecycle": map[string]any{"externalResources": "Delete"}})
 	rsp := runStackWithInput(t, claim, observed, deletionAuthorizationInput())
 
 	deletePolicies := []any{"*"}
-	for _, name := range []string{"stack", "stack-service-account", "stack-token", "telemetry-access-policy", "telemetry-token"} {
+	for _, name := range []string{"stack", "stack-service-account", "stack-token", "fleet-management-access-policy", "fleet-management-token", "telemetry-access-policy", "telemetry-token"} {
 		spec := nestedMap(t, desiredResource(t, rsp, name), "spec")
 		if diff := cmp.Diff(deletePolicies, spec["managementPolicies"]); diff != "" {
 			t.Errorf("%s management policies differ (-want +got):\n%s", name, diff)
@@ -196,12 +227,12 @@ func TestAuthorizedDeleteLifecycleProjectsDeletionToExternalResources(t *testing
 	if got := nestedMap(t, desiredResource(t, rsp, "stack"), "spec", "forProvider")["deleteProtection"]; got != false {
 		t.Errorf("stack delete protection = %v, want false", got)
 	}
-	for _, name := range []string{"stack-token", "telemetry-token"} {
+	for _, name := range []string{"stack-token", "fleet-management-token", "telemetry-token"} {
 		if got := nestedMap(t, desiredResource(t, rsp, name), "spec", "forProvider")["deleteOnDestroy"]; got != true {
 			t.Errorf("%s deleteOnDestroy = %v, want true", name, got)
 		}
 	}
-	for _, name := range []string{"credentials", "telemetry-credentials"} {
+	for _, name := range []string{"credentials", "fleet-management-credentials", "telemetry-credentials"} {
 		if got := nestedMap(t, desiredResource(t, rsp, name), "spec")["deletionPolicy"]; got != "Delete" {
 			t.Errorf("%s deletion policy = %v, want Delete", name, got)
 		}
@@ -212,10 +243,16 @@ func TestAuthorizedDeleteLifecycleProjectsDeletionToExternalResources(t *testing
 }
 
 func TestPushSecretDocumentsCarryTheDeletionGuardTag(t *testing.T) {
-	rsp := runStack(t, minimalStack(), foundationReadyObserved())
+	observed := foundationReadyObserved()
+	observed["fleet-management-access-policy"] = observedResource(`{
+		"apiVersion":"cloud.grafana.m.crossplane.io/v1alpha1",
+		"kind":"AccessPolicy",
+		"status":{"atProvider":{"policyId":"fleet-policy-12345"}}
+	}`)
+	rsp := runStack(t, minimalStack(), observed)
 	want := map[string]any{"grafana-cloud-vending-machine": "managed"}
 
-	for _, name := range []string{"credentials", "telemetry-credentials"} {
+	for _, name := range []string{"credentials", "fleet-management-credentials", "telemetry-credentials"} {
 		spec := nestedMap(t, desiredResource(t, rsp, name), "spec")
 		data, ok := spec["data"].([]any)
 		if !ok || len(data) != 1 {
@@ -291,6 +328,7 @@ func TestAuthorizedDeleteLifecycleWaitsForObservedProtectionToBeDisabled(t *test
 	}
 
 	observed["credentials"] = deletionPreparedPushSecret("teamdemo01-credentials")
+	observed["fleet-management-credentials"] = deletionPreparedPushSecret("teamdemo01-fleet-management")
 	ready := runStackWithInput(t, claim, observed, input)
 	status = nestedMap(t, ready.GetDesired().GetComposite().GetResource().AsMap(), "status")
 	if got := status["deletionReady"]; got != false {
@@ -298,6 +336,7 @@ func TestAuthorizedDeleteLifecycleWaitsForObservedProtectionToBeDisabled(t *test
 	}
 
 	observed["stack-token"] = deletionPreparedToken("StackServiceAccountRotatingToken", "teamdemo01-admin", "serviceAccountId", "67890")
+	observed["fleet-management-token"] = deletionPreparedToken("AccessPolicyRotatingToken", "teamdemo01-fleet-management", "accessPolicyId", "fleet-policy-12345")
 	observed["telemetry-token"] = deletionPreparedToken("AccessPolicyRotatingToken", "teamdemo01-telemetry-publisher", "accessPolicyId", "policy-12345")
 	ready = runStackWithInput(t, claim, observed, input)
 	status = nestedMap(t, ready.GetDesired().GetComposite().GetResource().AsMap(), "status")
@@ -594,8 +633,13 @@ func TestCredentialChainBuildsStructuredOutputWithoutLiteralToken(t *testing.T) 
 
 	externalSecret := desiredResource(t, rsp, "instance-credentials")
 	targetData := nestedMap(t, externalSecret, "spec", "target", "template", "data")
-	if got := targetData["credentials"]; got != `{"auth":{{ .stackServiceAccountToken | toJson }},"url":{{ .stackURL | toJson }}}` {
+	if got := targetData["credentials"]; got != `{"auth":{{ .stackServiceAccountToken | toJson }},"url":{{ .stackURL | toJson }},"fleet_management_auth":{{ .fleetManagementAuth | toJson }}}` {
 		t.Fatalf("ProviderConfig credential template = %v", got)
+	}
+	externalData := nestedMap(t, externalSecret, "spec")["data"].([]any)
+	fleetRemote := nestedMap(t, externalData[2].(map[string]any), "remoteRef")
+	if got, want := fleetRemote["key"], "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01/fleet-management"; got != want {
+		t.Fatalf("Fleet Management credential path = %v, want %s", got, want)
 	}
 
 	providerConfig := desiredResource(t, rsp, "provider-config")
@@ -877,6 +921,38 @@ func TestCustomRoleBindingRendersTeamRoleAndAssignment(t *testing.T) {
 	if got := desiredExternalName(t, assignment); got != "example-editor" {
 		t.Fatalf("role assignment external name = %q, want example-editor", got)
 	}
+}
+
+func TestPublicDashboardWriteRequiresAnAllowedReferencedStackProfile(t *testing.T) {
+	claim := `{
+		"apiVersion":"platform.example.org/v1beta1",
+		"kind":"GrafanaCustomRoleBinding",
+		"metadata":{"name":"example-publisher","namespace":"grafana-vending"},
+		"spec":{
+			"stackRef":{"name":"teamdemo01"},
+			"team":{"name":"Example Publishers","groups":["idp-example-publishers"]},
+			"role":{"name":"example-publisher","uid":"example-publisher","permissions":[
+				{"action":"dashboards.public:write","scope":"dashboards:uid:public-example"},
+				{"action":"dashboards:read","scope":"folders:*"}
+			]}
+		}
+	}`
+	input := `{"spec":{"publicDashboardProfiles":["public-dashboards"]}}`
+
+	disallowed := callFunctionWithRequiredResourcesAndInput(t, claim, nil, requiredStackResourceWithProfile("teamdemo01", "grafana-vending", "True", "standard"), requiredResourceCapabilities(), input)
+	if got := len(renderedRolePermissions(t, disallowed, "role")); got != 1 {
+		t.Fatalf("default profile rendered %d permissions, want public write removed", got)
+	}
+
+	allowed := callFunctionWithRequiredResourcesAndInput(t, claim, nil, requiredStackResourceWithProfile("teamdemo01", "grafana-vending", "True", "public-dashboards"), requiredResourceCapabilities(), input)
+	if got := len(renderedRolePermissions(t, allowed, "role")); got != 2 {
+		t.Fatalf("allowed referenced-stack profile rendered %d permissions, want public write preserved", got)
+	}
+}
+
+func renderedRolePermissions(t *testing.T, rsp *fnv1.RunFunctionResponse, name string) []any {
+	t.Helper()
+	return nestedMap(t, desiredResource(t, rsp, name), "spec", "forProvider")["permissions"].([]any)
 }
 
 func TestTeamAccessRendersMembershipPreferencesAndAdditiveRoleAssignments(t *testing.T) {
@@ -1422,6 +1498,11 @@ func stackInputWithDefaultOrganization(t *testing.T, composite, input string) st
 
 func callFunctionWithRequiredResources(t *testing.T, composite string, observed map[string]*fnv1.Resource, required *fnv1.Resources, capabilities []fnv1.Capability) *fnv1.RunFunctionResponse {
 	t.Helper()
+	return callFunctionWithRequiredResourcesAndInput(t, composite, observed, required, capabilities, "")
+}
+
+func callFunctionWithRequiredResourcesAndInput(t *testing.T, composite string, observed map[string]*fnv1.Resource, required *fnv1.Resources, capabilities []fnv1.Capability, input string) *fnv1.RunFunctionResponse {
+	t.Helper()
 	req := &fnv1.RunFunctionRequest{
 		Meta: &fnv1.RequestMeta{Capabilities: capabilities},
 		Observed: &fnv1.State{
@@ -1431,6 +1512,9 @@ func callFunctionWithRequiredResources(t *testing.T, composite string, observed 
 	}
 	if required != nil {
 		req.RequiredResources = map[string]*fnv1.Resources{"referenced-stack": required}
+	}
+	if input != "" {
+		req.Input = resource.MustStructJSON(input)
 	}
 	rsp, err := (&Function{log: logging.NewNopLogger()}).RunFunction(context.Background(), req)
 	if err != nil {
@@ -1450,7 +1534,15 @@ func requiredStackResource(name, namespace, readyStatus string) *fnv1.Resources 
 	return requiredStackResourceState(name, namespace, readyStatus, false, false)
 }
 
+func requiredStackResourceWithProfile(name, namespace, readyStatus, profile string) *fnv1.Resources {
+	return requiredStackResourceStateWithProfile(name, namespace, readyStatus, false, false, profile)
+}
+
 func requiredStackResourceState(name, namespace, readyStatus string, deletionArmed, terminating bool) *fnv1.Resources {
+	return requiredStackResourceStateWithProfile(name, namespace, readyStatus, deletionArmed, terminating, "")
+}
+
+func requiredStackResourceStateWithProfile(name, namespace, readyStatus string, deletionArmed, terminating bool, profile string) *fnv1.Resources {
 	conditions := []any{}
 	if readyStatus != "" {
 		conditions = append(conditions, map[string]any{"type": "Ready", "status": readyStatus})
@@ -1459,12 +1551,16 @@ func requiredStackResourceState(name, namespace, readyStatus string, deletionArm
 	if terminating {
 		metadata["deletionTimestamp"] = "2026-08-20T12:00:00Z"
 	}
-	return &fnv1.Resources{Items: []*fnv1.Resource{{Resource: resource.MustStructJSON(mustJSON(map[string]any{
+	stack := map[string]any{
 		"apiVersion": "platform.example.org/v1beta1",
 		"kind":       "GrafanaCloudStackRequest",
 		"metadata":   metadata,
 		"status":     map[string]any{"conditions": conditions, "deletionArmed": deletionArmed},
-	}))}}}
+	}
+	if profile != "" {
+		stack["spec"] = map[string]any{"profile": profile}
+	}
+	return &fnv1.Resources{Items: []*fnv1.Resource{{Resource: resource.MustStructJSON(mustJSON(stack))}}}
 }
 
 func accessClaims() map[string]string {
@@ -1559,6 +1655,7 @@ func TestFirstPassRendersOnlyTheStackFoundation(t *testing.T) {
 
 	want := []string{
 		"credentials",
+		"fleet-management-access-policy",
 		"instance-credentials",
 		"provider-config",
 		"stack",
@@ -1589,6 +1686,7 @@ func TestStackLocalResourcesAppearOnceTheStackServesAndCredentialsArePublished(t
 		"endpoints-folder=Folder",
 		"homepage-dashboard=Dashboard",
 		"homepage-folder=Folder",
+		"fleet-management-access-policy=AccessPolicy",
 		"instance-credentials=ExternalSecret",
 		"organization-preferences=OrganizationPreferences",
 		"provider-config=ProviderConfig",

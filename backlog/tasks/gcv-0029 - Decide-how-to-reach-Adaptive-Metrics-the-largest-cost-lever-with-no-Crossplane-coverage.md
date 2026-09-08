@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-08-21 12:18'
-updated_date: '2026-09-08 11:10'
+updated_date: '2026-09-08 11:53'
 labels: []
 dependencies: []
 ordinal: 29000
@@ -39,6 +39,12 @@ The sibling adaptive products are worse off and should probably be scoped out in
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 2: after implementation lanes return, synthesize all module and multi-organization documentation, record adaptive products as out of scope, and validate the shipped prose and catalog.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

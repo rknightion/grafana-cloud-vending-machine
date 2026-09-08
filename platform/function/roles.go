@@ -8,7 +8,16 @@ import (
 	"github.com/crossplane/function-sdk-go/resource"
 )
 
+const (
+	defaultStackProfile        = "standard"
+	publicDashboardWriteAction = "dashboards.public:write"
+)
+
 func renderRoleBinding(xr map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+	return renderRoleBindingWithPlatformProfile(xr, defaultStackProfile, nil)
+}
+
+func renderRoleBindingWithPlatformProfile(xr map[string]any, stackProfile string, publicDashboardProfiles []string) (map[resource.Name]*resource.DesiredComposed, error) {
 	metadata, _ := xr["metadata"].(map[string]any)
 	spec, _ := xr["spec"].(map[string]any)
 	name, _ := metadata["name"].(string)
@@ -24,6 +33,10 @@ func renderRoleBinding(xr map[string]any) (map[resource.Name]*resource.DesiredCo
 	permissions, _ := role["permissions"].([]any)
 	if name == "" || namespace == "" || stackName == "" || teamName == "" || len(groups) == 0 || roleName == "" || roleUID == "" || len(permissions) == 0 {
 		return nil, errors.New("role binding must set metadata name and namespace, stackRef.name, team name/groups, and role name/uid/permissions")
+	}
+	permissions = filterPublicDashboardPermissions(permissions, stackProfile, publicDashboardProfiles)
+	if len(permissions) == 0 {
+		return nil, errors.Errorf("role %q has no permitted permissions", roleName)
 	}
 
 	teamResourceName := name + "-team"
@@ -66,6 +79,10 @@ func renderRoleBinding(xr map[string]any) (map[resource.Name]*resource.DesiredCo
 }
 
 func renderTeamAccess(xr map[string]any, observed map[resource.Name]resource.ObservedComposed) (map[resource.Name]*resource.DesiredComposed, error) {
+	return renderTeamAccessWithPlatformProfile(xr, observed, defaultStackProfile, nil)
+}
+
+func renderTeamAccessWithPlatformProfile(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, stackProfile string, publicDashboardProfiles []string) (map[resource.Name]*resource.DesiredComposed, error) {
 	metadata, _ := xr["metadata"].(map[string]any)
 	spec, _ := xr["spec"].(map[string]any)
 	name, _ := metadata["name"].(string)
@@ -115,6 +132,10 @@ func renderTeamAccess(xr map[string]any, observed map[resource.Name]resource.Obs
 		permissions, _ := role["permissions"].([]any)
 		if roleName == "" || roleUID == "" || len(permissions) == 0 {
 			return nil, errors.Errorf("customRoles[%d] must set name, uid, and permissions", index)
+		}
+		permissions = filterPublicDashboardPermissions(permissions, stackProfile, publicDashboardProfiles)
+		if len(permissions) == 0 {
+			return nil, errors.Errorf("customRoles[%d] %q has no permitted permissions", index, roleName)
 		}
 
 		suffix := stableResourceSuffix(roleUID)
@@ -168,6 +189,27 @@ func renderTeamAccess(xr map[string]any, observed map[resource.Name]resource.Obs
 			})
 	}
 	return desired, nil
+}
+
+// filterPublicDashboardPermissions applies the platform-owned public-dashboard
+// exception to custom-role permissions. The request only supplies permissions;
+// stackProfile and publicDashboardProfiles come from platform-controlled context.
+// Built-in Grafana basic roles never pass through this filter.
+func filterPublicDashboardPermissions(permissions []any, stackProfile string, publicDashboardProfiles []string) []any {
+	if stackProfile != "" && oneOf(stackProfile, publicDashboardProfiles...) {
+		return permissions
+	}
+
+	filtered := make([]any, 0, len(permissions))
+	for _, item := range permissions {
+		permission, _ := item.(map[string]any)
+		action, _ := permission["action"].(string)
+		if action == publicDashboardWriteAction {
+			continue
+		}
+		filtered = append(filtered, item)
+	}
+	return filtered
 }
 
 func renderContentAccessPolicy(xr map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {

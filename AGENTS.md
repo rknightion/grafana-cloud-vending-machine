@@ -88,3 +88,20 @@ Do not edit Backlog task, draft, document, decision, or milestone markdown files
 
 </CRITICAL_INSTRUCTION>
 <!-- BACKLOG.MD GUIDELINES END -->
+
+## Releases
+
+Release automation runs on pushes to `main` through release-please. Use Conventional Commits so
+release notes and version bumps describe compatibility changes accurately:
+
+- `feat:` produces a minor release.
+- `fix:` and `perf:` produce patch releases.
+- Add `!` after the type or scope, or add a `BREAKING CHANGE:` footer, for a breaking release. The
+  initial manifest version is `0.1.0`, and pre-1.0 breaking bumps are configured to advance to
+  `1.0.0`.
+- `docs`, `refactor`, `test`, `build`, `ci`, and `chore` are categorized according to the release
+  configuration, with non-user-facing categories hidden where configured.
+
+Release token minting uses a short-lived repository-scoped broker token. If minting fails, check
+the broker/OpenBao infrastructure rather than treating the failure as a source-code validation
+result or adding a long-lived credential.
