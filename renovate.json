@@ -15,17 +15,40 @@
   },
   "packageRules": [
     {
+      "description": "sigs.k8s.io/controller-runtime is not part of the kubernetes-monorepo group Renovate derives from k8s.io/*, but it is what reaches k8s.io/client-go/kubernetes/scheme, and that scheme imports every group-version present in the client-go it was built against. So a k8s.io/api bump on its own lands red: v0.37.0 removed autoscaling/v2beta1, autoscaling/v2beta2 and scheduling/v1alpha1, while controller-runtime v0.23.1 still targets client-go v0.35 and references them. Verified 2026-09-08 - the pair upgrades cleanly together (controller-runtime v0.25.0 targets k8s.io/api and client-go v0.37.0) and the same bump split across two pull requests cannot pass the gate in either order. Group them so Renovate proposes one pull request that can actually go green.",
+      "groupName": "kubernetes and controller-runtime",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchPackageNames": [
+        "k8s.io/api",
+        "k8s.io/apiextensions-apiserver",
+        "k8s.io/apimachinery",
+        "k8s.io/client-go",
+        "k8s.io/code-generator",
+        "sigs.k8s.io/controller-runtime"
+      ]
+    },
+    {
       "description": "The provider digest is pinned in two places: spec.package and the argv of the cosign job that verifies it, which scripts/validate.sh asserts match. An automatic pull request updates only the first and lands red. The upgrade runbook also requires reading the provider and Terraform provider changelogs, diffing generated CRD schemas for every activated kind, and proving both reconciliation modes against a disposable stack. So surface a new provider on the dependency dashboard and raise a pull request only when a human asks for one. The pin is a main-branch build, tagged by git describe as v<last release>-<commits since>.g<short sha>. Default docker versioning reads that suffix as a prerelease of the release it is ahead of and would offer the older tagged release as an upgrade, so versioning below orders on the build number instead: main builds advance monotonically and a genuine v2.14.0 still wins on minor. The registry publishes no floating tag, no latest and no main, which is why the reference carries a tag at all — a digest-only reference leaves Renovate with no version to compare.",
-      "matchManagers": ["crossplane"],
-      "matchDepTypes": ["provider"],
+      "matchManagers": [
+        "crossplane"
+      ],
+      "matchDepTypes": [
+        "provider"
+      ],
       "dependencyDashboardApproval": true,
       "automerge": false,
       "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:-(?<build>\\d+)\\.g[0-9a-f]+)?$"
     },
     {
       "description": "This repository publishes the composition function package itself. Its digest advances through publish-function.yml and the function half of the upgrade runbook, never through a dependency update.",
-      "matchManagers": ["crossplane"],
-      "matchDepTypes": ["function"],
+      "matchManagers": [
+        "crossplane"
+      ],
+      "matchDepTypes": [
+        "function"
+      ],
       "enabled": false
     }
   ]

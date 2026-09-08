@@ -24,6 +24,13 @@ docs/fonts/
 # Superpowers scratch (specs/plans/audits) — never committed
 docs/superpowers/
 
+# Go build outputs. `go build ./...` drops a 56 MB `function` binary beside the
+# source and `just build` writes bin/function-server; neither was ignored, so both
+# were committable. The published artifact is the signed OCI package from
+# publish-function.yml, never a local binary.
+/platform/function/function
+/platform/function/bin/
+
 # Fan-out run artefacts — tracker state remains the durable delivery record.
 /codex/
 
