@@ -15,3 +15,5 @@ resources:
   - apis/datasource-access-v1beta1.yaml
   - apis/provisioning-v1beta1.yaml
   - apis/ladder-v1beta1.yaml
+  - apis/k6-v1beta1.yaml
+  - apis/synthetic-monitoring-v1beta1.yaml

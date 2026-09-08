@@ -1,0 +1,183 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanasyntheticmonitorings.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaSyntheticMonitoring
+    plural: grafanasyntheticmonitorings
+    singular: grafanasyntheticmonitoring
+    shortNames:
+      - gcsm
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-synthetic-monitoring-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: Installs Synthetic Monitoring for one Grafana Cloud stack and owns its bounded HTTP and browser check set.
+          x-kubernetes-validations:
+            - rule: self.metadata.name == self.spec.stackRef.name
+              message: metadata.name must match spec.stackRef.name so one composite owns the stack check set
+            - rule: self.spec.stackRef.name == oldSelf.spec.stackRef.name
+              message: stackRef.name is immutable
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: Ready GrafanaCloudStackRequest in the same namespace.
+                checks:
+                  type: array
+                  maxItems: 100
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - name
+                  description: Complete team-authored check set. The Composition budget may enforce lower limits than this structural ceiling.
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - type
+                      - target
+                      - frequencySeconds
+                      - probeNames
+                    x-kubernetes-validations:
+                      - rule: "self.type == 'http' ? has(self.http) && !has(self.browser) : has(self.browser) && !has(self.http)"
+                        message: HTTP checks set only http; browser checks set only browser
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                        description: Stable job name and composed-resource identity within this whole set.
+                      type:
+                        type: string
+                        enum:
+                          - http
+                          - browser
+                      target:
+                        type: string
+                        minLength: 8
+                        maxLength: 2048
+                        pattern: ^https?://
+                      frequencySeconds:
+                        type: integer
+                        minimum: 1
+                        maximum: 3600
+                        description: Requested interval. The platform budget raises the effective minimum and rejects faster checks.
+                      probeNames:
+                        type: array
+                        minItems: 1
+                        maxItems: 10
+                        x-kubernetes-list-type: set
+                        items:
+                          type: string
+                          minLength: 1
+                          maxLength: 190
+                        description: Explicit execution locations. The platform budget may enforce a lower maximum.
+                      http:
+                        type: object
+                        required:
+                          - method
+                        properties:
+                          method:
+                            type: string
+                            enum:
+                              - GET
+                              - HEAD
+                      browser:
+                        type: object
+                        required:
+                          - script
+                        properties:
+                          script:
+                            type: string
+                            minLength: 1
+                            maxLength: 65536
+                            description: Team-authored k6 browser script. Credentials must be referenced through an approved external secret mechanism.
+            status:
+              type: object
+              properties:
+                installationVerified:
+                  type: boolean
+                  description: True only after a tenant-scoped Synthetic Monitoring API observation succeeds through the derived credential.
+                budget:
+                  type: object
+                  properties:
+                    apiChecks:
+                      type: integer
+                    browserChecks:
+                      type: integer
+                    weightedExecutionsPerHour:
+                      type: integer
+                    maxWeightedExecutionsPerHour:
+                      type: integer
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-synthetic-monitoring-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaSyntheticMonitoring
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-synthetic-monitoring
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          organizations:
+            - name: example-primary
+              providerConfigName: grafana-cloud-org-example-primary
+              allowedRegions: [prod-us-central-0]
+              allowedUsages: [development, production]
+          outputSecretPrefix: /platform/grafana-cloud/stacks
+          secretStoreRef:
+            name: grafana-vending-secrets
+            kind: SecretStore
+          syntheticMonitoringBudgets:
+            - usage: development
+              maxApiChecks: 20
+              maxBrowserChecks: 2
+              maxProbeLocationsPerCheck: 3
+              minCheckIntervalSeconds: 60
+              browserExecutionWeight: 10
+              maxWeightedExecutionsPerHour: 7200
+              verificationProbeName: replace-with-approved-public-probe
+            - usage: production
+              maxApiChecks: 100
+              maxBrowserChecks: 10
+              maxProbeLocationsPerCheck: 5
+              minCheckIntervalSeconds: 60
+              browserExecutionWeight: 10
+              maxWeightedExecutionsPerHour: 60000
+              verificationProbeName: replace-with-approved-public-probe

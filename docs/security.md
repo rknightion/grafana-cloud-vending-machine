@@ -44,7 +44,7 @@ Key properties:
 
 - Organization credentials are supplied and rotated by the environment's credential owner; this
   repository does not set their lifetime or automate their rotation. Generated per-stack
-  administrator, telemetry, and Fleet Management tokens use a 30-day lifetime and a 7-day early
+  administrator, telemetry, and Fleet Management tokens use a platform-capped lifetime (30-day standard) and a bounded early
   rotation window.
 - Static `StackServiceAccountToken`, `AccessPolicyToken`, and `ServiceAccountToken` resources
   remain available in the upstream provider but are deliberately not used — their rotating
@@ -136,3 +136,7 @@ GitHub settings, issues, workflow logs, releases, packages, and commit-author me
 - [Secrets](secrets.md) — the per-organization credential and rotating-token model.
 - [Architecture](architecture.md) — the ownership boundaries that keep controllers from stepping
   on each other.
+
+See [Governance](governance.md) for token-use subnet restrictions, bounded product APIs and enforced SCIM exclusion. Direct provider writes and Composition policy updates must remain platform-only.
+
+The pinned Crossplane chart already grants its controller cluster-wide Secret access through `crossplane:system:aggregate-to-crossplane`. The product credential handoffs reuse that existing controller capability; this reference adds no duplicate core-Secret grant. Namespaced request and Secret identity checks constrain this function's selection, but do not provide hard namespace RBAC isolation for the Crossplane controller. A deployment requiring that boundary needs a separately designed control-plane isolation model.

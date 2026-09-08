@@ -280,7 +280,7 @@ For every stack, the Composition creates:
 5. an ExternalSecret that reads the exported token and URL back into the stack namespace;
 6. a stack-local ProviderConfig used for Grafana resources inside that stack.
 
-The token lifetime is 30 days with a seven-day early rotation window. The PushSecret refresh interval is one hour, so a newly rotated token is copied to the external store well inside the overlap window.
+The platform Composition supplies a mandatory maximum token lifetime. The standard 30-day lifetime is capped at that ceiling, with a seven-day early rotation window shortened as needed. Missing or invalid policy fails closed. Provider-observed expiries are published in `status.tokenExpiries`. The PushSecret refresh interval is one hour, so a newly rotated token is copied to the external store well inside the overlap window.
 
 The exported document has this shape:
 
@@ -628,17 +628,17 @@ The activation policy enables only kinds emitted by the current Compositions. Ad
 | cloudintegrations | CloudIntegration belongs in an integration module selected after stack creation. |
 | cloudprovider | AWS scrape jobs/accounts and Azure credentials require separate cloud trust and approval. |
 | connections | Metrics endpoint scrape jobs are workload-owned connection objects. |
-| enterprise | Core optionally owns Report; access APIs own Role, RoleAssignment, and RoleAssignmentItem. `GrafanaDatasourceAccess` owns one DataSource, its whole permission set, and aggregated LBAC tree. SCIM, Keeper, and standalone external-group mapping remain separate security-sensitive modules. |
+| enterprise | Core optionally owns Report; access APIs own Role, RoleAssignment, and RoleAssignmentItem. `GrafanaDatasourceAccess` owns one DataSource, its whole permission set, and aggregated LBAC tree. Team Sync external-group mapping is supported. SCIM is explicitly rejected because its Team ownership conflicts with that model; Keeper remains separate. |
 | fleetmanagement | `GrafanaFleetPipelines` selects a platform-owned pipeline baseline and publishes a Fleet credential chain. Collectors self-register; usage groups remain UI-only and Advanced-tier. |
 | frontendobservability | Applications require workload identity and origin inputs unavailable at stack creation. |
 | grafana | Namespaced ProviderConfig is created per stack. ClusterProviderConfig is avoided to preserve namespace isolation. |
-| k6 | Projects, tests, load zones, limits, and schedules are independent domain objects. |
+| k6 | `GrafanaK6Project` owns bounded projects, limits and allowed load zones through a derived credential. Tests, schedules and private-zone provisioning remain consuming-team responsibilities. |
 | ml | Alerts, holidays, jobs, and outlier detectors depend on real queries and service ownership. |
 | oncall | Core optionally creates relay-backed OutgoingWebhook resources. Users, routes, schedules, shifts, integrations, and escalation policy belong in an incident-management module. |
 | observe-only inventory | `GrafanaStackInventory` activates only provider data sources and classifies declared, managed, and unmanaged folders, dashboards, teams, users, library panels, probes, collectors, and selected organization users. It never renders a mutating child. |
 | oss | Core owns Folder, Dashboard, OrganizationPreferences, and SsoSettings; access APIs own Team, FolderPermission, and DashboardPermission. `GrafanaProvisioningRepository` is an opt-in preview Git subtree route referencing an existing Connection. Inventory observes folders, dashboards, teams, users, and library panels; playlists, annotations, and additional service accounts remain separate. |
-| slo | SLO objectives and queries are service-owned, not inferred from a stack request. |
-| sm | Synthetic Monitoring installation, probes, checks, and alerting require approved targets, execution locations, and a separate credential chain. `GrafanaStackInventory` may observe probes but never writes them. |
+| slo | Platform usage profiles vend a ratio golden SLO in handoff mode after datasource observation. Workload metrics and objectives remain explicitly supplied. |
+| sm | `GrafanaSyntheticMonitoring` exchanges a bootstrap credential, independently verifies a disabled Check, and constrains team-authored checks by platform budgets. Private probes and their tokens remain outside this API. |
 
 This leads to a clean GitOps tree:
 
@@ -711,9 +711,9 @@ This matrix was checked resource-by-resource against the active modules in the T
 | Private data-source connect | Separate approved network module | Creates network trust and tokens outside ordinary stack vending |
 | Cloud integrations and scrape jobs | Separate cloud-integration module | Requires cloud-account permissions and approval |
 | Additional service accounts and service-account permissions | Separate automation identity bundle | Role, token audience, owner, and rotation policy differ per workload |
-| SLOs and Synthetic Monitoring | Service-owned definitions using the stack ProviderConfig | Objectives, queries, probes, and targets cannot be inferred safely |
+| SLOs and Synthetic Monitoring | Golden SLO profiles and bounded Synthetic Monitoring API | Workload objectives, queries, probe locations and targets remain explicitly authored |
 | OnCall schedules, escalation chains, routes, and integrations | Incident-management bundle | People, rotations, and escalation policy have an independent lifecycle |
-| Frontend Observability, k6, ML, Asserts | Dedicated domain modules | Each has entitlement, identity, content, and rollout inputs beyond stack creation |
+| Frontend Observability, ML, Asserts | Separate domain modules | Each has entitlement, identity, content, and rollout inputs beyond stack creation |
 
 The complete provider-family table above is the extension index. New modules should reuse the namespaced
 stack ProviderConfig, keep secrets in external stores, choose whole-set versus item resources
@@ -817,12 +817,14 @@ unarmed request from Git or pruning it from Argo orphans external resources. Sta
 content is safe to orphan because deleting the Stack destroys it; credential-bearing state that can
 outlive the Stack is the state covered by the optional Delete path.
 
-An actual deletion has three reviewed Git stages. It is not a one-command path.
+An actual deletion has three reviewed Git stages. It is not a one-command path. Approved sandbox expiry can delay Stage 1 arming until the effective deadline; it never executes Stages 2 or 3. See [Governance](docs/governance.md#sandbox-expiry-uses-the-reviewed-deletion-path).
 
 ### Review 1: arm deletion
 
 1. Inventory and record the exact stack identity (`status.stack.id`, slug, and URL), dependants,
-   access claims, credential consumers, and data-retention requirements.
+   access claims, credential consumers, and data-retention requirements. Verify the creation-time
+   `spec.retention.class` decision and actual receipt at its durable fan-out sink; decommission cannot
+   recover telemetry that was never forwarded.
 2. Have the platform owner add this request's exact namespace, name, Kubernetes UID, and immutable profile to the
    platform-owned `deletionAuthorizations` list. If there is no exact match, stop; the request must
    remain `Retain`.
@@ -883,6 +885,8 @@ Before making the repository public, also review repository settings, issues, wo
 
 ## Known limitations
 
+- The upstream Synthetic Monitoring Installation resource can report Ready/Synced without configuring the product. This module therefore requires an independently observed disabled Check through the derived credential. The full bootstrap chain and the disabled verifier's zero-execution behavior still require deployed validation; no live verification is claimed here.
+
 - The Grafana provider is experimental and may lag the Terraform provider.
 - Provider schemas and Grafana APIs may expose fields that do not round-trip cleanly; test drift rather than assuming.
 - The pinned provider requires the optional Role autoIncrementVersion field to be present because of an initializer defect; this reference pins it to false and omits version.
@@ -913,3 +917,14 @@ Before making the repository public, also review repository settings, issues, wo
 ## License
 
 Apache License 2.0. See LICENSE.
+
+## Governance and new product APIs
+
+The [governance guide](docs/governance.md) documents token lifetime ceilings and token-use subnet profiles, golden SLO handoff, bounded k6 and Synthetic Monitoring vending, explicit promotion ladders, creation-time retention classes, and the enforced SCIM exclusion. Both shared-stack access slices and stack-per-tenant deployments are intentional topologies. Product credentials use identity-bound bootstrap exchanges; provider readiness is not live product proof.
+
+
+Token-use subnet profiles restrict where Fleet Management and telemetry policy tokens may be used from. They are not inbound Grafana stack filtering; no inbound stack IP-filtering mechanism was identified. The administrator service-account token has no equivalent conditions field.
+
+Shared stacks centralize operations and isolate tenants through teams, folders, RBAC, datasource permissions and LBAC. Separate stacks provide independent lifecycles and complete departmental isolation, with duplicated configuration and stack-cap costs. Both are supported deliberately. Ladders require one organization and immutable region/rung identities. Free plans allow one stack and self-service paid plans three; larger ladders need a negotiated cap. Multi-stack datasources require one region and were capped at ten stacks in preview. Promotion direction is explicit and never causes a region replacement.
+
+Retention classes select durable collector fan-out at creation; they do not set retention periods. Logs export forwards a rolling window of roughly seven to thirty days. Logs retention can be changed through a self-serve API in thirty-day multiples up to one year, while shorter periods require a support request; this Composition does not reconcile that API. Metrics and traces have no self-serve retention API, and no equivalent bulk export was found. Stack deletion is permanent, so decommission cannot recover telemetry that was never forwarded.

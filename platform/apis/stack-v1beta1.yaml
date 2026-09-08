@@ -53,6 +53,8 @@ spec:
                 - usage
                 - organization
               x-kubernetes-validations:
+                - rule: "!has(self.scim)"
+                  message: SCIM is out of scope; use external-group mapping
                 - rule: has(self.retention) == has(oldSelf.retention)
                   message: retention must be selected at creation
                 - rule: has(self.expiry) == has(oldSelf.expiry)
@@ -101,6 +103,11 @@ spec:
                     databaseObservability:
                       type: boolean
                       default: false
+                scim:
+                  description: Rejected compatibility input; SCIM is outside the supported API.
+                  type: object
+                  nullable: true
+                  x-kubernetes-preserve-unknown-fields: true
                 retention:
                   type: object
                   required: [class]
@@ -306,6 +313,42 @@ spec:
             status:
               type: object
               properties:
+                expiry:
+                  type: object
+                  properties:
+                    effectiveExpiresAt:
+                      type: string
+                      format: date-time
+                    expired:
+                      type: boolean
+                    warningActive:
+                      type: boolean
+                    deletionArmed:
+                      type: boolean
+                    deletionReady:
+                      type: boolean
+                    extensions:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          extendedTo:
+                            type: string
+                          reason:
+                            type: string
+                          requestedBy:
+                            type: string
+                          recordedAt:
+                            type: string
+                tokenExpiries:
+                  type: object
+                  properties:
+                    administrator:
+                      type: string
+                    fleetManagement:
+                      type: string
+                    telemetryPublisher:
+                      type: string
                 deletionArmed:
                   type: boolean
                 deletionReady:
@@ -356,6 +399,8 @@ spec:
               allowedUsages:
                 - development
                 - production
+          maximumTokenLifetime: 720h
+          tokenUseNetworkProfiles: []
           publicDashboardProfiles: []
           outputSecretPrefix: /platform/grafana-cloud/stacks
           secretStoreRef:
@@ -418,6 +463,10 @@ spec:
                 roleValuesNone: None
                 nameIdFormat: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
                 signatureAlgorithm: rsa-sha256
+          expiryPolicies:
+            - usage: development
+              warningBefore: 24h
+              warningFolderUID: vending-home-folder
           incidentProfiles:
             - name: example-relay
               url: https://incident-relay.example.com/grafana/events

@@ -1,0 +1,15 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaK6Project
+metadata:
+  name: example-k6-project
+  namespace: grafana-vending
+spec:
+  # This must name a ready GrafanaCloudStackRequest in this namespace.
+  stackRef:
+    name: replacewithunique01
+  grafanaUser: operator@example.invalid
+  # Each identifier must be in the platform profile selected by the referenced
+  # stack's observed usage. These inert example values are allowed by the
+  # accompanying Composition input.
+  allowedLoadZones:
+    - private-zone-example-a

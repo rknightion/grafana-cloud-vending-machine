@@ -27,8 +27,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: grafana-vending-function-publication
+  cancel-in-progress: false
 
 env:
   GO_VERSION: 1.27.0

@@ -40,7 +40,9 @@ func TestFleetPipelinesSelectOnlyPlatformOwnedProfiles(t *testing.T) {
 
 func TestFleetCredentialWaitsForObservedIDsAndNeverEmbedsToken(t *testing.T) {
 	desired := map[resource.Name]*resource.DesiredComposed{}
-	addFleetAccess(desired, nil, "grafana-vending", "teamdemo01", "prod-us-central-0", "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01", fleetTestSettings(), "organization-provider", false)
+	if err := addFleetAccess(desired, nil, "grafana-vending", "teamdemo01", "prod-us-central-0", "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01", "standard", fleetTestSettings(), "organization-provider", false); err != nil {
+		t.Fatal(err)
+	}
 	if _, ok := desired["fleet-management-token"]; ok {
 		t.Fatal("fleet token rendered before the access-policy ID was observed")
 	}
@@ -48,7 +50,9 @@ func TestFleetCredentialWaitsForObservedIDsAndNeverEmbedsToken(t *testing.T) {
 	observed := map[resource.Name]resource.ObservedComposed{
 		"fleet-management-access-policy": fleetObserved(`{"status":{"atProvider":{"policyId":"policy-12345"}}}`),
 	}
-	addFleetAccess(desired, observed, "grafana-vending", "teamdemo01", "prod-us-central-0", "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01", fleetTestSettings(), "organization-provider", false)
+	if err := addFleetAccess(desired, observed, "grafana-vending", "teamdemo01", "prod-us-central-0", "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01", "standard", fleetTestSettings(), "organization-provider", false); err != nil {
+		t.Fatal(err)
+	}
 	if _, ok := desired["fleet-management-token"]; !ok {
 		t.Fatal("fleet token was not rendered after the access-policy ID was observed")
 	}
@@ -57,7 +61,9 @@ func TestFleetCredentialWaitsForObservedIDsAndNeverEmbedsToken(t *testing.T) {
 	}
 
 	observed["stack"] = fleetObserved(`{"status":{"atProvider":{"id":"stack-12345"}}}`)
-	addFleetAccess(desired, observed, "grafana-vending", "teamdemo01", "prod-us-central-0", "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01", fleetTestSettings(), "organization-provider", false)
+	if err := addFleetAccess(desired, observed, "grafana-vending", "teamdemo01", "prod-us-central-0", "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01", "standard", fleetTestSettings(), "organization-provider", false); err != nil {
+		t.Fatal(err)
+	}
 	publication := desired["fleet-management-credentials"].Resource.UnstructuredContent()
 	document := nestedMap(t, publication, "spec", "template", "data")["fleet-management.json"].(string)
 	if !strings.Contains(document, `index . "attribute.token"`) || !strings.Contains(document, `fleet_management_auth`) {
@@ -76,7 +82,7 @@ func fleetConfig() map[string]any {
 }
 
 func fleetTestSettings() platformSettings {
-	return platformSettings{secretStoreName: "grafana-vending-secrets", secretStoreKind: "SecretStore"}
+	return platformSettings{maximumTokenLifetime: "720h", secretStoreName: "grafana-vending-secrets", secretStoreKind: "SecretStore"}
 }
 
 func fleetObserved(document string) resource.ObservedComposed {

@@ -169,3 +169,10 @@ spec:
     - k8so11yconfigv1alpha1s.cloud.grafana.m.crossplane.io
     - repositoryv0alpha1s.oss.grafana.m.crossplane.io
     - connectionv0alpha1s.oss.grafana.m.crossplane.io
+    - slos.slo.grafana.m.crossplane.io
+    - installations.k6.grafana.m.crossplane.io
+    - projects.k6.grafana.m.crossplane.io
+    - projectlimits.k6.grafana.m.crossplane.io
+    - projectallowedloadzones.k6.grafana.m.crossplane.io
+    - installations.sm.grafana.m.crossplane.io
+    - checks.sm.grafana.m.crossplane.io

@@ -1,0 +1,38 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaSyntheticMonitoring
+metadata:
+  name: replacewithunique08
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique08
+  checks:
+    - name: service-health
+      type: http
+      target: https://service.example.invalid/health
+      frequencySeconds: 300
+      probeNames:
+        - replace-with-approved-public-probe
+      http:
+        method: GET
+    - name: browser-home
+      type: browser
+      target: https://service.example.invalid
+      frequencySeconds: 900
+      probeNames:
+        - replace-with-approved-browser-probe
+      browser:
+        script: |
+          import { browser } from 'k6/browser';
+
+          export default async function () {
+            const page = await browser.newPage();
+            try {
+              const response = await page.goto('https://service.example.invalid');
+              if (response === null || !response.ok()) {
+                throw new Error('Browser navigation did not return a successful response');
+              }
+            } finally {
+              await page.close();
+            }
+          }

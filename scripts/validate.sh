@@ -35,6 +35,10 @@ kubectl kustomize examples/catalog/assistant-governance >/dev/null
 kubectl kustomize examples/catalog/datasource-access >/dev/null
 kubectl kustomize examples/catalog/observability-products >/dev/null
 kubectl kustomize examples/catalog/provisioning-repository >/dev/null
+kubectl kustomize examples/catalog/golden-slo >/dev/null
+kubectl kustomize examples/catalog/k6-project >/dev/null
+kubectl kustomize examples/catalog/synthetic-monitoring >/dev/null
+kubectl kustomize examples/catalog/promotion-ladder >/dev/null
 
 test -f examples/README.md
 for example_dir in examples/catalog/*; do

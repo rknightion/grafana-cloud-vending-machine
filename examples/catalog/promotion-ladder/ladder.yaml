@@ -1,0 +1,31 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaStackLadder
+metadata:
+  name: example-promotion-ladder
+  namespace: grafana-vending
+spec:
+  # This direction is deliberate. The Composition never writes Git or moves
+  # content between branches.
+  promotionDirection: forward
+  organization: example-primary
+  region: prod-us-central-0
+  repository:
+    url: https://replace-with-approved-repository.invalid/grafana-dashboards
+    path: platform
+  rungs:
+    - name: development
+      slug: replaceladderdev01
+      displayName: Example development
+      usage: development
+      branch: development
+      connectionRef:
+        # This existing Grafana ConnectionV0Alpha1 holds the Git credential.
+        name: replace-development-connection
+    - name: production
+      slug: replaceladderprd01
+      displayName: Example production
+      usage: production
+      branch: main
+      connectionRef:
+        # Each rung is separately credentialed, even for one Git repository.
+        name: replace-production-connection

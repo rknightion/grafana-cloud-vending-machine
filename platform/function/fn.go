@@ -109,7 +109,22 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		response.Fatal(rsp, errors.Errorf("composite kind %q is registered but not implemented", kind))
 		return rsp, nil
 	}
-	desired, err := renderer.render(content, observed, rendererConfig(req, content, config))
+	resolvedConfig := serviceBootstrapConfig(req, rsp, content, rendererConfig(req, content, config))
+	productContextReady := true
+	if kind == "GrafanaK6Project" {
+		_, productContextReady = resolvedConfig["_resolvedK6Stack"]
+	}
+	if kind == "GrafanaSyntheticMonitoring" {
+		_, productContextReady = resolvedConfig["referencedStack"]
+	}
+	if !productContextReady && len(observed) > 0 {
+		response.Fatal(rsp, errors.New("waiting for trusted product bootstrap context; preserving existing composed resources"))
+		return rsp, nil
+	}
+	desired, err := renderer.render(content, observed, resolvedConfig)
+	if err == nil {
+		err = productWithdrawalError(kind, content, desired, observed)
+	}
 	if err == nil {
 		var status *resource.Composite
 		switch kind {
@@ -117,6 +132,10 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 			status = desiredStackStatus(content, observed, config)
 		case "GrafanaStackInventory":
 			status = desiredStackInventoryStatus(content, observed)
+		case "GrafanaStackLadder":
+			status = desiredStackLadderStatus(content, observed)
+		case "GrafanaSyntheticMonitoring":
+			status = desiredSyntheticMonitoringStatus(content, observed, resolvedConfig)
 		}
 		if status != nil {
 			if err = response.SetDesiredCompositeResource(rsp, status); err != nil {
@@ -135,10 +154,20 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 			return rsp, nil
 		}
 		desired = gated
-		if err := setAccessCompositeReadiness(rsp, admitted); err != nil {
+		if kind == "GrafanaSyntheticMonitoring" {
+			stack, _ := resolvedConfig["referencedStack"].(map[string]any)
+			admitted = admitted && syntheticMonitoringInstallationVerified(observed, stringValue(stack, "stackID", ""))
+		}
+		if err := setAccessCompositeReadiness(rsp, admitted && productContextReady); err != nil {
 			response.Fatal(rsp, errors.Wrap(err, "cannot set access composite readiness"))
 			return rsp, nil
 		}
+	}
+	if kind == "GrafanaSyntheticMonitoring" {
+		pruneSMDesired(rsp, desired)
+	}
+	if kind == "GrafanaCloudStackRequest" && desired["expiry-warning"] == nil && rsp.GetDesired() != nil {
+		delete(rsp.Desired.Resources, "expiry-warning")
 	}
 	markObservedResourcesReady(desired, observed)
 	if err := response.SetDesiredComposedResources(rsp, desired); err != nil {
@@ -239,6 +268,17 @@ func accessResourcesAdmittedWithRequest(req *fnv1.RunFunctionRequest, rsp *fnv1.
 	object := resources[0].Resource.UnstructuredContent()
 	if !requiredStackIdentityMatches(object, stackName, namespaceName, apiVersion) {
 		return false, errors.New("required resource is not the referenced stack")
+	}
+	stackSpec, _ := object["spec"].(map[string]any)
+	spec, _ := xr["spec"].(map[string]any)
+	team, _ := spec["team"].(map[string]any)
+	groupKey := "externalGroups"
+	if xr["kind"] == "GrafanaCustomRoleBinding" {
+		groupKey = "groups"
+	}
+	groups, _ := team[groupKey].([]any)
+	if _, scim := stackSpec["scim"]; scim && len(groups) > 0 && (xr["kind"] == "GrafanaTeamAccess" || xr["kind"] == "GrafanaCustomRoleBinding") {
+		return false, errors.New("external-group mapping and SCIM group sync are mutually exclusive")
 	}
 	return requiredStackReady(object), nil
 }
@@ -411,6 +451,9 @@ func externalResourcesLifecycle(spec map[string]any) (string, error) {
 func renderStack(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
 	metadata, _ := xr["metadata"].(map[string]any)
 	spec, _ := xr["spec"].(map[string]any)
+	if _, requested := spec["scim"]; requested {
+		return nil, errors.New("SCIM is out of scope; use GrafanaTeamAccess or GrafanaCustomRoleBinding external-group mapping")
+	}
 
 	name, _ := metadata["name"].(string)
 	namespace, _ := metadata["namespace"].(string)
@@ -432,6 +475,14 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 		return nil, err
 	}
 	settings := configuredPlatformSettings(config)
+	administratorTokenLifetime, err := boundedTokenLifetime(settings.maximumTokenLifetime, requestedTokenLifetime)
+	if err != nil {
+		return nil, err
+	}
+	administratorRotationWindow, err := boundedTokenEarlyRotationWindow(administratorTokenLifetime)
+	if err != nil {
+		return nil, err
+	}
 	if !oneOf(usage, settings.allowedUsages...) {
 		return nil, errors.Errorf("usage %q is not allowed by platform configuration", usage)
 	}
@@ -444,6 +495,12 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 		return nil, errors.Errorf("request %s/%s with profile %q is not authorized to delete external resources", namespace, name, profile)
 	}
 	deletingExternalResources := lifecycle == "Delete"
+	if deletingExternalResources && expiryRendererImplemented {
+		deletingExternalResources, err = expiryArmingPermitted(xr, config)
+		if err != nil {
+			return nil, err
+		}
+	}
 	externalResourcePolicies := managementPolicies
 	deleteProtection := true
 	deleteOnDestroy := false
@@ -519,8 +576,8 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 			map[string]any{
 				"managementPolicies": externalResourcePolicies,
 				"forProvider": map[string]any{
-					"namePrefix": "grafana-vending-", "secondsToLive": 2592000,
-					"earlyRotationWindowSeconds": 604800, "deleteOnDestroy": deleteOnDestroy,
+					"namePrefix": "grafana-vending-", "secondsToLive": int64(administratorTokenLifetime / time.Second),
+					"earlyRotationWindowSeconds": int64(administratorRotationWindow / time.Second), "deleteOnDestroy": deleteOnDestroy,
 					"stackSlug": slug, "serviceAccountId": serviceAccountID,
 				},
 				"providerConfigRef":          map[string]any{"kind": "ProviderConfig", "name": organizationProviderConfigName},
@@ -624,7 +681,9 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 			},
 		})
 
-	addFleetAccess(desired, observed, namespace, slug, region, outputPath, settings, organizationProviderConfigName, deletingExternalResources)
+	if err := addFleetAccess(desired, observed, namespace, slug, region, outputPath, profile, settings, organizationProviderConfigName, deletingExternalResources); err != nil {
+		return nil, err
+	}
 	if err := addTelemetryAccess(desired, observed, namespace, slug, region, telemetryOutputPath, spec, settings, organizationProviderConfigName, deletingExternalResources); err != nil {
 		return nil, err
 	}
@@ -662,17 +721,22 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 		return nil, errors.New("retention renderer is not implemented")
 	}
 
-	stackServes := observedReady(observed, "stack")
-	admitStaged(desired, whenStackServes, observed, stackServes)
-	admitStaged(desired, whenCredentialsPublished, observed, stackServes && observedReady(observed, "instance-credentials"))
-
 	if expiryRendererImplemented {
-		if err := addStackExpiry(desired, xr, observed, config); err != nil {
+		if _, requested := spec["expiry"]; requested {
+			incident, _ := spec["incidentIntegration"].(map[string]any)
+			if incident["enabled"] != true || whenCredentialsPublished["incident-alerting-production"] == nil {
+				return nil, errors.New("expiry requires the configured already-vended production incident contact point")
+			}
+		}
+		if err := addStackExpiry(whenCredentialsPublished, xr, observed, config); err != nil {
 			return nil, err
 		}
 	} else if _, requested := spec["expiry"]; requested {
 		return nil, errors.New("expiry renderer is not implemented")
 	}
+	stackServes := observedReady(observed, "stack")
+	admitStaged(desired, whenStackServes, observed, stackServes)
+	admitStaged(desired, whenCredentialsPublished, observed, stackServes && observedReady(observed, "instance-credentials"))
 
 	return desired, nil
 }
@@ -691,6 +755,10 @@ func desiredStackStatus(xr map[string]any, observed map[resource.Name]resource.O
 	}
 	lifecycle, _ := externalResourcesLifecycle(spec)
 	deletionArmed := lifecycle == "Delete"
+	if deletionArmed && expiryRendererImplemented {
+		permitted, err := expiryArmingPermitted(xr, config)
+		deletionArmed = err == nil && permitted
+	}
 	deleteProtection, protectionObserved := observedBool(observed, "stack", "status", "atProvider", "deleteProtection")
 	credentialsPrepared := observedPushSecretDeletionPrepared(observed, "credentials")
 	fleetCredentialsPrepared := observedPushSecretDeletionPrepared(observed, "fleet-management-credentials")
@@ -710,18 +778,22 @@ func desiredStackStatus(xr map[string]any, observed map[resource.Name]resource.O
 	if len(stack) > 0 {
 		status["stack"] = stack
 	}
+	publishTokenExpiryStatus(status, observed)
+	mergeStackExpiryStatus(status, config)
 	desired := &resource.Composite{Resource: composite.New()}
 	desired.Resource.SetUnstructuredContent(map[string]any{"status": status})
 	return desired
 }
 
 type platformSettings struct {
-	organizations          []organizationSettings
-	outputSecretPrefix     string
-	secretStoreName        string
-	secretStoreKind        string
-	allowedUsages          []string
-	deletionAuthorizations []deletionAuthorization
+	maximumTokenLifetime    string
+	tokenUseNetworkProfiles []any
+	organizations           []organizationSettings
+	outputSecretPrefix      string
+	secretStoreName         string
+	secretStoreKind         string
+	allowedUsages           []string
+	deletionAuthorizations  []deletionAuthorization
 }
 
 type organizationSettings struct {
@@ -740,14 +812,17 @@ type deletionAuthorization struct {
 
 func configuredPlatformSettings(config map[string]any) platformSettings {
 	spec, _ := config["spec"].(map[string]any)
+	tokenUseNetworkProfiles, _ := spec["tokenUseNetworkProfiles"].([]any)
 	store, _ := spec["secretStoreRef"].(map[string]any)
 	return platformSettings{
-		organizations:          organizationSettingsList(spec),
-		outputSecretPrefix:     stringValue(spec, "outputSecretPrefix", "/platform/grafana-cloud/stacks"),
-		secretStoreName:        stringValue(store, "name", "grafana-vending-secrets"),
-		secretStoreKind:        stringValue(store, "kind", "SecretStore"),
-		allowedUsages:          stringListValue(spec, "allowedUsages", []string{"development", "production"}),
-		deletionAuthorizations: deletionAuthorizationList(spec),
+		maximumTokenLifetime:    stringValue(spec, "maximumTokenLifetime", ""),
+		tokenUseNetworkProfiles: tokenUseNetworkProfiles,
+		organizations:           organizationSettingsList(spec),
+		outputSecretPrefix:      stringValue(spec, "outputSecretPrefix", "/platform/grafana-cloud/stacks"),
+		secretStoreName:         stringValue(store, "name", "grafana-vending-secrets"),
+		secretStoreKind:         stringValue(store, "kind", "SecretStore"),
+		allowedUsages:           stringListValue(spec, "allowedUsages", []string{"development", "production"}),
+		deletionAuthorizations:  deletionAuthorizationList(spec),
 	}
 }
 

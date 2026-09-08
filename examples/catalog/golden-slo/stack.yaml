@@ -1,0 +1,11 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCloudStackRequest
+metadata:
+  name: replacewithunique09
+  namespace: grafana-vending
+spec:
+  displayName: Golden SLO example
+  slug: replacewithunique09
+  region: prod-us-central-0
+  usage: production
+  organization: example-primary

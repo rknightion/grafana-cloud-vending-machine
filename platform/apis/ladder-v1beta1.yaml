@@ -154,6 +154,8 @@ spec:
         apiVersion: platform.example.org/v1beta1
         kind: GrafanaVendingConfig
         spec:
+          maximumTokenLifetime: 720h
+          tokenUseNetworkProfiles: []
           ladderPolicy:
             maxStacks: 3
           organizations:

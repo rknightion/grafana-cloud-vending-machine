@@ -70,3 +70,12 @@ reviewed stages: arm Delete and reach `status.deletionReady=true`; remove depend
 and merge/sync until their Kubernetes objects and finalizers are gone while the Stack still exists;
 then remove the request. See the decommission runbook in the project
 [README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook).
+
+## Governance catalog bases
+
+- `golden-slo`: platform ratio objective and a stack using its usage profile.
+- `k6-project`: project with platform-capped limits and allowed load zones.
+- `synthetic-monitoring`: explicit consuming-team checks and independent installation verification.
+- `promotion-ladder`: immutable rung identities with explicit branch-promotion direction.
+
+Each is an inert Kustomize base rendered by the repository gate. See [Governance](../governance.md) and each catalog README for prerequisites.

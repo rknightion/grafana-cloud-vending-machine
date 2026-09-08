@@ -114,11 +114,23 @@ func configuredFleetPipelineProfile(config map[string]any, name string) (fleetPi
 func addFleetAccess(
 	desired map[resource.Name]*resource.DesiredComposed,
 	observed map[resource.Name]resource.ObservedComposed,
-	namespace, slug, region, outputPath string,
+	namespace, slug, region, outputPath, profile string,
 	settings platformSettings,
 	organizationProviderConfigName string,
 	deletingExternalResources bool,
-) {
+) error {
+	tokenLifetime, err := boundedTokenLifetime(settings.maximumTokenLifetime, requestedTokenLifetime)
+	if err != nil {
+		return err
+	}
+	rotationWindow, err := boundedTokenEarlyRotationWindow(tokenLifetime)
+	if err != nil {
+		return err
+	}
+	allowedSubnets, err := selectedTokenUseAllowedSubnets(settings.tokenUseNetworkProfiles, profile)
+	if err != nil {
+		return err
+	}
 	policyName := slug + "-fleet-management"
 	tokenSecret := slug + "-fleet-management-token"
 	externalResourcePolicies := managementPolicies
@@ -130,18 +142,22 @@ func addFleetAccess(
 		pushSecretDeletionPolicy = "Delete"
 	}
 
+	policyForProvider := map[string]any{
+		"displayName": "Fleet Management for " + slug,
+		"name":        policyName,
+		"realm":       []any{map[string]any{"stackRef": map[string]any{"name": slug}, "type": "stack"}},
+		"region":      region,
+		"scopes":      []any{"fleet-management:read", "fleet-management:write"},
+	}
+	if len(allowedSubnets) > 0 {
+		policyForProvider["conditions"] = []any{map[string]any{"allowedSubnets": allowedSubnets}}
+	}
 	desired["fleet-management-access-policy"] = newDesired(
 		"cloud.grafana.m.crossplane.io/v1alpha1", "AccessPolicy", namespace, policyName, nil,
 		map[string]any{
 			"managementPolicies": externalResourcePolicies,
-			"forProvider": map[string]any{
-				"displayName": "Fleet Management for " + slug,
-				"name":        policyName,
-				"realm":       []any{map[string]any{"stackRef": map[string]any{"name": slug}, "type": "stack"}},
-				"region":      region,
-				"scopes":      []any{"fleet-management:read", "fleet-management:write"},
-			},
-			"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": organizationProviderConfigName},
+			"forProvider":        policyForProvider,
+			"providerConfigRef":  map[string]any{"kind": "ProviderConfig", "name": organizationProviderConfigName},
 		},
 	)
 
@@ -150,7 +166,7 @@ func addFleetAccess(
 		policyID = observedString(observed, "fleet-management-token", "spec.forProvider.accessPolicyId")
 	}
 	if policyID == "" {
-		return
+		return nil
 	}
 	desired["fleet-management-token"] = newDesired(
 		"cloud.grafana.m.crossplane.io/v1alpha1", "AccessPolicyRotatingToken", namespace, policyName, nil,
@@ -159,7 +175,7 @@ func addFleetAccess(
 			"forProvider": map[string]any{
 				"accessPolicyId": policyID, "deleteOnDestroy": deleteOnDestroy,
 				"displayName":         "Fleet Management token for " + slug,
-				"earlyRotationWindow": "168h", "expireAfter": "720h",
+				"earlyRotationWindow": tokenDurationString(rotationWindow), "expireAfter": tokenDurationString(tokenLifetime),
 				"namePrefix": slug + "-fleet-management-", "region": region,
 			},
 			"providerConfigRef":          map[string]any{"kind": "ProviderConfig", "name": organizationProviderConfigName},
@@ -169,7 +185,7 @@ func addFleetAccess(
 
 	stackID := observedString(observed, "stack", "status.atProvider.id")
 	if stackID == "" {
-		return
+		return nil
 	}
 	outputDocument := fmt.Sprintf(
 		`{{ $token := index . "attribute.token" | toString }}{"fleet_management_auth":{{ printf "%%s:%%s" %q $token | toJson }}}`, stackID,
@@ -193,4 +209,5 @@ func addFleetAccess(
 			}},
 		},
 	)
+	return nil
 }

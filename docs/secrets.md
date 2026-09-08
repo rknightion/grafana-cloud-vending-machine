@@ -50,7 +50,7 @@ For every stack, the Composition creates:
 5. An `ExternalSecret` that reads the exported token and URL back into the stack namespace.
 6. A stack-local `ProviderConfig` used for Grafana resources inside that stack.
 
-The token lifetime is 30 days with a seven-day early rotation window. The `PushSecret` refresh
+The platform maximum lifetime caps the standard 30-day lifetime. The seven-day early rotation window is shortened when needed. Missing or invalid policy fails closed; provider-observed expiry appears in `status.tokenExpiries`. The `PushSecret` refresh
 interval is one hour, so a newly rotated token is copied to the external store well inside the
 overlap window.
 
@@ -189,3 +189,5 @@ stack's composed resources, which is outside Crossplane's default RBAC surface.
 - [Security](security.md) — supply-chain verification and the Retain-by-default lifecycle.
 - [Installation](installation.md) — where the `SecretStore` and per-organization `ProviderConfig` are
   applied during bootstrap.
+
+Product bootstrap and token-use network policy are described in [Governance](governance.md).

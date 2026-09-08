@@ -1,0 +1,101 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanak6projects.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaK6Project
+    plural: grafanak6projects
+    singular: grafanak6project
+    shortNames:
+      - gck6
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-k6-project-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: A bounded k6 project for one referenced Grafana Cloud stack. The platform selects all usage limits and the permitted private load zones.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - grafanaUser
+                - allowedLoadZones
+              properties:
+                stackRef:
+                  type: object
+                  description: The ready GrafanaCloudStackRequest whose observed identity and service-account token bootstrap this k6 installation.
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                grafanaUser:
+                  type: string
+                  minLength: 3
+                  maxLength: 254
+                  description: Grafana user identity used only by the provider's k6 installation exchange.
+                allowedLoadZones:
+                  type: array
+                  maxItems: 100
+                  x-kubernetes-list-type: set
+                  description: An explicit authoritative subset (empty means no private zones) of the private load-zone identifiers permitted by the platform profile for the referenced stack usage. This API never provisions a load zone.
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 190
+            status:
+              type: object
+              description: Read-only status owned by Crossplane.
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-k6-project-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaK6Project
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-k6-project
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          k6LimitProfiles:
+            - usage: development
+              vuhMaxPerMonth: 100
+              vuMaxPerTest: 10
+              vuBrowserMaxPerTest: 2
+              durationMaxPerTest: 600
+              allowedLoadZones:
+                - private-zone-example-a
+                - private-zone-example-b
+            - usage: production
+              vuhMaxPerMonth: 1000
+              vuMaxPerTest: 50
+              vuBrowserMaxPerTest: 10
+              durationMaxPerTest: 1800
+              allowedLoadZones:
+                - private-zone-example-a
+                - private-zone-example-b

@@ -1481,6 +1481,9 @@ func stackInputWithDefaultOrganization(t *testing.T, composite, input string) st
 		spec = map[string]any{}
 		config["spec"] = spec
 	}
+	if _, exists := spec["maximumTokenLifetime"]; !exists {
+		spec["maximumTokenLifetime"] = "720h"
+	}
 	if _, exists := spec["organizations"]; !exists {
 		allowedUsages, ok := spec["allowedUsages"].([]any)
 		if !ok {

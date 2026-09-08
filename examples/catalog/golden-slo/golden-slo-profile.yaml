@@ -1,0 +1,16 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaVendingConfig
+metadata:
+  name: example-platform
+spec:
+  goldenSLOProfiles:
+    production:
+      name: Production request success
+      description: Inert ratio-query template for production stacks.
+      datasourceUID: example-prometheus
+      objective:
+        value: 0.99
+        window: 30d
+      ratio:
+        successMetric: example_request_success_total
+        totalMetric: example_request_total

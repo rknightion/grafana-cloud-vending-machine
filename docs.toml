@@ -42,6 +42,7 @@ Home = "index.md"
     { Architecture = "architecture.md" },
     { Secrets = "secrets.md" },
     { SSO = "sso.md" },
+    { Governance = "governance.md" },
 ]
 
 [[site.nav]]
