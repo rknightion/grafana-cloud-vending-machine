@@ -138,6 +138,7 @@ jobs:
           echo "KUBEBUILDER_ASSETS=$assets_path"
           echo "kube-apiserver: $kube_apiserver_version"
           echo "etcd: $("$assets_path/etcd" --version)"
+          printf 'ENVTEST_KUBERNETES_VERSION=%s\n' "$envtest_version" >> "$GITHUB_ENV"
           printf 'KUBEBUILDER_ASSETS=%s\n' "$assets_path" >> "$GITHUB_ENV"
 
       - name: Check module files
