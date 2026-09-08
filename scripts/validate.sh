@@ -25,27 +25,31 @@ find . -type f \( -name '*.yaml' -o -name '*.yml' \) -not -path './.git/*' -prin
 
 kubectl kustomize platform >/dev/null
 kubectl kustomize deploy/aws >/dev/null
-kubectl kustomize examples/catalog/comprehensive >/dev/null
-kubectl kustomize examples/catalog/minimal >/dev/null
-kubectl kustomize examples/catalog/stack-inventory >/dev/null
-kubectl kustomize examples/catalog/fleet-pipelines >/dev/null
-kubectl kustomize examples/catalog/alerting-bundle >/dev/null
-kubectl kustomize examples/catalog/agent-observability >/dev/null
-kubectl kustomize examples/catalog/assistant-governance >/dev/null
-kubectl kustomize examples/catalog/datasource-access >/dev/null
-kubectl kustomize examples/catalog/observability-products >/dev/null
-kubectl kustomize examples/catalog/provisioning-repository >/dev/null
-kubectl kustomize examples/catalog/golden-slo >/dev/null
-kubectl kustomize examples/catalog/k6-project >/dev/null
-kubectl kustomize examples/catalog/synthetic-monitoring >/dev/null
-kubectl kustomize examples/catalog/promotion-ladder >/dev/null
 
 test -f examples/README.md
-for example_dir in examples/catalog/*; do
-  if [[ -d "$example_dir" && ! -f "$example_dir/README.md" ]]; then
+
+# Every catalog directory is enumerated, never listed by hand. A consumer applying
+# Kustomize patches forces a render of every selected catalog path, so a directory
+# without a kustomization.yaml fails before deployment even though its documents
+# parse in isolation. A hand-maintained list silently stops covering new directories.
+shopt -s nullglob
+catalog_dirs=(examples/catalog/*/)
+shopt -u nullglob
+if [[ ${#catalog_dirs[@]} -eq 0 ]]; then
+  echo "No catalog examples found under examples/catalog" >&2
+  exit 1
+fi
+for example_dir in "${catalog_dirs[@]}"; do
+  example_dir=${example_dir%/}
+  if [[ ! -f "$example_dir/README.md" ]]; then
     echo "Missing example README: $example_dir/README.md" >&2
     exit 1
   fi
+  if [[ ! -f "$example_dir/kustomization.yaml" ]]; then
+    echo "Missing example kustomization: $example_dir/kustomization.yaml" >&2
+    exit 1
+  fi
+  kubectl kustomize "$example_dir" >/dev/null
 done
 
 ruby -ryaml -e '
