@@ -4,6 +4,7 @@ metadata:
   name: replacewithunique03
   namespace: grafana-vending
 spec:
+  organization: example-primary
   displayName: SSO create-only example
   slug: replacewithunique03
   region: prod-us-central-0

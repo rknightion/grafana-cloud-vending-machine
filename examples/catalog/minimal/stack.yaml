@@ -6,6 +6,7 @@ metadata:
   name: replacewithunique01
   namespace: grafana-vending
 spec:
+  organization: example-primary
   displayName: Example Grafana Cloud stack
   slug: replacewithunique01
   region: prod-us-central-0

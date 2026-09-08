@@ -12,6 +12,7 @@ func addTelemetryAccess(
 	namespace, slug, region, outputPath string,
 	spec map[string]any,
 	settings platformSettings,
+	organizationProviderConfigName string,
 	deletingExternalResources bool,
 ) error {
 	if !telemetryAccessEnabled(spec) {
@@ -46,7 +47,7 @@ func addTelemetryAccess(
 				"region": region,
 				"scopes": []any{"stacks:read", "metrics:write", "logs:write", "traces:write"},
 			},
-			"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": settings.organizationProviderConfigName},
+			"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": organizationProviderConfigName},
 		},
 	)
 
@@ -72,7 +73,7 @@ func addTelemetryAccess(
 					"namePrefix":          slug + "-telemetry-",
 					"region":              region,
 				},
-				"providerConfigRef":          map[string]any{"kind": "ProviderConfig", "name": settings.organizationProviderConfigName},
+				"providerConfigRef":          map[string]any{"kind": "ProviderConfig", "name": organizationProviderConfigName},
 				"writeConnectionSecretToRef": map[string]any{"name": tokenSecret},
 			},
 		)

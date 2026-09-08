@@ -1,10 +1,10 @@
 ---
 id: GCV-0032
 title: Vend into multiple Grafana Cloud organisations
-status: Parked
+status: In Progress
 assignee: []
 created_date: '2026-09-08 08:08'
-updated_date: '2026-09-08 10:20'
+updated_date: '2026-09-08 11:10'
 labels: []
 dependencies: []
 priority: high
@@ -40,6 +40,12 @@ The organisation is a platform-owned routing decision, not free-form request inp
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 2 root plan: re-pin and verify the provider release identity; implement the required immutable organization seam, platform registry, fail-closed routing, organization-segmented secret path, catalogs, AWS examples, shared product/profile/input seams, split API registries, and pre-register compiling renderer stubs; run the full gate; commit and push with explicit pathspecs before dispatching lanes A-J.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

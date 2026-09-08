@@ -21,7 +21,7 @@
         "secretsmanager:TagResource"
       ],
       "Resource": [
-        "arn:aws:secretsmanager:*:*:secret:/platform/grafana-cloud/stacks/*"
+    "arn:aws:secretsmanager:*:*:secret:/platform/grafana-cloud/stacks/*/*/*"
       ]
     },
     {
@@ -31,7 +31,7 @@
         "secretsmanager:DeleteSecret"
       ],
       "Resource": [
-        "arn:aws:secretsmanager:*:*:secret:/platform/grafana-cloud/stacks/*"
+    "arn:aws:secretsmanager:*:*:secret:/platform/grafana-cloud/stacks/*/*/*"
       ],
       "Condition": {
         "StringEquals": {

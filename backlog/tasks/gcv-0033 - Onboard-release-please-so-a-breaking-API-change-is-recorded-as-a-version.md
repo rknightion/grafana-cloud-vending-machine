@@ -1,10 +1,10 @@
 ---
 id: GCV-0033
 title: Onboard release-please so a breaking API change is recorded as a version
-status: Parked
+status: In Progress
 assignee: []
 created_date: '2026-09-08 08:08'
-updated_date: '2026-09-08 10:20'
+updated_date: '2026-09-08 11:10'
 labels: []
 dependencies: []
 priority: medium

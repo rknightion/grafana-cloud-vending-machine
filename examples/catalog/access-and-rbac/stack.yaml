@@ -4,6 +4,7 @@ metadata:
   name: replacewithunique04
   namespace: grafana-vending
 spec:
+  organization: example-primary
   displayName: Access and RBAC example
   slug: replacewithunique04
   region: prod-us-central-0

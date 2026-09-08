@@ -5,6 +5,7 @@ metadata:
   name: replacewithunique02
   namespace: grafana-vending
 spec:
+  organization: example-primary
   displayName: Comprehensive Grafana Cloud example
   slug: replacewithunique02
   region: prod-us-central-0

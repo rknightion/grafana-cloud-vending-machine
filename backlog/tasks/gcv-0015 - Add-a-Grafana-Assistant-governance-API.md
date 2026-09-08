@@ -1,10 +1,10 @@
 ---
 id: GCV-0015
 title: Add a Grafana Assistant governance API
-status: Parked
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:14'
-updated_date: '2026-09-08 10:20'
+updated_date: '2026-09-08 11:10'
 labels: []
 dependencies:
   - GCV-0010

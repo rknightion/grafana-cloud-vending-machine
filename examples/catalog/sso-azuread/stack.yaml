@@ -4,6 +4,7 @@ metadata:
   name: replacewithunique06
   namespace: grafana-vending
 spec:
+  organization: example-primary
   displayName: Azure AD OAuth SSO example
   slug: replacewithunique06
   region: prod-us-central-0

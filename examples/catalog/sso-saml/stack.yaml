@@ -4,6 +4,7 @@ metadata:
   name: replacewithunique05
   namespace: grafana-vending
 spec:
+  organization: example-primary
   displayName: SAML SSO example
   slug: replacewithunique05
   region: prod-us-central-0

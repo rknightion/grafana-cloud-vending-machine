@@ -1,10 +1,10 @@
 ---
 id: GCV-0023
 title: 'Decide who owns dashboard content: provisioning repositories or Crossplane'
-status: Parked
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:16'
-updated_date: '2026-09-08 10:20'
+updated_date: '2026-09-08 11:10'
 labels: []
 dependencies: []
 ordinal: 23000

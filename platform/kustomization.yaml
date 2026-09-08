@@ -4,5 +4,6 @@ resources:
   - rbac/composition-rbac.yaml
   - provider/provider-grafana.yaml
   - function/install.yaml
-  - apis/v1beta1.yaml
+  - apis/stack-v1beta1.yaml
+  - apis/custom-role-binding-v1beta1.yaml
   - apis/access-v1beta1.yaml

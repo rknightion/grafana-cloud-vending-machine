@@ -96,6 +96,66 @@ func TestPlatformAllowedUsageIsAccepted(t *testing.T) {
 	}
 }
 
+func TestOrganizationRegistryRoutesFoundationAndSegmentsSecretPaths(t *testing.T) {
+	claim := stackDocument(map[string]any{
+		"organization": "example-secondary",
+		"plugins":      []any{map[string]any{"slug": "example-plugin"}},
+	})
+	input := mustJSON(map[string]any{
+		"spec": map[string]any{
+			"outputSecretPrefix": "/example/platform/grafana/stacks",
+			"allowedUsages":      []any{"development", "production"},
+			"organizations": []any{
+				map[string]any{"name": "example-primary", "providerConfigName": "grafana-cloud-org-example-primary", "allowedRegions": []any{"prod-example-1"}, "allowedUsages": []any{"development"}},
+				map[string]any{"name": "example-secondary", "providerConfigName": "grafana-cloud-org-example-secondary", "allowedRegions": []any{"prod-us-central-0"}, "allowedUsages": []any{"production"}},
+			},
+		},
+	})
+	observed := map[string]*fnv1.Resource{
+		"stack":                   observedResource(`{"status":{"conditions":[{"type":"Ready","status":"True"}]}}`),
+		"stack-service-account":   observedResource(`{"status":{"atProvider":{"id":"example-service-account-id"}}}`),
+		"telemetry-access-policy": observedResource(`{"status":{"atProvider":{"policyId":"example-policy-id"}}}`),
+	}
+	rsp := runStackWithInput(t, claim, observed, input)
+
+	for _, name := range []string{"stack", "stack-service-account", "stack-token", "telemetry-access-policy", "telemetry-token", "plugin-example-plugin"} {
+		provider := nestedMap(t, desiredResource(t, rsp, name), "spec", "providerConfigRef")
+		if got, want := provider["name"], "grafana-cloud-org-example-secondary"; got != want {
+			t.Fatalf("%s organization ProviderConfig = %v, want %s", name, got, want)
+		}
+	}
+	pushSpec := nestedMap(t, desiredResource(t, rsp, "credentials"), "spec")
+	remote := nestedMap(t, pushSpec["data"].([]any)[0].(map[string]any), "match", "remoteRef")
+	if got, want := remote["remoteKey"], "/example/platform/grafana/stacks/example-secondary/production/teamdemo01"; got != want {
+		t.Fatalf("organization-segmented output path = %v, want %s", got, want)
+	}
+}
+
+func TestOrganizationRegistryFailsClosed(t *testing.T) {
+	input := mustJSON(map[string]any{"spec": map[string]any{
+		"allowedUsages": []any{"development", "production"},
+		"organizations": []any{map[string]any{
+			"name": "example-primary", "providerConfigName": "grafana-cloud-org-example-primary",
+			"allowedRegions": []any{"prod-example-1"}, "allowedUsages": []any{"development"},
+		}},
+	}})
+	for _, tc := range []struct {
+		name, organization, region, usage, want string
+	}{
+		{name: "unknown organization", organization: "example-secondary", region: "prod-example-1", usage: "development", want: "unknown organization"},
+		{name: "disallowed region", organization: "example-primary", region: "prod-other-1", usage: "development", want: "region"},
+		{name: "disallowed usage", organization: "example-primary", region: "prod-example-1", usage: "production", want: "usage"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			claim := stackDocument(map[string]any{"organization": tc.organization, "region": tc.region, "usage": tc.usage})
+			rsp := callFunction(t, claim, nil, input)
+			if fatal := fatalResult(rsp); !strings.Contains(fatal, tc.want) {
+				t.Fatalf("fatal result = %q, want substring %q", fatal, tc.want)
+			}
+		})
+	}
+}
+
 func TestDeleteLifecycleRequiresAnAuthorizedProfile(t *testing.T) {
 	claim := stackDocument(map[string]any{"lifecycle": map[string]any{"externalResources": "Delete"}})
 	rsp := callFunction(t, claim, nil, "")
@@ -392,7 +452,7 @@ func TestTelemetryRotatingTokenWaitsForPolicyIDAndPublishesToAWS(t *testing.T) {
 	}
 	matches := pushSpec["data"].([]any)
 	remote := nestedMap(t, matches[0].(map[string]any), "match", "remoteRef")
-	if got, want := remote["remoteKey"], "/platform/grafana-cloud/stacks/prod-us-central-0/production/teamdemo01/telemetry-publisher"; got != want {
+	if got, want := remote["remoteKey"], "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01/telemetry-publisher"; got != want {
 		t.Fatalf("telemetry output path = %v, want %s", got, want)
 	}
 }
@@ -515,7 +575,7 @@ func TestCredentialChainBuildsStructuredOutputWithoutLiteralToken(t *testing.T) 
 		`"change_reference":""`,
 		`"configuration_item_reference":""`,
 		`"stack_service_account_token":`,
-		`"telemetry_access_policy_secret_path":"/platform/grafana-cloud/stacks/prod-us-central-0/production/teamdemo01/telemetry-publisher"`,
+		`"telemetry_access_policy_secret_path":"/platform/grafana-cloud/stacks/example-primary/production/teamdemo01/telemetry-publisher"`,
 		`index . "attribute.key"`,
 	} {
 		if !strings.Contains(document, fragment) {
@@ -528,7 +588,7 @@ func TestCredentialChainBuildsStructuredOutputWithoutLiteralToken(t *testing.T) 
 
 	matches, _ := pushSpec["data"].([]any)
 	match := nestedMap(t, matches[0].(map[string]any), "match", "remoteRef")
-	if got, want := match["remoteKey"], "/platform/grafana-cloud/stacks/prod-us-central-0/production/teamdemo01"; got != want {
+	if got, want := match["remoteKey"], "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01"; got != want {
 		t.Fatalf("remote output path = %v, want %s", got, want)
 	}
 
@@ -551,8 +611,11 @@ func TestPlatformSettingsArePortableAndApplied(t *testing.T) {
 		"apiVersion": "platform.example.org/v1beta1",
 		"kind":       "GrafanaVendingConfig",
 		"spec": map[string]any{
-			"organizationProviderConfigName": "organization-provider",
-			"outputSecretPrefix":             "/example/platform/grafana/stacks",
+			"organizations": []any{map[string]any{
+				"name": "example-primary", "providerConfigName": "organization-provider",
+				"allowedRegions": []any{"prod-us-central-0"}, "allowedUsages": []any{"production"},
+			}},
+			"outputSecretPrefix": "/example/platform/grafana/stacks",
 			"secretStoreRef": map[string]any{
 				"name": "central-secret-store",
 				"kind": "ClusterSecretStore",
@@ -572,7 +635,7 @@ func TestPlatformSettingsArePortableAndApplied(t *testing.T) {
 		t.Fatalf("PushSecret store reference differs (-want +got):\n%s", diff)
 	}
 	remote := nestedMap(t, pushSpec["data"].([]any)[0].(map[string]any), "match", "remoteRef")
-	if got, want := remote["remoteKey"], "/example/platform/grafana/stacks/prod-us-central-0/production/teamdemo01"; got != want {
+	if got, want := remote["remoteKey"], "/example/platform/grafana/stacks/example-primary/production/teamdemo01"; got != want {
 		t.Fatalf("configured output path = %v, want %s", got, want)
 	}
 
@@ -582,7 +645,7 @@ func TestPlatformSettingsArePortableAndApplied(t *testing.T) {
 	}
 
 	status := nestedMap(t, rsp.GetDesired().GetComposite().GetResource().AsMap(), "status")
-	if got := status["outputSecretPath"]; got != "/example/platform/grafana/stacks/prod-us-central-0/production/teamdemo01" {
+	if got := status["outputSecretPath"]; got != "/example/platform/grafana/stacks/example-primary/production/teamdemo01" {
 		t.Fatalf("status output path = %v", got)
 	}
 }
@@ -1201,8 +1264,8 @@ func TestStackStatusPublishesSafeObservedFields(t *testing.T) {
 	want := map[string]any{
 		"deletionArmed":       false,
 		"deletionReady":       false,
-		"outputSecretPath":    "/platform/grafana-cloud/stacks/prod-us-central-0/production/teamdemo01",
-		"telemetrySecretPath": "/platform/grafana-cloud/stacks/prod-us-central-0/production/teamdemo01/telemetry-publisher",
+		"outputSecretPath":    "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01",
+		"telemetrySecretPath": "/platform/grafana-cloud/stacks/example-primary/production/teamdemo01/telemetry-publisher",
 		"stack":               map[string]any{"id": "12345", "url": "https://teamdemo01.grafana.net"},
 	}
 	if diff := cmp.Diff(want, status); diff != "" {
@@ -1237,10 +1300,11 @@ func minimalStack() string {
 
 func stackDocument(additions map[string]any) string {
 	spec := map[string]any{
-		"displayName": "Example Stack 01",
-		"slug":        "teamdemo01",
-		"region":      "prod-us-central-0",
-		"usage":       "production",
+		"displayName":  "Example Stack 01",
+		"slug":         "teamdemo01",
+		"region":       "prod-us-central-0",
+		"usage":        "production",
+		"organization": "example-primary",
 	}
 	for key, value := range additions {
 		spec[key] = value
@@ -1307,6 +1371,7 @@ func runStackWithInput(t *testing.T, composite string, observed map[string]*fnv1
 
 func callFunction(t *testing.T, composite string, observed map[string]*fnv1.Resource, input string) *fnv1.RunFunctionResponse {
 	t.Helper()
+	input = stackInputWithDefaultOrganization(t, composite, input)
 	req := &fnv1.RunFunctionRequest{
 		Observed: &fnv1.State{
 			Composite: &fnv1.Resource{Resource: resource.MustStructJSON(composite)},
@@ -1321,6 +1386,38 @@ func callFunction(t *testing.T, composite string, observed map[string]*fnv1.Reso
 		t.Fatalf("RunFunction returned an error: %v", err)
 	}
 	return rsp
+}
+
+func stackInputWithDefaultOrganization(t *testing.T, composite, input string) string {
+	t.Helper()
+	var xr map[string]any
+	if err := json.Unmarshal([]byte(composite), &xr); err != nil || xr["kind"] != "GrafanaCloudStackRequest" {
+		return input
+	}
+	config := map[string]any{}
+	if input != "" {
+		if err := json.Unmarshal([]byte(input), &config); err != nil {
+			t.Fatalf("cannot parse function input: %v", err)
+		}
+	}
+	spec, _ := config["spec"].(map[string]any)
+	if spec == nil {
+		spec = map[string]any{}
+		config["spec"] = spec
+	}
+	if _, exists := spec["organizations"]; !exists {
+		allowedUsages, ok := spec["allowedUsages"].([]any)
+		if !ok {
+			allowedUsages = []any{"development", "production"}
+		}
+		spec["organizations"] = []any{map[string]any{
+			"name":               "example-primary",
+			"providerConfigName": "grafana-cloud-org-example-primary",
+			"allowedRegions":     []any{"prod-us-central-0"},
+			"allowedUsages":      allowedUsages,
+		}}
+	}
+	return mustJSON(config)
 }
 
 func callFunctionWithRequiredResources(t *testing.T, composite string, observed map[string]*fnv1.Resource, required *fnv1.Resources, capabilities []fnv1.Capability) *fnv1.RunFunctionResponse {

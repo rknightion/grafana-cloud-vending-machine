@@ -1,10 +1,10 @@
 ---
 id: GCV-0017
 title: Add a datasource access API that aggregates LBAC rules per datasource
-status: Parked
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:15'
-updated_date: '2026-09-08 10:20'
+updated_date: '2026-09-08 11:10'
 labels: []
 dependencies: []
 ordinal: 17000

@@ -1,0 +1,120 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanacustomrolebindings.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaCustomRoleBinding
+    plural: grafanacustomrolebindings
+    singular: grafanacustomrolebinding
+    shortNames:
+      - gcrole
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-custom-role-binding-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: A Grafana team synchronized from directory groups and bound to a custom role.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - team
+                - role
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: GrafanaCloudStack name and per-stack ProviderConfig name in this namespace.
+                team:
+                  type: object
+                  required:
+                    - name
+                    - groups
+                  properties:
+                    name:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                    groups:
+                      type: array
+                      minItems: 1
+                      maxItems: 50
+                      x-kubernetes-list-type: set
+                      items:
+                        type: string
+                        minLength: 1
+                        maxLength: 256
+                role:
+                  type: object
+                  required:
+                    - name
+                    - uid
+                    - permissions
+                  properties:
+                    name:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                    uid:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                      pattern: ^[a-zA-Z0-9._-]+$
+                    displayName:
+                      type: string
+                      maxLength: 190
+                    description:
+                      type: string
+                      maxLength: 1024
+                    permissions:
+                      type: array
+                      minItems: 1
+                      maxItems: 200
+                      items:
+                        type: object
+                        required:
+                          - action
+                        properties:
+                          action:
+                            type: string
+                            minLength: 1
+                            maxLength: 190
+                          scope:
+                            type: string
+                            maxLength: 190
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-custom-role-binding-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaCustomRoleBinding
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-custom-role-binding
+      functionRef:
+        name: function-grafana-vending

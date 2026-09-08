@@ -26,6 +26,38 @@ type Function struct {
 	log logging.Logger
 }
 
+type compositeRenderer struct {
+	render      func(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error)
+	gateOnStack bool
+	implemented bool
+}
+
+var compositeRenderers = map[string]compositeRenderer{
+	"GrafanaCloudStackRequest": {render: renderStack, implemented: true},
+	"GrafanaCustomRoleBinding": {
+		render: func(xr map[string]any, _ map[resource.Name]resource.ObservedComposed, _ map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+			return renderRoleBinding(xr)
+		}, gateOnStack: true, implemented: true,
+	},
+	"GrafanaTeamAccess": {
+		render: func(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, _ map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+			return renderTeamAccess(xr, observed)
+		}, gateOnStack: true, implemented: true,
+	},
+	"GrafanaContentAccessPolicy": {
+		render: func(xr map[string]any, _ map[resource.Name]resource.ObservedComposed, _ map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+			return renderContentAccessPolicy(xr)
+		}, gateOnStack: true, implemented: true,
+	},
+	"GrafanaStackInventory":         {render: renderStackInventory, gateOnStack: true, implemented: inventoryRendererImplemented},
+	"GrafanaFleetPipelines":         {render: renderFleetPipelines, gateOnStack: true, implemented: fleetRendererImplemented},
+	"GrafanaAlertingBundle":         {render: renderAlertingBundle, gateOnStack: true, implemented: alertingRendererImplemented},
+	"GrafanaAgentObservability":     {render: renderAgentObservability, gateOnStack: true, implemented: agentObservabilityRendererImplemented},
+	"GrafanaAssistantGovernance":    {render: renderAssistantGovernance, gateOnStack: true, implemented: assistantRendererImplemented},
+	"GrafanaDatasourceAccess":       {render: renderDatasourceAccess, gateOnStack: true, implemented: datasourceAccessRendererImplemented},
+	"GrafanaProvisioningRepository": {render: renderProvisioningRepository, gateOnStack: true, implemented: provisioningRendererImplemented},
+}
+
 // RunFunction renders desired composed resources from a platform claim.
 func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) (*fnv1.RunFunctionResponse, error) {
 	rsp := response.To(req, response.DefaultTTL)
@@ -49,33 +81,26 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 
 	content := xr.Resource.UnstructuredContent()
 	kind, _ := content["kind"].(string)
-	var desired map[resource.Name]*resource.DesiredComposed
-	isAccessClaim := false
-	switch kind {
-	case "GrafanaCloudStackRequest":
-		desired, err = renderStack(content, observed, config)
-		if err == nil {
-			if err = response.SetDesiredCompositeResource(rsp, desiredStackStatus(content, observed, config)); err != nil {
-				err = errors.Wrap(err, "cannot set desired composite status")
-			}
+	renderer, ok := compositeRenderers[kind]
+	if !ok {
+		response.Fatal(rsp, errors.Errorf("unsupported composite kind %q", kind))
+		return rsp, nil
+	}
+	if !renderer.implemented {
+		response.Fatal(rsp, errors.Errorf("composite kind %q is registered but not implemented", kind))
+		return rsp, nil
+	}
+	desired, err := renderer.render(content, observed, config)
+	if kind == "GrafanaCloudStackRequest" && err == nil {
+		if err = response.SetDesiredCompositeResource(rsp, desiredStackStatus(content, observed, config)); err != nil {
+			err = errors.Wrap(err, "cannot set desired composite status")
 		}
-	case "GrafanaCustomRoleBinding":
-		isAccessClaim = true
-		desired, err = renderRoleBinding(content)
-	case "GrafanaTeamAccess":
-		isAccessClaim = true
-		desired, err = renderTeamAccess(content, observed)
-	case "GrafanaContentAccessPolicy":
-		isAccessClaim = true
-		desired, err = renderContentAccessPolicy(content)
-	default:
-		err = errors.Errorf("unsupported composite kind %q", kind)
 	}
 	if err != nil {
 		response.Fatal(rsp, err)
 		return rsp, nil
 	}
-	if isAccessClaim {
+	if renderer.gateOnStack {
 		gated, admitted, gateErr := gateAccessResources(req, rsp, content, desired, observed)
 		if gateErr != nil {
 			response.Fatal(rsp, gateErr)
@@ -302,10 +327,11 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 	slug, _ := spec["slug"].(string)
 	region, _ := spec["region"].(string)
 	usage, _ := spec["usage"].(string)
+	organization, _ := spec["organization"].(string)
 	profile := stringValue(spec, "profile", "standard")
 	requestUID, _ := metadata["uid"].(string)
-	if name == "" || namespace == "" || displayName == "" || slug == "" || region == "" || usage == "" {
-		return nil, errors.New("stack claim must set metadata name and namespace plus displayName, slug, region, and usage")
+	if name == "" || namespace == "" || displayName == "" || slug == "" || region == "" || usage == "" || organization == "" {
+		return nil, errors.New("stack claim must set metadata name and namespace plus displayName, slug, region, usage, and organization")
 	}
 	if name != slug {
 		return nil, errors.New("stack claim metadata.name must match spec.slug")
@@ -318,6 +344,11 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 	if !oneOf(usage, settings.allowedUsages...) {
 		return nil, errors.Errorf("usage %q is not allowed by platform configuration", usage)
 	}
+	organizationSettings, err := settings.resolveOrganization(organization, region, usage)
+	if err != nil {
+		return nil, err
+	}
+	organizationProviderConfigName := organizationSettings.providerConfigName
 	if lifecycle == "Delete" && !settings.deletionAuthorized(namespace, name, requestUID, profile) {
 		return nil, errors.Errorf("request %s/%s with profile %q is not authorized to delete external resources", namespace, name, profile)
 	}
@@ -347,7 +378,7 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 	tokenSecret := slug + "-token"
 	credentialSecret := slug + "-provider-credentials"
 	providerConfig := slug
-	outputPath := fmt.Sprintf("%s/%s/%s/%s", settings.outputSecretPrefix, region, usage, slug)
+	outputPath := fmt.Sprintf("%s/%s/%s/%s", settings.outputSecretPrefix, organization, usage, slug)
 	telemetryOutputPath := ""
 	if telemetryAccessEnabled(spec) {
 		telemetryOutputPath = outputPath + "/telemetry-publisher"
@@ -376,7 +407,7 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 				"deleteProtection": deleteProtection, "waitForReadiness": true, "waitForReadinessTimeout": "10m0s",
 				"labels": map[string]any{"provisioner": "crossplane", "usage": usage, "profile": profile},
 			},
-			"providerConfigRef":          map[string]any{"kind": "ProviderConfig", "name": settings.organizationProviderConfigName},
+			"providerConfigRef":          map[string]any{"kind": "ProviderConfig", "name": organizationProviderConfigName},
 			"writeConnectionSecretToRef": map[string]any{"name": stackDetailsSecret},
 		})
 	desired["stack-service-account"] = newDesired("cloud.grafana.m.crossplane.io/v1alpha1", "StackServiceAccount", namespace, slug+"-admin", nil,
@@ -386,7 +417,7 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 				"cloudStackRef": map[string]any{"name": slug},
 				"name":          "Grafana vending controller", "role": "Admin", "isDisabled": false,
 			},
-			"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": settings.organizationProviderConfigName},
+			"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": organizationProviderConfigName},
 		})
 	serviceAccountID := observedString(observed, "stack-service-account", "status.atProvider.id")
 	if serviceAccountID == "" {
@@ -401,7 +432,7 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 					"earlyRotationWindowSeconds": 604800, "deleteOnDestroy": deleteOnDestroy,
 					"stackSlug": slug, "serviceAccountId": serviceAccountID,
 				},
-				"providerConfigRef":          map[string]any{"kind": "ProviderConfig", "name": settings.organizationProviderConfigName},
+				"providerConfigRef":          map[string]any{"kind": "ProviderConfig", "name": organizationProviderConfigName},
 				"writeConnectionSecretToRef": map[string]any{"name": tokenSecret},
 			})
 	}
@@ -460,7 +491,7 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 
 	changeReference, _ := spec["changeReference"].(string)
 	configurationItemReference, _ := spec["configurationItemReference"].(string)
-	outputDocument := fmt.Sprintf(`{{ $token := index . "attribute.key" | toString }}{"stack_name":%q,"stack_slug":%q,"stack_url":%q,"stack_region":%q,"usage":%q,"change_reference":%q,"configuration_item_reference":%q,"stack_service_account_token":{{ $token | toJson }},"telemetry_access_policy_secret_path":%q}`, displayName, slug, "https://"+slug+".grafana.net", region, usage, changeReference, configurationItemReference, telemetryOutputPath)
+	outputDocument := fmt.Sprintf(`{{ $token := index . "attribute.key" | toString }}{"stack_name":%q,"stack_slug":%q,"stack_url":%q,"stack_region":%q,"organization":%q,"usage":%q,"change_reference":%q,"configuration_item_reference":%q,"stack_service_account_token":{{ $token | toJson }},"telemetry_access_policy_secret_path":%q}`, displayName, slug, "https://"+slug+".grafana.net", region, organization, usage, changeReference, configurationItemReference, telemetryOutputPath)
 	desired["credentials"] = newDesired("external-secrets.io/v1alpha1", "PushSecret", namespace, slug+"-credentials", nil,
 		map[string]any{
 			"refreshInterval": "1h", "updatePolicy": "Replace", "deletionPolicy": pushSecretDeletionPolicy,
@@ -501,10 +532,13 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 			},
 		})
 
-	if err := addTelemetryAccess(desired, observed, namespace, slug, region, telemetryOutputPath, spec, settings, deletingExternalResources); err != nil {
+	if err := addTelemetryAccess(desired, observed, namespace, slug, region, telemetryOutputPath, spec, settings, organizationProviderConfigName, deletingExternalResources); err != nil {
 		return nil, err
 	}
-	if err := addPluginInstallations(whenStackServes, namespace, slug, spec, settings.organizationProviderConfigName); err != nil {
+	if err := addPluginInstallations(whenStackServes, namespace, slug, spec, organizationProviderConfigName); err != nil {
+		return nil, err
+	}
+	if err := addObservabilityProducts(whenCredentialsPublished, namespace, providerConfig, spec); err != nil {
 		return nil, err
 	}
 
@@ -528,14 +562,14 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 func desiredStackStatus(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) *resource.Composite {
 	spec, _ := xr["spec"].(map[string]any)
 	slug, _ := spec["slug"].(string)
-	region, _ := spec["region"].(string)
 	usage, _ := spec["usage"].(string)
+	organization, _ := spec["organization"].(string)
 	settings := configuredPlatformSettings(config)
 	status := map[string]any{
-		"outputSecretPath": fmt.Sprintf("%s/%s/%s/%s", settings.outputSecretPrefix, region, usage, slug),
+		"outputSecretPath": fmt.Sprintf("%s/%s/%s/%s", settings.outputSecretPrefix, organization, usage, slug),
 	}
 	if telemetryAccessEnabled(spec) {
-		status["telemetrySecretPath"] = fmt.Sprintf("%s/%s/%s/%s/telemetry-publisher", settings.outputSecretPrefix, region, usage, slug)
+		status["telemetrySecretPath"] = fmt.Sprintf("%s/%s/%s/%s/telemetry-publisher", settings.outputSecretPrefix, organization, usage, slug)
 	}
 	lifecycle, _ := externalResourcesLifecycle(spec)
 	deletionArmed := lifecycle == "Delete"
@@ -562,12 +596,19 @@ func desiredStackStatus(xr map[string]any, observed map[resource.Name]resource.O
 }
 
 type platformSettings struct {
-	organizationProviderConfigName string
-	outputSecretPrefix             string
-	secretStoreName                string
-	secretStoreKind                string
-	allowedUsages                  []string
-	deletionAuthorizations         []deletionAuthorization
+	organizations          []organizationSettings
+	outputSecretPrefix     string
+	secretStoreName        string
+	secretStoreKind        string
+	allowedUsages          []string
+	deletionAuthorizations []deletionAuthorization
+}
+
+type organizationSettings struct {
+	name               string
+	providerConfigName string
+	allowedRegions     []string
+	allowedUsages      []string
 }
 
 type deletionAuthorization struct {
@@ -581,13 +622,50 @@ func configuredPlatformSettings(config map[string]any) platformSettings {
 	spec, _ := config["spec"].(map[string]any)
 	store, _ := spec["secretStoreRef"].(map[string]any)
 	return platformSettings{
-		organizationProviderConfigName: stringValue(spec, "organizationProviderConfigName", "grafana-cloud-org"),
-		outputSecretPrefix:             stringValue(spec, "outputSecretPrefix", "/platform/grafana-cloud/stacks"),
-		secretStoreName:                stringValue(store, "name", "grafana-vending-secrets"),
-		secretStoreKind:                stringValue(store, "kind", "SecretStore"),
-		allowedUsages:                  stringListValue(spec, "allowedUsages", []string{"development", "production"}),
-		deletionAuthorizations:         deletionAuthorizationList(spec),
+		organizations:          organizationSettingsList(spec),
+		outputSecretPrefix:     stringValue(spec, "outputSecretPrefix", "/platform/grafana-cloud/stacks"),
+		secretStoreName:        stringValue(store, "name", "grafana-vending-secrets"),
+		secretStoreKind:        stringValue(store, "kind", "SecretStore"),
+		allowedUsages:          stringListValue(spec, "allowedUsages", []string{"development", "production"}),
+		deletionAuthorizations: deletionAuthorizationList(spec),
 	}
+}
+
+func organizationSettingsList(spec map[string]any) []organizationSettings {
+	values, _ := spec["organizations"].([]any)
+	result := make([]organizationSettings, 0, len(values))
+	for _, value := range values {
+		item, ok := value.(map[string]any)
+		if !ok {
+			continue
+		}
+		result = append(result, organizationSettings{
+			name:               stringValue(item, "name", ""),
+			providerConfigName: stringValue(item, "providerConfigName", ""),
+			allowedRegions:     stringListValue(item, "allowedRegions", nil),
+			allowedUsages:      stringListValue(item, "allowedUsages", nil),
+		})
+	}
+	return result
+}
+
+func (s platformSettings) resolveOrganization(name, region, usage string) (organizationSettings, error) {
+	for _, organization := range s.organizations {
+		if organization.name != name {
+			continue
+		}
+		if organization.providerConfigName == "" || len(organization.allowedRegions) == 0 || len(organization.allowedUsages) == 0 {
+			return organizationSettings{}, errors.Errorf("organization %q has an incomplete platform registry entry", name)
+		}
+		if !oneOf(region, organization.allowedRegions...) {
+			return organizationSettings{}, errors.Errorf("region %q is not allowed for organization %q", region, name)
+		}
+		if !oneOf(usage, organization.allowedUsages...) {
+			return organizationSettings{}, errors.Errorf("usage %q is not allowed for organization %q", usage, name)
+		}
+		return organization, nil
+	}
+	return organizationSettings{}, errors.Errorf("unknown organization %q", name)
 }
 
 func deletionAuthorizationList(spec map[string]any) []deletionAuthorization {

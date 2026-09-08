@@ -3,10 +3,10 @@ id: GCV-0029
 title: >-
   Decide how to reach Adaptive Metrics, the largest cost lever with no
   Crossplane coverage
-status: Parked
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:18'
-updated_date: '2026-09-08 10:20'
+updated_date: '2026-09-08 11:10'
 labels: []
 dependencies: []
 ordinal: 29000

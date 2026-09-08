@@ -1,10 +1,10 @@
 ---
 id: GCV-0018
 title: Add a per-stack alerting bundle with an explicit provenance decision
-status: Parked
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:15'
-updated_date: '2026-09-08 10:20'
+updated_date: '2026-09-08 11:10'
 labels: []
 dependencies: []
 ordinal: 18000

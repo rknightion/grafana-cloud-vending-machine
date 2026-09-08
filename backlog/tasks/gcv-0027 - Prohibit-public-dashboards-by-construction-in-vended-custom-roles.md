@@ -1,10 +1,10 @@
 ---
 id: GCV-0027
 title: Prohibit public dashboards by construction in vended custom roles
-status: Parked
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:17'
-updated_date: '2026-09-08 10:20'
+updated_date: '2026-09-08 11:10'
 labels: []
 dependencies: []
 ordinal: 27000
