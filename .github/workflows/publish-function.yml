@@ -56,6 +56,7 @@ jobs:
       # Preserve dependency-version and runtime-source changes as publish inputs.
       - name: Determine whether runtime inputs changed
         id: runtime-changes
+        working-directory: .
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.before || github.event.pull_request.base.sha }}
