@@ -3,10 +3,10 @@ id: GCV-0039
 title: >-
   Resolve the open SCIM user-lifecycle question and correct the recorded plan
   floor
-status: Parked
+status: Done
 assignee: []
 created_date: '2026-09-08 17:03'
-updated_date: '2026-09-08 18:39'
+updated_date: '2026-09-08 22:34'
 labels: []
 dependencies: []
 ordinal: 39000
@@ -56,6 +56,16 @@ Evidence collected in wave 4: ## Sources
 - Context7 found no matching Grafana Cloud disabled-sync lifecycle docs; negative discovery only.
 
 No live tenant, Grafana Cloud API, identity provider or secret store was contacted. This unresolved lifecycle is the explicitly permitted Parked outcome. The plan-floor note has been appended to GCV-0028 without rewriting its older statements.
+
+## Resolved by the repository owner - 2026-09-08
+
+The open user-lifecycle question is answered. **When SCIM user sync is disabled, already-provisioned users are left unchanged and frozen.** Their records are retained, they stay active, they can still authenticate, and they simply stop receiving updates from the identity provider. Disabling user sync is therefore a REVERSIBLE, NON-DESTRUCTIVE configuration change.
+
+This is the repository owner's answer given as Grafana staff on 2026-09-08. It is an owner decision, not a citation: no dated public Grafana Cloud document stating the post-disable state was located, and current public documentation still describes user_sync_enabled only while it is enabled. Record it as an owner statement wherever it is relied on, and do not attribute it to published documentation.
+
+Consequence for the platform, stated once so it is not re-derived: the reason a fail-closed machine could not vend SCIM was never that disabling sync destroys users. It does not. The out-of-scope decision in GCV-0028 rests on its other grounds - coupled SAML and external UID, a breaking tenant migration, and manual identity-provider setup - and those are unaffected. This answer does not reopen the out-of-scope decision.
+
+Correction to this task's own premise: the pinned provider DOES carry the resource. enterprise/ScimConfig exists at provider-grafana v2.14.0 with enableUserSync, enableGroupSync and rejectNonProvisionedUsers. The schema is silent on disable semantics, which is why the question needed an owner answer, but "no provider resource exists" would be a false statement and must not be written anywhere.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
