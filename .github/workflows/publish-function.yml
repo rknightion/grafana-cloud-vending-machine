@@ -97,6 +97,49 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: platform/function/go.sum
 
+      - name: Set up just
+        uses: extractions/setup-just@ab69394e50e1d5e1f0c5f934148bda82526d8db1 # v3
+        with:
+          just-version: '1.58.0'
+
+      - name: Provision pinned envtest assets
+        shell: bash
+        working-directory: .
+        run: |
+          set -euo pipefail
+          envtest_version="$(just --evaluate ENVTEST_KUBERNETES_VERSION)"
+          test -n "$envtest_version"
+          release_url="https://github.com/kubernetes-sigs/controller-tools/releases/download/envtest-v${envtest_version}"
+          archive_name="envtest-v${envtest_version}-linux-amd64.tar.gz"
+          archive_path="${RUNNER_TEMP}/${archive_name}"
+          checksum_path="${archive_path}.sha512"
+          extract_path="${RUNNER_TEMP}/envtest-v${envtest_version}-linux-amd64"
+          assets_path="${extract_path}/controller-tools/envtest"
+
+          curl --fail --location --retry 3 --retry-all-errors --output "$archive_path" "${release_url}/${archive_name}"
+          curl --fail --location --retry 3 --retry-all-errors --output "$checksum_path" "${release_url}/${archive_name}.sha512"
+
+          expected_sha512="$(awk -v asset="/${archive_name}" '
+            NR == 1 && $1 ~ /^[[:xdigit:]]+$/ && length($1) == 128 && $2 == asset && NF == 2 { print $1; next }
+            { exit 1 }
+            END { if (NR != 1) exit 1 }
+          ' "$checksum_path")" || { echo "Published checksum sidecar has an unexpected format" >&2; exit 1; }
+          printf '%s  %s\n' "$expected_sha512" "$archive_name" | (cd "$RUNNER_TEMP" && sha512sum --check -)
+          echo "Verified ${archive_name} against ${release_url}/${archive_name}.sha512"
+
+          mkdir -p "$extract_path"
+          tar --extract --gzip --file "$archive_path" --directory "$extract_path"
+          test -x "$assets_path/kube-apiserver"
+          test -x "$assets_path/etcd"
+
+          expected_kubernetes_version="Kubernetes v${envtest_version}"
+          kube_apiserver_version="$("$assets_path/kube-apiserver" --version)"
+          test "$kube_apiserver_version" = "$expected_kubernetes_version" || { echo "Expected kube-apiserver $expected_kubernetes_version, found $kube_apiserver_version" >&2; exit 1; }
+          echo "KUBEBUILDER_ASSETS=$assets_path"
+          echo "kube-apiserver: $kube_apiserver_version"
+          echo "etcd: $("$assets_path/etcd" --version)"
+          printf 'KUBEBUILDER_ASSETS=%s\n' "$assets_path" >> "$GITHUB_ENV"
+
       - name: Check module files
         run: go mod tidy && git diff --exit-code -- go.mod go.sum
 
