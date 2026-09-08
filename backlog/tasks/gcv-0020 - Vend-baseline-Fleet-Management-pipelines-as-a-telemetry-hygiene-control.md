@@ -1,10 +1,10 @@
 ---
 id: GCV-0020
 title: Vend baseline Fleet Management pipelines as a telemetry hygiene control
-status: To Do
+status: Parked
 assignee: []
 created_date: '2026-08-21 12:15'
-updated_date: '2026-08-27 09:27'
+updated_date: '2026-09-08 10:20'
 labels: []
 dependencies: []
 ordinal: 20000
@@ -74,4 +74,6 @@ rather than inventing new ones.
 Upstream note for whoever implements this: Terraform provider 4.43.0 double-canonicalizes Alloy
 configs for multiline consistency, so pipeline contents round-trip differently than they did at the
 old pin. Diff a rendered pipeline against the API before assuming drift is real.
+
+Wave 1 lane B disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn JUDGMENT+EXECUTION on gpt-5.6-terra at high effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
 <!-- SECTION:NOTES:END -->

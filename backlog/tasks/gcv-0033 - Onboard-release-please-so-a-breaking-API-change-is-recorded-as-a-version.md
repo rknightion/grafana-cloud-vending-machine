@@ -1,10 +1,10 @@
 ---
 id: GCV-0033
 title: Onboard release-please so a breaking API change is recorded as a version
-status: To Do
+status: Parked
 assignee: []
 created_date: '2026-09-08 08:08'
-updated_date: '2026-09-08 08:18'
+updated_date: '2026-09-08 10:20'
 labels: []
 dependencies: []
 priority: medium
@@ -62,4 +62,6 @@ the OIDC request returns nothing and the mint step fails before anything else.
 
 Releases now depend on camden being up, unsealed and on the tailnet. A failure at the mint step is
 infrastructure, not the commit.
+
+Wave 1 lane J disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn EXECUTION on gpt-5.6-luna at max effort with fork_turns none and the pushed pre-pass SHA. The previously provisioned broker objects were not queried or changed in this run. No acceptance criterion or Definition of Done item was checked.
 <!-- SECTION:NOTES:END -->

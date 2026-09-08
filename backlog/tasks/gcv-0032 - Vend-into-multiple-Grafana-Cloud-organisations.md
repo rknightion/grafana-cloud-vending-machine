@@ -1,9 +1,10 @@
 ---
 id: GCV-0032
 title: Vend into multiple Grafana Cloud organisations
-status: To Do
+status: Parked
 assignee: []
 created_date: '2026-09-08 08:08'
+updated_date: '2026-09-08 10:20'
 labels: []
 dependencies: []
 priority: high
@@ -39,3 +40,9 @@ The organisation is a platform-owned routing decision, not free-form request inp
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 1 disposition, 2026-09-08: Parked before implementation. The requested operational root route was gpt-5.6-sol at high effort, but the generic spawn exposed only its task name and no role, model, or effort metadata. Section 4.1 requires a hard stop when route metadata is missing. The actual clean starting head was 9af868e2b574bb13da11fbf81d81407593cb8366, aligned with origin/main, and hosted validation run 34213680492 passed at that exact SHA. Resume only in a client session that exposes and confirms the root model and effort; then re-read the wave goal, reconcile the recorded starting-state drift, and begin at section 5.0 step 2. No acceptance criterion or Definition of Done item was checked, and no implementation file or external service was changed.
+<!-- SECTION:NOTES:END -->

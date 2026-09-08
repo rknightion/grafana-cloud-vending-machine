@@ -1,9 +1,10 @@
 ---
 id: GCV-0017
 title: Add a datasource access API that aggregates LBAC rules per datasource
-status: To Do
+status: Parked
 assignee: []
 created_date: '2026-08-21 12:15'
+updated_date: '2026-09-08 10:20'
 labels: []
 dependencies: []
 ordinal: 17000
@@ -38,3 +39,9 @@ Keep endpoints and credentials out of this repository. Datasource connection det
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 1 lane F disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn SECURITY on gpt-5.6-sol at high effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
+<!-- SECTION:NOTES:END -->

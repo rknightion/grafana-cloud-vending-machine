@@ -1,10 +1,10 @@
 ---
 id: GCV-0023
 title: 'Decide who owns dashboard content: provisioning repositories or Crossplane'
-status: To Do
+status: Parked
 assignee: []
 created_date: '2026-08-21 12:16'
-updated_date: '2026-09-08 08:08'
+updated_date: '2026-09-08 10:20'
 labels: []
 dependencies: []
 ordinal: 23000
@@ -57,4 +57,6 @@ Ownership is enforced structurally, not by convention: a folder subtree declared
 repository-provisioned renders no Crossplane Dashboard for that subtree, and admission rejects a
 request that declares both owners for one subtree. This is the same single-declarative-owner rule the
 folder and dashboard ACL surfaces already follow.
+
+Wave 1 lane H disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn JUDGMENT+EXECUTION on gpt-5.6-terra at high effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
 <!-- SECTION:NOTES:END -->

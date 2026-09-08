@@ -1,9 +1,10 @@
 ---
 id: GCV-0015
 title: Add a Grafana Assistant governance API
-status: To Do
+status: Parked
 assignee: []
 created_date: '2026-08-21 12:14'
+updated_date: '2026-09-08 10:20'
 labels: []
 dependencies:
   - GCV-0010
@@ -42,3 +43,9 @@ Do not put rule text in this repository beyond inert examples; real standing ins
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 1 lane E disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn EXECUTION on gpt-5.6-luna at max effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
+<!-- SECTION:NOTES:END -->

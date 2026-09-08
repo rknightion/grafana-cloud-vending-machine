@@ -3,10 +3,10 @@ id: GCV-0029
 title: >-
   Decide how to reach Adaptive Metrics, the largest cost lever with no
   Crossplane coverage
-status: To Do
+status: Parked
 assignee: []
 created_date: '2026-08-21 12:18'
-updated_date: '2026-08-27 09:27'
+updated_date: '2026-09-08 10:20'
 labels: []
 dependencies: []
 ordinal: 29000
@@ -89,4 +89,6 @@ blockers are still about twenty lines whenever someone wants them.
 Remaining work on this task is documentation only: satisfy AC 1, 3 and 4. AC 2, the ruleset versus
 individual-rule merge strategy, falls away with adoption and should be recorded as not applicable
 rather than answered.
+
+Wave 1 lane K disposition, 2026-09-08: Not started and Parked because lanes A through J have no completed dispositions or README drafts after the mandatory root pre-fan-out pass stopped on missing route metadata. Resume only after GCV-0032 and lanes A through J complete, then spawn JUDGMENT+EXECUTION on gpt-5.6-terra at high effort with fork_turns none and the full dependency packet. No acceptance criterion or Definition of Done item was checked.
 <!-- SECTION:NOTES:END -->
