@@ -1,10 +1,10 @@
 ---
 id: GCV-0016
 title: Add an observe-only stack inventory API for drift detection and adoption
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:14'
-updated_date: '2026-09-08 11:53'
+updated_date: '2026-09-08 13:47'
 labels: []
 dependencies: []
 ordinal: 16000
@@ -24,17 +24,17 @@ Nothing here can mutate a tenant, which makes it unusually safe to ship early. N
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The API is read-only by construction and cannot render a mutating managed resource
-- [ ] #2 It gates on the referenced stack the same way the existing access claims do
-- [ ] #3 Status distinguishes declared, observed-and-managed, and observed-but-unmanaged objects
-- [ ] #4 The migration section of the README points at this API instead of manual inventory steps
-- [ ] #5 New observe-only kinds are added to the activation policy and a catalog example renders
+- [x] #1 The API is read-only by construction and cannot render a mutating managed resource
+- [x] #2 It gates on the referenced stack the same way the existing access claims do
+- [x] #3 Status distinguishes declared, observed-and-managed, and observed-but-unmanaged objects
+- [x] #4 The migration section of the README points at this API instead of manual inventory steps
+- [x] #5 New observe-only kinds are added to the activation policy and a catalog example renders
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -47,4 +47,12 @@ Wave 2: implement and validate the observe-only inventory composite, provider-ki
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 1 lane A disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn EXECUTION on gpt-5.6-luna at max effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
+
+Wave 2 verification: focused inventory race tests, catalog rendering, the integrated local gate, and hosted Validate run 34233686654 all passed. Activation entries were verified against provider v2.14.0.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Delivered the observe-only stack inventory API with readiness gating and declared, managed, and unmanaged status classification. Completing SHA 83f81afee7526fd6e7c4ec0a47675774d00036b8; hosted Validate run 34233686654 succeeded.
+<!-- SECTION:FINAL_SUMMARY:END -->

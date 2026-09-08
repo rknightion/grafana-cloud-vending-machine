@@ -1,10 +1,10 @@
 ---
 id: GCV-0012
 title: Expose observability product activation on the stack request
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:14'
-updated_date: '2026-09-08 11:53'
+updated_date: '2026-09-08 13:48'
 labels: []
 dependencies: []
 ordinal: 12000
@@ -24,17 +24,17 @@ Verified present in the pinned provider, so this needs no pin bump.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 spec.products carries applicationObservability, kubernetesObservability and databaseObservability booleans, each defaulting false
-- [ ] #2 Each enabled product renders its singleton with the fixed global external name and no others
-- [ ] #3 Disabling a product after enabling it is handled explicitly and the behaviour is documented
-- [ ] #4 The README states these are activation toggles and names where the real configuration lives
-- [ ] #5 A catalog example enables at least one product and renders
+- [x] #1 spec.products carries applicationObservability, kubernetesObservability and databaseObservability booleans, each defaulting false
+- [x] #2 Each enabled product renders its singleton with the fixed global external name and no others
+- [x] #3 Disabling a product after enabling it is handled explicitly and the behaviour is documented
+- [x] #4 The README states these are activation toggles and names where the real configuration lives
+- [x] #5 A catalog example enables at least one product and renders
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -47,4 +47,12 @@ Wave 2: validate the product singleton rendering completed in the root prerequis
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 1 lane G disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn EXECUTION on gpt-5.6-luna at max effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
+
+Wave 2 verification: focused product race tests proved exact singleton rendering and withdrawal behavior; catalog, integrated local gate, and hosted Validate run 34233686654 passed.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Delivered opt-in Application, Kubernetes, and Database Observability activation toggles with fixed global singleton identity and documented configuration boundaries. Completing SHA 83f81afee7526fd6e7c4ec0a47675774d00036b8; hosted Validate run 34233686654 succeeded.
+<!-- SECTION:FINAL_SUMMARY:END -->

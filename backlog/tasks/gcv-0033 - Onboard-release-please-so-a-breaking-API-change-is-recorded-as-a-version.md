@@ -1,10 +1,10 @@
 ---
 id: GCV-0033
 title: Onboard release-please so a breaking API change is recorded as a version
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-08 08:08'
-updated_date: '2026-09-08 11:53'
+updated_date: '2026-09-08 13:48'
 labels: []
 dependencies: []
 priority: medium
@@ -26,16 +26,16 @@ The OpenBao permission set, policy and JWT role are an external secret-store mut
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A self-contained release-please workflow runs on pushes to main and mints its token through the shared broker-token action against a per-repo permission set, with no PAT
-- [ ] #2 Release-please config and manifest exist and are seeded at a version that makes the required-field change a major bump
-- [ ] #3 Commit-message conventions the release notes depend on are stated in the contributor instructions
-- [ ] #4 The workflow is validated without a live run, and the first real run is recorded as evidence separately
+- [x] #1 A self-contained release-please workflow runs on pushes to main and mints its token through the shared broker-token action against a per-repo permission set, with no PAT
+- [x] #2 Release-please config and manifest exist and are seeded at a version that makes the required-field change a major bump
+- [x] #3 Commit-message conventions the release notes depend on are stated in the contributor instructions
+- [x] #4 The workflow is validated without a live run, and the first real run is recorded as evidence separately
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -70,4 +70,12 @@ Releases now depend on camden being up, unsealed and on the tailnet. A failure a
 infrastructure, not the commit.
 
 Wave 1 lane J disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn EXECUTION on gpt-5.6-luna at max effort with fork_turns none and the pushed pre-pass SHA. The previously provisioned broker objects were not queried or changed in this run. No acceptance criterion or Definition of Done item was checked.
+
+Wave 2 verification: actionlint and JSON parsing passed locally. First real Release Please run 34233132275 succeeded at 1c48c7e376a2671182457baeb084a30ebe0a56aa, including scoped broker token minting, and opened PR 29 for release 1.0.0. Final hosted Validate run 34233686654 passed at 83f81afee7526fd6e7c4ec0a47675774d00036b8.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Onboarded self-contained broker-token release automation with no PAT; the first live run succeeded and opened the 1.0.0 release PR. Completing SHA 83f81afee7526fd6e7c4ec0a47675774d00036b8; hosted Validate run 34233686654 succeeded.
+<!-- SECTION:FINAL_SUMMARY:END -->

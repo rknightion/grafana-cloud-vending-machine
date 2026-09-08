@@ -1,10 +1,10 @@
 ---
 id: GCV-0015
 title: Add a Grafana Assistant governance API
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:14'
-updated_date: '2026-09-08 11:53'
+updated_date: '2026-09-08 13:47'
 labels: []
 dependencies:
   - GCV-0010
@@ -31,17 +31,17 @@ Do not put rule text in this repository beyond inert examples; real standing ins
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Terms acceptance is rendered and gated before any other Assistant child is admitted
-- [ ] #2 MCP server entries carry per-tool approval policies and default to the more restrictive option where unspecified
-- [ ] #3 Rule content is selected from platform-owned configuration, with only inert examples in this repository
-- [ ] #4 Withdrawing acceptance is a supported, documented path rather than an accident
-- [ ] #5 A catalog example renders with a rule and an MCP server allow-list
+- [x] #1 Terms acceptance is rendered and gated before any other Assistant child is admitted
+- [x] #2 MCP server entries carry per-tool approval policies and default to the more restrictive option where unspecified
+- [x] #3 Rule content is selected from platform-owned configuration, with only inert examples in this repository
+- [x] #4 Withdrawing acceptance is a supported, documented path rather than an accident
+- [x] #5 A catalog example renders with a rule and an MCP server allow-list
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -54,4 +54,12 @@ Wave 2: implement and validate terms-gated Assistant governance, restrictive too
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 1 lane E disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn EXECUTION on gpt-5.6-luna at max effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
+
+Wave 2 verification: focused Assistant race tests proved the observed acceptance gate, withdrawal pruning, restrictive approval defaults, platform-owned rule profiles, and fatal validation of malformed MCP configuration. Catalog, integrated local gate, and hosted Validate run 34233686654 passed.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Delivered terms-gated Assistant governance with platform rule profiles, MCP allow-listing, restrictive approval defaults, and supported withdrawal. Completing SHA 83f81afee7526fd6e7c4ec0a47675774d00036b8; hosted Validate run 34233686654 succeeded.
+<!-- SECTION:FINAL_SUMMARY:END -->

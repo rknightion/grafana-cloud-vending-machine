@@ -3,10 +3,10 @@ id: GCV-0029
 title: >-
   Decide how to reach Adaptive Metrics, the largest cost lever with no
   Crossplane coverage
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:18'
-updated_date: '2026-09-08 11:53'
+updated_date: '2026-09-08 13:48'
 labels: []
 dependencies: []
 ordinal: 29000
@@ -28,16 +28,16 @@ The sibling adaptive products are worse off and should probably be scoped out in
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A decision is recorded choosing one of the three routes, with the reasoning and the reversal cost
-- [ ] #2 If adopted, the ruleset versus individual-rule merge conflict has a stated strategy
-- [ ] #3 The adaptive logs, traces and profiles position is stated in the same decision
-- [ ] #4 The README records whichever routes are declared out of scope, rather than leaving them unmentioned
+- [x] #1 A decision is recorded choosing one of the three routes, with the reasoning and the reversal cost
+- [x] #2 If adopted, the ruleset versus individual-rule merge conflict has a stated strategy
+- [x] #3 The adaptive logs, traces and profiles position is stated in the same decision
+- [x] #4 The README records whichever routes are declared out of scope, rather than leaving them unmentioned
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -97,4 +97,12 @@ individual-rule merge strategy, falls away with adoption and should be recorded 
 rather than answered.
 
 Wave 1 lane K disposition, 2026-09-08: Not started and Parked because lanes A through J have no completed dispositions or README drafts after the mandatory root pre-fan-out pass stopped on missing route metadata. Resume only after GCV-0032 and lanes A through J complete, then spawn JUDGMENT+EXECUTION on gpt-5.6-terra at high effort with fork_turns none and the full dependency packet. No acceptance criterion or Definition of Done item was checked.
+
+Wave 2 selected non-adoption, so the conditional ruleset merge criterion is satisfied as not applicable and documented that way. Adaptive metrics, logs, traces, and profiles are explicitly out of scope with UI or ticket routes and low reversal cost. Local and hosted validation run 34233686654 passed.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Recorded Adaptive Metrics, Logs, Traces, and Profiles as deliberately out of scope, including remaining operational routes and low reversal cost. Completing SHA 83f81afee7526fd6e7c4ec0a47675774d00036b8; hosted Validate run 34233686654 succeeded.
+<!-- SECTION:FINAL_SUMMARY:END -->

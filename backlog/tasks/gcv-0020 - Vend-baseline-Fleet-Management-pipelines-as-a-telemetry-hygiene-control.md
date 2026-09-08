@@ -1,10 +1,10 @@
 ---
 id: GCV-0020
 title: Vend baseline Fleet Management pipelines as a telemetry hygiene control
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:15'
-updated_date: '2026-09-08 11:53'
+updated_date: '2026-09-08 13:47'
 labels: []
 dependencies: []
 ordinal: 20000
@@ -26,17 +26,17 @@ Keep matchers and label values generic; real attribute values are environment-ow
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Baseline pipelines are platform-owned and selected by profile, not authored in a request
-- [ ] #2 The Fleet Management credential is minted and mirrored to the secret store rather than embedded
-- [ ] #3 Attribution labels for team, cost centre and environment are enforced by a baseline pipeline
-- [ ] #4 The README states that usage groups themselves are UI-only and Advanced-tier, so only the label half is vendable
-- [ ] #5 A catalog example renders with generic matchers and no real attribute values
+- [x] #1 Baseline pipelines are platform-owned and selected by profile, not authored in a request
+- [x] #2 The Fleet Management credential is minted and mirrored to the secret store rather than embedded
+- [x] #3 Attribution labels for team, cost centre and environment are enforced by a baseline pipeline
+- [x] #4 The README states that usage groups themselves are UI-only and Advanced-tier, so only the label half is vendable
+- [x] #5 A catalog example renders with generic matchers and no real attribute values
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -82,4 +82,12 @@ configs for multiline consistency, so pipeline contents round-trip differently t
 old pin. Diff a rendered pipeline against the API before assuming drift is real.
 
 Wave 1 lane B disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn JUDGMENT+EXECUTION on gpt-5.6-terra at high effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
+
+Wave 2 verification: Fleet focused race tests and catalog rendering passed; the integrated local gate and hosted Validate run 34233686654 passed. The rotating fleet_management_auth chain is secret-store-backed and collectors remain self-registering.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Delivered profile-selected Fleet pipelines, enforced attribution labels, and the rotating Fleet credential chain without managing Collectors. Completing SHA 83f81afee7526fd6e7c4ec0a47675774d00036b8; hosted Validate run 34233686654 succeeded.
+<!-- SECTION:FINAL_SUMMARY:END -->

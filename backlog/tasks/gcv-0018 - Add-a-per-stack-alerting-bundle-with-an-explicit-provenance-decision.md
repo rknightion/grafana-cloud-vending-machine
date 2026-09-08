@@ -1,10 +1,10 @@
 ---
 id: GCV-0018
 title: Add a per-stack alerting bundle with an explicit provenance decision
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:15'
-updated_date: '2026-09-08 11:53'
+updated_date: '2026-09-08 13:47'
 labels: []
 dependencies: []
 ordinal: 18000
@@ -24,17 +24,17 @@ Note the existing reconciliation vocabulary already distinguishes enforced from 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The spec carries a required provenance choice and neither value is silently defaulted
-- [ ] #2 NotificationPolicy is not rendered by any path, and the README states why and what to use instead
-- [ ] #3 Naming aligns with the existing enforced and createOnly reconciliation vocabulary
-- [ ] #4 Exactly one owner per stack for each whole-set alerting object
-- [ ] #5 A catalog example renders a rule group with simplified routing and no live endpoints
+- [x] #1 The spec carries a required provenance choice and neither value is silently defaulted
+- [x] #2 NotificationPolicy is not rendered by any path, and the README states why and what to use instead
+- [x] #3 Naming aligns with the existing enforced and createOnly reconciliation vocabulary
+- [x] #4 Exactly one owner per stack for each whole-set alerting object
+- [x] #5 A catalog example renders a rule group with simplified routing and no live endpoints
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -47,4 +47,12 @@ Wave 2: implement and validate the single-owner alerting bundle without Notifica
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 1 lane C disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn JUDGMENT+EXECUTION on gpt-5.6-terra at high effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
+
+Wave 2 verification: focused alerting race tests proved explicit provenance, simplified routing, duplicate-owner rejection, and createOnly forProvider ownership. Catalog, integrated local gate, and hosted Validate run 34233686654 passed.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Delivered the single-owner alerting bundle for five stack-scoped kinds, with explicit enforced or createOnly provenance and no NotificationPolicy path. Completing SHA 83f81afee7526fd6e7c4ec0a47675774d00036b8; hosted Validate run 34233686654 succeeded.
+<!-- SECTION:FINAL_SUMMARY:END -->

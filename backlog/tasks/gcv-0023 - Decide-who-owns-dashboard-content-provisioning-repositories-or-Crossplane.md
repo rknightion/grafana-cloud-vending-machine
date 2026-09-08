@@ -1,10 +1,10 @@
 ---
 id: GCV-0023
 title: 'Decide who owns dashboard content: provisioning repositories or Crossplane'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:16'
-updated_date: '2026-09-08 11:53'
+updated_date: '2026-09-08 13:48'
 labels: []
 dependencies: []
 ordinal: 23000
@@ -26,15 +26,15 @@ Recommendation to evaluate, not a foregone conclusion: keep classic Dashboard re
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A decision is recorded naming the owner per folder subtree and how that ownership is enforced structurally
-- [ ] #2 The preview status and feature-toggle preconditions are documented as they stand at decision time
-- [ ] #3 The README states which content route is the supported default and why
+- [x] #1 A decision is recorded naming the owner per folder subtree and how that ownership is enforced structurally
+- [x] #2 The preview status and feature-toggle preconditions are documented as they stand at decision time
+- [x] #3 The README states which content route is the supported default and why
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -65,4 +65,12 @@ request that declares both owners for one subtree. This is the same single-decla
 folder and dashboard ACL surfaces already follow.
 
 Wave 1 lane H disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn JUDGMENT+EXECUTION on gpt-5.6-terra at high effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
+
+Wave 2 verification: focused provisioning tests proved mutual exclusion and absence of embedded credentials; catalog, integrated local gate, and hosted Validate run 34233686654 passed. Preview status is documented; self-managed feature toggles are explicitly inapplicable to this Cloud-only repository.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Delivered the opt-in provisioning-repository module with structural subtree ownership exclusion and a separately managed Connection reference; classic Dashboards remain the current default. Completing SHA 83f81afee7526fd6e7c4ec0a47675774d00036b8; hosted Validate run 34233686654 succeeded.
+<!-- SECTION:FINAL_SUMMARY:END -->

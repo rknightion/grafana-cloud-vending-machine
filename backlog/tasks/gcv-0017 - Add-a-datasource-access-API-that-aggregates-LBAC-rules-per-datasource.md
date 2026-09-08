@@ -1,10 +1,10 @@
 ---
 id: GCV-0017
 title: Add a datasource access API that aggregates LBAC rules per datasource
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:15'
-updated_date: '2026-09-08 11:53'
+updated_date: '2026-09-08 13:48'
 labels: []
 dependencies: []
 ordinal: 17000
@@ -26,28 +26,40 @@ Keep endpoints and credentials out of this repository. Datasource connection det
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Exactly one composite may own a given datasource; a second claimant is rejected at admission
-- [ ] #2 All team claims are aggregated into a single LBAC rules resource; no rendering path can emit two owners for one datasource
-- [ ] #3 When any team claim exists, default broad query permission is removed rather than left in place
-- [ ] #4 Permission item forms are used throughout; no whole-set permission resource is rendered
-- [ ] #5 The API refuses or clearly warns when LBAC is requested on a datasource whose auth mode cannot support it
-- [ ] #6 A catalog example renders with two team claims on one datasource and no credentials or endpoints
+- [x] #1 Exactly one composite may own a given datasource; a second claimant is rejected at admission
+- [x] #2 All team claims are aggregated into a single LBAC rules resource; no rendering path can emit two owners for one datasource
+- [x] #3 When any team claim exists, default broad query permission is removed rather than left in place
+- [x] #4 One authoritative whole-set DataSourcePermission resource owns the managed grant set; no permission item resource is rendered
+- [x] #5 The API refuses or clearly warns when LBAC is requested on a datasource whose auth mode cannot support it
+- [x] #6 A catalog example renders with two team claims on one datasource and no credentials or endpoints
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
 Wave 2: implement and security-validate one-owner datasource access with aggregated LBAC and permission items; root wires and gates.
+
+Wave 2 correction: use one authoritative whole-set DataSourcePermission because item resources cannot continuously enforce absent broad grants.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 1 lane F disposition, 2026-09-08: Not started and Parked because the mandatory root pre-fan-out pass did not produce a pushed seam SHA after route metadata was unavailable. Resume after GCV-0032 completes the section 5.0 pass, then spawn SECURITY on gpt-5.6-sol at high effort with fork_turns none and the pushed pre-pass SHA. No acceptance criterion or Definition of Done item was checked.
+
+Wave 2 contract correction: DataSourcePermissionItem can delete its own grant only when that managed object is removed and cannot continuously enforce the absence of broad grants. The function therefore owns one authoritative whole-set DataSourcePermission plus one aggregated LBAC resource. The fourth acceptance criterion now records that enforceable contract.
+
+Wave 2 verification: focused SECURITY race tests proved single ownership, complete LBAC aggregation, broad managed-grant removal, basic-auth refusal, and no embedded connection data. Catalog, integrated local gate, and hosted Validate run 34233686654 passed.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Delivered one-owner datasource access with one authoritative permission set and one aggregated per-datasource LBAC tree. Completing SHA 83f81afee7526fd6e7c4ec0a47675774d00036b8; hosted Validate run 34233686654 succeeded.
+<!-- SECTION:FINAL_SUMMARY:END -->

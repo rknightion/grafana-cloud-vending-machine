@@ -1,10 +1,10 @@
 ---
 id: GCV-0032
 title: Vend into multiple Grafana Cloud organisations
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-08 08:08'
-updated_date: '2026-09-08 11:10'
+updated_date: '2026-09-08 13:47'
 labels: []
 dependencies: []
 priority: high
@@ -26,19 +26,19 @@ The organisation is a platform-owned routing decision, not free-form request inp
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 spec.organization is a required, immutable field on the stack request, and the XRD rejects a change to it
-- [ ] #2 The Composition input carries an organisation registry keyed by organisation name, each entry naming a ProviderConfig, an allowed-regions list and an allowed-usages list
-- [ ] #3 The function fails closed on an unknown organisation name, on a region not allowed for the named organisation, and on a usage not allowed for it, rather than defaulting
-- [ ] #4 Every organisation-plane child resolves its ProviderConfig through the registry entry, with no remaining path to a single hard-coded organisation ProviderConfig
-- [ ] #5 The remote secret path carries an organisation segment, and the example AWS IAM policy scopes Secrets Manager access by that prefix
-- [ ] #6 Every catalog example carries the new required field and renders
-- [ ] #7 The README documents the organisation registry as platform-owned and states that a stack cannot change organisation after creation
+- [x] #1 spec.organization is a required, immutable field on the stack request, and the XRD rejects a change to it
+- [x] #2 The Composition input carries an organisation registry keyed by organisation name, each entry naming a ProviderConfig, an allowed-regions list and an allowed-usages list
+- [x] #3 The function fails closed on an unknown organisation name, on a region not allowed for the named organisation, and on a usage not allowed for it, rather than defaulting
+- [x] #4 Every organisation-plane child resolves its ProviderConfig through the registry entry, with no remaining path to a single hard-coded organisation ProviderConfig
+- [x] #5 The remote secret path carries an organisation segment, and the example AWS IAM policy scopes Secrets Manager access by that prefix
+- [x] #6 Every catalog example carries the new required field and renders
+- [x] #7 The README documents the organisation registry as platform-owned and states that a stack cannot change organisation after creation
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -51,4 +51,12 @@ Wave 2 root plan: re-pin and verify the provider release identity; implement the
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 1 disposition, 2026-09-08: Parked before implementation. The requested operational root route was gpt-5.6-sol at high effort, but the generic spawn exposed only its task name and no role, model, or effort metadata. Section 4.1 requires a hard stop when route metadata is missing. The actual clean starting head was 9af868e2b574bb13da11fbf81d81407593cb8366, aligned with origin/main, and hosted validation run 34213680492 passed at that exact SHA. Resume only in a client session that exposes and confirms the root model and effort; then re-read the wave goal, reconcile the recorded starting-state drift, and begin at section 5.0 step 2. No acceptance criterion or Definition of Done item was checked, and no implementation file or external service was changed.
+
+Wave 2 verification: fail-closed registry and namespace-resolution tests passed; provider v2.14.0 and the published function digest were Cosign-verified. Final local just check passed, and hosted Validate run 34233686654 succeeded at 83f81afee7526fd6e7c4ec0a47675774d00036b8.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Delivered immutable multi-organization vending, registry-routed organization children, organization-segmented secret paths, the signed v2.14.0 provider, and the signed function pin. Completing SHA 83f81afee7526fd6e7c4ec0a47675774d00036b8; hosted Validate run 34233686654 succeeded.
+<!-- SECTION:FINAL_SUMMARY:END -->
