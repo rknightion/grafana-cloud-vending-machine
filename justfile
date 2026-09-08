@@ -1,5 +1,8 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
+# renovate: datasource=github-releases depName=kubernetes-sigs/controller-tools extractVersion=^envtest-v(?<version>.*)$
+export ENVTEST_KUBERNETES_VERSION := "1.37.0"
+
 # show the task surface
 default:
     @just --list
@@ -10,6 +13,7 @@ setup:
     @command -v ruby >/dev/null
     @command -v kubectl >/dev/null
     @command -v go >/dev/null
+    @test -x "${KUBEBUILDER_ASSETS:?Set KUBEBUILDER_ASSETS to the pinned envtest binary directory}/kube-apiserver" && test -x "${KUBEBUILDER_ASSETS}/etcd" || { echo 'Install the pinned envtest kube-apiserver and etcd binaries before just setup' >&2; exit 1; }
     cd platform/function && go mod download
 
 # format Go source and the justfile in place

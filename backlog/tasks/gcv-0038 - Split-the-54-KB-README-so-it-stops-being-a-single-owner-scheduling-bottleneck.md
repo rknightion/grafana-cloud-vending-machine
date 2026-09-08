@@ -1,10 +1,10 @@
 ---
 id: GCV-0038
 title: Split the 75 KB README so it stops being a single-owner scheduling bottleneck
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 17:03'
+updated_date: '2026-09-08 17:20'
 labels: []
 dependencies: []
 ordinal: 38000
@@ -30,3 +30,9 @@ The wave operating model records the README as a deliberate exception: because i
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 4: implement the commissioned lane after the pushed root harness pre-pass; preserve frozen schemas and ownership; return acceptance evidence and required negative controls; root integrates, reviews, validates locally and at the exact hosted SHA, then reconciles status.
+<!-- SECTION:PLAN:END -->

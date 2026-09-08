@@ -1,9 +1,10 @@
 ---
 id: GCV-0036
 title: Close the hand-maintained registry drift class the catalog render gap exposed
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-08 17:02'
+updated_date: '2026-09-08 17:20'
 labels: []
 dependencies: []
 ordinal: 36000
@@ -28,3 +29,9 @@ Four catalog directories shipped with no kustomization.yaml and failed to render
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 4: implement the commissioned lane after the pushed root harness pre-pass; preserve frozen schemas and ownership; return acceptance evidence and required negative controls; root integrates, reviews, validates locally and at the exact hosted SHA, then reconciles status.
+<!-- SECTION:PLAN:END -->

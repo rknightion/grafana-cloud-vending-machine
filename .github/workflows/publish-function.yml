@@ -40,6 +40,8 @@ jobs:
   test:
     name: Test function
     runs-on: ubuntu-24.04
+    outputs:
+      runtime-changed: ${{ steps.runtime-changes.outputs.changed }}
     defaults:
       run:
         working-directory: platform/function
@@ -47,7 +49,47 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
+          fetch-depth: 0
           persist-credentials: false
+
+      # Admission helpers and tests do not change the function's runtime behavior.
+      # Preserve dependency-version and runtime-source changes as publish inputs.
+      - name: Determine whether runtime inputs changed
+        id: runtime-changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.before || github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import subprocess
+
+          def git(*args):
+              return subprocess.check_output(["git", *args], text=True)
+
+          def module_lines(ref):
+              return sorted(line.replace("// indirect", "").strip()
+                            for line in git("show", ref + ":platform/function/go.mod").splitlines()
+                            if line.strip() not in ("", "require (", ")"))
+
+          base, head = os.environ["BASE_SHA"], os.environ["HEAD_SHA"]
+          changed = os.environ["EVENT_NAME"] == "workflow_dispatch" or not base or set(base) == {"0"}
+          if not changed:
+              for path in git("diff", "--name-only", base, head, "--", "platform/function").splitlines():
+                  if path.endswith("_test.go") or path == "platform/function/admission_harness.go":
+                      continue
+                  if path == "platform/function/go.mod" and module_lines(base) == module_lines(head):
+                      continue
+                  if path.endswith(".go") or path in (
+                      "platform/function/go.mod", "platform/function/go.sum",
+                      "platform/function/Dockerfile", "platform/function/.dockerignore",
+                  ) or path.startswith("platform/function/package/"):
+                      changed = True
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("changed=" + str(changed).lower() + "\n")
+          print("Runtime inputs changed: " + str(changed).lower())
+          PY
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
@@ -67,6 +109,7 @@ jobs:
   build:
     name: Build ${{ matrix.arch }} package
     needs: test
+    if: needs.test.outputs.runtime-changed == 'true'
     runs-on: ubuntu-24.04
     env:
       PACKAGE_ARCH: ${{ matrix.arch }}
