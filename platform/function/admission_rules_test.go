@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type admissionRuleCase struct {
@@ -61,15 +62,7 @@ func TestAdmissionRules(t *testing.T) {
 				},
 			),
 		},
-		{
-			name:            "explicit null SCIM is refused",
-			expectedMessage: "SCIM is out of scope; use external-group mapping",
-			skipReason:      "blocked: under the shipped nullable: true schema the API server PERSISTS spec.scim: null while CEL has() treats it as absent; removing nullable prunes it instead. Both admit. renderStack still refuses the persisted key, so the platform fails closed at reconcile. Another schema design requires owner authority",
-			run: createRule(
-				func() *unstructured.Unstructured { return stackRequest("scimnullok", nil) },
-				func() *unstructured.Unstructured { return stackRequest("scimnull", map[string]any{"scim": nil}) },
-			),
-		},
+
 		{
 			name:            "retention cannot be added on update",
 			expectedMessage: "retention must be selected at creation",
@@ -216,6 +209,37 @@ func TestAdmissionRules(t *testing.T) {
 			t.Logf("rejection output: %v", err)
 		})
 	}
+
+	t.Run("explicit null SCIM persists and is refused at reconcile", func(t *testing.T) {
+		omitted := stackRequest("scimnullok", nil)
+		requireAdmitted(ctx, env, t, omitted, "omitted SCIM create")
+		if err := env.client.Get(ctx, client.ObjectKeyFromObject(omitted), omitted); err != nil {
+			t.Fatal(err)
+		}
+		omittedSpec := omitted.Object["spec"].(map[string]any)
+		if _, present := omittedSpec["scim"]; present {
+			t.Fatal("omitted SCIM acquired a persisted key")
+		}
+		t.Log("PERSISTED omitted: spec has 'scim' key = false")
+		obj := stackRequest("scimnull", map[string]any{"scim": nil})
+		requireAdmitted(ctx, env, t, obj, "explicit null SCIM create")
+		if err := env.client.Get(ctx, client.ObjectKeyFromObject(obj), obj); err != nil {
+			t.Fatal(err)
+		}
+		spec := obj.Object["spec"].(map[string]any)
+		value, present := spec["scim"]
+		if !present || value != nil {
+			t.Fatalf("explicit null SCIM persistence changed: present=%t value=%v", present, value)
+		}
+		t.Log("PERSISTED explicit-null: spec has 'scim' key = true, value = null")
+		// TestSCIMStackRequestsRejected in scim_test.go covers the wider value table.
+		// This assertion connects the actual persisted API object to the renderer.
+		desired, err := renderStack(obj.Object, nil, nil)
+		if err == nil || !strings.Contains(err.Error(), "SCIM is out of scope; use GrafanaTeamAccess or GrafanaCustomRoleBinding external-group mapping") || len(desired) != 0 {
+			t.Fatalf("persisted null must fail closed at reconcile: desired=%v error=%v", desired, err)
+		}
+		t.Logf("RECONCILE persisted explicit-null refused; children=%d: %v", len(desired), err)
+	})
 
 	t.Run("weakened SCIM rule negative control", func(t *testing.T) {
 		runSCIMNegativeControl(ctx, env, t)

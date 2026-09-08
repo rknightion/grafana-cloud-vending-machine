@@ -1,9 +1,10 @@
 ---
 id: GCV-0048
 title: Vend Private Data source Connect networks
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-08 22:36'
+updated_date: '2026-09-08 22:48'
 labels: []
 dependencies: []
 type: feature
@@ -32,3 +33,9 @@ It belongs in a fail-closed machine specifically because it is a network boundar
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 6: implement the commissioned surface under the frozen goal and root-owned integration; prove admission and renderer boundaries with required negative controls, then just check and exact-SHA hosted Validate before finalization.
+<!-- SECTION:PLAN:END -->

@@ -1,9 +1,10 @@
 ---
 id: GCV-0042
 title: Reconcile held-candidate documentation after the admission gate lands
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-08 20:11'
+updated_date: '2026-09-08 22:48'
 labels:
   - needs-triage
 dependencies:
@@ -33,3 +34,9 @@ The current public documentation says the 1.0 candidate is held pending two unre
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 6: implement the commissioned surface under the frozen goal and root-owned integration; prove admission and renderer boundaries with required negative controls, then just check and exact-SHA hosted Validate before finalization.
+<!-- SECTION:PLAN:END -->

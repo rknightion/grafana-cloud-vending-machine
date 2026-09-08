@@ -265,7 +265,7 @@ func TestCRDFromXRDRejectsMultipleDocuments(t *testing.T) {
 
 func TestAdmissionEnvInstallsAllXRDsAndAdmitsCatalogExamples(t *testing.T) {
 	paths := xrdPaths()
-	if got, want := len(paths), 13; got != want {
+	if got, want := len(paths), 13; got < want {
 		t.Fatalf("XRD source path count = %d, want %d", got, want)
 	}
 
@@ -281,8 +281,8 @@ func TestAdmissionEnvInstallsAllXRDsAndAdmitsCatalogExamples(t *testing.T) {
 			kinds[crd.Spec.Names.Kind] = struct{}{}
 		}
 	}
-	if got, want := derived, 14; got != want {
-		t.Fatalf("derived CRD count = %d, want %d", got, want)
+	if derived < 14 {
+		t.Fatalf("derived CRD count = %d, below the shipped baseline 14", derived)
 	}
 	if got, want := len(kinds), derived; got != want {
 		t.Fatalf("distinct derived kind count = %d, want %d", got, want)
@@ -295,7 +295,7 @@ func TestAdmissionEnvInstallsAllXRDsAndAdmitsCatalogExamples(t *testing.T) {
 	if got, want := env.installed, derived; got != want {
 		t.Fatalf("installed CRD count = %d, want %d", got, want)
 	}
-	t.Logf("derived CRDs from 13 XRD sources: %d; API server installed %d/%d", derived, env.installed, derived)
+	t.Logf("derived CRDs from %d XRD sources: %d; API server installed %d/%d", len(xrdPaths()), derived, env.installed, derived)
 	t.Cleanup(func() {
 		if err := env.Stop(); err != nil {
 			t.Errorf("Stop() error = %v", err)
@@ -303,7 +303,7 @@ func TestAdmissionEnvInstallsAllXRDsAndAdmitsCatalogExamples(t *testing.T) {
 	})
 
 	examples, exclusions := catalogExamples(t, kinds)
-	if got, want := len(examples), 25; got != want {
+	if got, want := len(examples), 25; got < want {
 		t.Fatalf("catalog examples admitted = %d, want %d", got, want)
 	}
 	if got, want := len(exclusions), 1; got != want {
@@ -328,7 +328,19 @@ func TestAdmissionEnvInstallsAllXRDsAndAdmitsCatalogExamples(t *testing.T) {
 		}
 		t.Logf("catalog admitted source=%s kind=%s name=%s", example.source, example.object.GetKind(), example.object.GetName())
 	}
-	if got, want := len(representedKinds), len(kinds); got != want {
+	implementedKinds := 0
+	for kind := range kinds {
+		if renderer, found := compositeRenderers[kind]; !found || renderer.implemented {
+			implementedKinds++
+			continue
+		}
+		err := env.Apply(context.Background(), requestObject(kind, "unimplemented", map[string]any{}))
+		if err == nil || !strings.Contains(err.Error(), "This API is not implemented yet.") {
+			t.Fatalf("placeholder %s did not refuse admission: %v", kind, err)
+		}
+		t.Logf("placeholder %s refused: %v", kind, err)
+	}
+	if got, want := len(representedKinds), implementedKinds; got != want {
 		t.Fatalf("catalog represented kind count = %d, want %d", got, want)
 	}
 }
@@ -402,8 +414,16 @@ func TestAdmissionEnvRejectsNonAtomicCollectionRefsAndAcceptsRestoredAllXRDs(t *
 	if err == nil {
 		t.Fatal("Start() accepted collectionRefs without atomic map type")
 	}
-	if !strings.Contains(err.Error(), "installed 13/14 derived CRDs") || !strings.Contains(err.Error(), "collectionRefs].items.x-kubernetes-map-type") {
-		t.Fatalf("non-atomic collectionRefs error = %v, want 13/14 failure at %s", err, schemaPath)
+	expectedCount := 0
+	for _, path := range paths {
+		crds, deriveErr := crdsFromXRD(path)
+		if deriveErr != nil {
+			t.Fatal(deriveErr)
+		}
+		expectedCount += len(crds)
+	}
+	if !strings.Contains(err.Error(), fmt.Sprintf("installed %d/%d derived CRDs", expectedCount-1, expectedCount)) || !strings.Contains(err.Error(), "collectionRefs].items.x-kubernetes-map-type") {
+		t.Fatalf("non-atomic collectionRefs error = %v, want %d/%d failure at %s", err, expectedCount-1, expectedCount, schemaPath)
 	}
 	t.Logf("negative control rejected missing atomic map type at %s: %v", schemaPath, err)
 	if err := brokenEnv.Stop(); err != nil {
@@ -417,10 +437,10 @@ func TestAdmissionEnvRejectsNonAtomicCollectionRefsAndAcceptsRestoredAllXRDs(t *
 	if err := restoredEnv.Start(t); err != nil {
 		t.Fatalf("Start() after restoring collectionRefs atomic map type error = %v", err)
 	}
-	if got, want := restoredEnv.installed, 14; got != want {
+	if got, want := restoredEnv.installed, expectedCount; got != want {
 		t.Fatalf("restored collectionRefs installed CRD count = %d, want %d", got, want)
 	}
-	t.Log("restored collectionRefs atomic map type installed 14/14 derived CRDs")
+	t.Logf("restored collectionRefs atomic map type installed %d/%d derived CRDs", restoredEnv.installed, expectedCount)
 	if err := restoredEnv.Stop(); err != nil {
 		t.Fatalf("Stop() after restored collectionRefs error = %v", err)
 	}

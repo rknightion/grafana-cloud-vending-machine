@@ -39,10 +39,17 @@ const reconcileTimeConfigKey = "_reconcileTime"
 const resolvedStackProfileConfigKey = "_resolvedStackProfile"
 
 var compositeRenderers = map[string]compositeRenderer{
-	"GrafanaK6Project":           {render: renderK6Project, gateOnStack: true, implemented: k6RendererImplemented},
-	"GrafanaSyntheticMonitoring": {render: renderSyntheticMonitoring, gateOnStack: true, implemented: syntheticMonitoringRendererImplemented},
-	"GrafanaStackLadder":         {render: renderStackLadder, gateOnStack: false, implemented: ladderRendererImplemented},
-	"GrafanaCloudStackRequest":   {render: renderStack, implemented: true},
+	"GrafanaAlertingRouting":       {render: renderAlertingRouting, gateOnStack: true, implemented: alertingRoutingRendererImplemented},
+	"GrafanaOnCall":                {render: renderOnCall, gateOnStack: true, implemented: onCallRendererImplemented},
+	"GrafanaCloudIntegrations":     {render: renderCloudIntegrations, gateOnStack: true, implemented: cloudIntegrationsRendererImplemented},
+	"GrafanaPDC":                   {render: renderPDC, gateOnStack: true, implemented: pdcRendererImplemented},
+	"GrafanaServiceAccounts":       {render: renderServiceAccounts, gateOnStack: true, implemented: serviceAccountsRendererImplemented},
+	"GrafanaFrontendObservability": {render: renderFrontendObservability, gateOnStack: true, implemented: frontendObservabilityRendererImplemented},
+	"GrafanaML":                    {render: renderML, gateOnStack: true, implemented: mlRendererImplemented},
+	"GrafanaK6Project":             {render: renderK6Project, gateOnStack: true, implemented: k6RendererImplemented},
+	"GrafanaSyntheticMonitoring":   {render: renderSyntheticMonitoring, gateOnStack: true, implemented: syntheticMonitoringRendererImplemented},
+	"GrafanaStackLadder":           {render: renderStackLadder, gateOnStack: false, implemented: ladderRendererImplemented},
+	"GrafanaCloudStackRequest":     {render: renderStack, implemented: true},
 	"GrafanaCustomRoleBinding": {
 		render: func(xr map[string]any, _ map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
 			profile, _ := config[resolvedStackProfileConfigKey].(string)

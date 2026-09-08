@@ -17,3 +17,10 @@ resources:
   - apis/ladder-v1beta1.yaml
   - apis/k6-v1beta1.yaml
   - apis/synthetic-monitoring-v1beta1.yaml
+  - apis/alerting-routing-v1beta1.yaml
+  - apis/oncall-v1beta1.yaml
+  - apis/cloud-integrations-v1beta1.yaml
+  - apis/pdc-v1beta1.yaml
+  - apis/service-accounts-v1beta1.yaml
+  - apis/frontend-observability-v1beta1.yaml
+  - apis/ml-v1beta1.yaml

@@ -1,9 +1,10 @@
 ---
 id: GCV-0046
 title: 'Vend on-call escalation chains, routes and integrations'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-08 22:36'
+updated_date: '2026-09-08 22:48'
 labels: []
 dependencies:
   - GCV-0045
@@ -34,3 +35,9 @@ This is the seam where the alerting bundle and IRM meet, so the integration boun
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 6: implement the commissioned surface under the frozen goal and root-owned integration; prove admission and renderer boundaries with required negative controls, then just check and exact-SHA hosted Validate before finalization.
+<!-- SECTION:PLAN:END -->
