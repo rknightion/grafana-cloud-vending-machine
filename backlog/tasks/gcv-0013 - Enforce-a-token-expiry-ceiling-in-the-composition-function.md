@@ -1,10 +1,10 @@
 ---
 id: GCV-0013
 title: Enforce a token expiry ceiling in the composition function
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:14'
-updated_date: '2026-09-08 15:15'
+updated_date: '2026-09-08 16:43'
 labels: []
 dependencies: []
 ordinal: 13000
@@ -24,16 +24,16 @@ This repository already uses the rotating token variants, which is the correct b
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The platform maximum lifetime is a Composition input, not a request field, so a request author cannot raise it
-- [ ] #2 A rendered token always carries a bounded lifetime; the function fails closed rather than emitting an unbounded token
-- [ ] #3 The composite status publishes each rendered token expiry
-- [ ] #4 Tests cover the refusal path and the capping path
+- [x] #1 The platform maximum lifetime is a Composition input, not a request field, so a request author cannot raise it
+- [x] #2 A rendered token always carries a bounded lifetime; the function fails closed rather than emitting an unbounded token
+- [x] #3 The composite status publishes each rendered token expiry
+- [x] #4 Tests cover the refusal path and the capping path
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -41,3 +41,9 @@ This repository already uses the rotating token variants, which is the correct b
 <!-- SECTION:PLAN:BEGIN -->
 Wave 3: root pushes fail-closed seams; assigned lane implements owned files test-first; root audits ownership, integrates documentation and wiring, reviews and validates, verifies signed package publication, pins both references, then finalizes with exact-SHA hosted validation.
 <!-- SECTION:PLAN:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Mandatory Composition maximum bounds administrator, telemetry and Fleet rotating tokens; missing or invalid policy fails closed. Provider-observed expiries are published to status. Refusal, capping and status branches passed race tests. Completing delivery SHA bec9551c3c2abb009a4a50412b33efe47b07520c; hosted Validate 34252640140 success. Root just check passed (85.7% coverage). Signed multi-platform function digest sha256:09ff21ddf5436d0f0165ac7849d86ab4c22a6633551d91ab6aab4edc48f88652 is pinned in both locations. No live provider or deployment proof is claimed.
+<!-- SECTION:FINAL_SUMMARY:END -->

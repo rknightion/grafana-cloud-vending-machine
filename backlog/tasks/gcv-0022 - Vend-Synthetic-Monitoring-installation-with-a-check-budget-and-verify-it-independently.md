@@ -3,10 +3,10 @@ id: GCV-0022
 title: >-
   Vend Synthetic Monitoring installation with a check budget, and verify it
   independently
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:16'
-updated_date: '2026-09-08 15:15'
+updated_date: '2026-09-08 16:43'
 labels: []
 dependencies: []
 ordinal: 22000
@@ -28,17 +28,17 @@ Private probes emit a sensitive token that a self-hosted probe binary needs; tre
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Installation readiness is verified independently rather than trusted from the managed resource condition
-- [ ] #2 Only the derived Synthetic Monitoring token is persisted; the bootstrap access policy token is not
-- [ ] #3 A platform-controlled budget bounds checks, probe locations and frequency, with browser checks costed separately
-- [ ] #4 Any private probe token is written to the secret store and never to composite status
-- [ ] #5 The known upstream readiness defect is recorded in the README known limitations
+- [x] #1 Installation readiness is verified independently rather than trusted from the managed resource condition
+- [x] #2 Only the derived Synthetic Monitoring token is persisted; the bootstrap access policy token is not
+- [x] #3 A platform-controlled budget bounds checks, probe locations and frequency, with browser checks costed separately
+- [x] #4 Any private probe token is written to the secret store and never to composite status
+- [x] #5 The known upstream readiness defect is recorded in the README known limitations
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -46,3 +46,9 @@ Private probes emit a sensitive token that a self-hosted probe binary needs; tre
 <!-- SECTION:PLAN:BEGIN -->
 Wave 3: root pushes fail-closed seams; assigned lane implements owned files test-first; root audits ownership, integrates documentation and wiring, reviews and validates, verifies signed package publication, pins both references, then finalizes with exact-SHA hosted validation.
 <!-- SECTION:PLAN:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Installation readiness requires an independently observed disabled Check through the derived-token provider. Only derived credentials are published. Complete team-authored check sets are budgeted for count, probes, frequency and browser weighting; removed checks and stale verifiers are deletion-managed. No private Probe or probe token is created, so AC4 is satisfied by exclusion. Race tests and catalog validation passed; upstream readiness defect is documented. Completing delivery SHA bec9551c3c2abb009a4a50412b33efe47b07520c; hosted Validate 34252640140 success. Root just check passed (85.7% coverage). Signed multi-platform function digest sha256:09ff21ddf5436d0f0165ac7849d86ab4c22a6633551d91ab6aab4edc48f88652 is pinned in both locations. No live provider or deployment proof is claimed.
+<!-- SECTION:FINAL_SUMMARY:END -->

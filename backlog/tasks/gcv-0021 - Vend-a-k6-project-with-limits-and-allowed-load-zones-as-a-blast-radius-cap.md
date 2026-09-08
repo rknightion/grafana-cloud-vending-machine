@@ -1,10 +1,10 @@
 ---
 id: GCV-0021
 title: Vend a k6 project with limits and allowed load zones as a blast-radius cap
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:15'
-updated_date: '2026-09-08 15:15'
+updated_date: '2026-09-08 16:43'
 labels: []
 dependencies: []
 ordinal: 21000
@@ -24,17 +24,17 @@ Private load zones can only be allow-listed, never provisioned, from this provid
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Project, limits and allowed load zones are rendered; load tests and schedules are not
-- [ ] #2 Limits are platform-controlled per usage class and cannot be raised by a request author
-- [ ] #3 The installation bootstrap is gated on the observed stack service account token and the derived k6 credential is mirrored to the secret store, never the input token
-- [ ] #4 The installation field shape is verified against the pinned provider CRD rather than upstream docs
-- [ ] #5 A catalog example renders with placeholder load zone identifiers
+- [x] #1 Project, limits and allowed load zones are rendered; load tests and schedules are not
+- [x] #2 Limits are platform-controlled per usage class and cannot be raised by a request author
+- [x] #3 The installation bootstrap is gated on the observed stack service account token and the derived k6 credential is mirrored to the secret store, never the input token
+- [x] #4 The installation field shape is verified against the pinned provider CRD rather than upstream docs
+- [x] #5 A catalog example renders with placeholder load zone identifiers
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -42,3 +42,9 @@ Private load zones can only be allow-listed, never provisioned, from this provid
 <!-- SECTION:PLAN:BEGIN -->
 Wave 3: root pushes fail-closed seams; assigned lane implements owned files test-first; root audits ownership, integrates documentation and wiring, reviews and validates, verifies signed package publication, pins both references, then finalizes with exact-SHA hosted validation.
 <!-- SECTION:PLAN:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Project, platform limits and explicit allowed-zone subset render behind observed bootstrap and derived credential gates. No tests, schedules or private zones are provisioned. Pinned provider Installation CRD and connection mapping were verified; race tests and catalog validation passed. Completing delivery SHA bec9551c3c2abb009a4a50412b33efe47b07520c; hosted Validate 34252640140 success. Root just check passed (85.7% coverage). Signed multi-platform function digest sha256:09ff21ddf5436d0f0165ac7849d86ab4c22a6633551d91ab6aab4edc48f88652 is pinned in both locations. No live provider or deployment proof is claimed.
+<!-- SECTION:FINAL_SUMMARY:END -->

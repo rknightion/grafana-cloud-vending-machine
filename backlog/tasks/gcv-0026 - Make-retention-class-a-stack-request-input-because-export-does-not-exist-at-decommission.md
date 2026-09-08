@@ -3,10 +3,10 @@ id: GCV-0026
 title: >-
   Make retention class a stack-request input, because export does not exist at
   decommission
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-21 12:17'
-updated_date: '2026-09-08 15:15'
+updated_date: '2026-09-08 16:43'
 labels: []
 dependencies: []
 ordinal: 26000
@@ -28,16 +28,16 @@ Leave room for the logs retention API as an escape hatch if it becomes worth cal
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A retention class in the request provisions durable fan-out at creation for the long-term class
-- [ ] #2 No spec field implies control over a retention period that cannot actually be reconciled
-- [ ] #3 The README states which retention controls are ticket-based or API-only and that metrics and traces have no bulk export
-- [ ] #4 The decommission runbook cross-references this as a creation-time decision
+- [x] #1 A retention class in the request provisions durable fan-out at creation for the long-term class
+- [x] #2 No spec field implies control over a retention period that cannot actually be reconciled
+- [x] #3 The README states which retention controls are ticket-based or API-only and that metrics and traces have no bulk export
+- [x] #4 The decommission runbook cross-references this as a creation-time decision
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 ./scripts/validate.sh passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 ./scripts/validate.sh passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -45,3 +45,9 @@ Leave room for the logs retention API as an escape hatch if it becomes worth cal
 <!-- SECTION:PLAN:BEGIN -->
 Wave 3: root pushes fail-closed seams; assigned lane implements owned files test-first; root audits ownership, integrates documentation and wiring, reviews and validates, verifies signed package publication, pins both references, then finalizes with exact-SHA hosted validation.
 <!-- SECTION:PLAN:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Creation-time retention class selects platform-owned durable Fleet fan-out. No retention-period request field exists. README and decommission guidance name API-only and ticket-based controls and unavailable bulk exports. Race tests and schema validation passed; actual sink receipt remains unproven. Completing delivery SHA bec9551c3c2abb009a4a50412b33efe47b07520c; hosted Validate 34252640140 success. Root just check passed (85.7% coverage). Signed multi-platform function digest sha256:09ff21ddf5436d0f0165ac7849d86ab4c22a6633551d91ab6aab4edc48f88652 is pinned in both locations. No live provider or deployment proof is claimed.
+<!-- SECTION:FINAL_SUMMARY:END -->
