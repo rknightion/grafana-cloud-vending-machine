@@ -4,6 +4,7 @@ title: 'Decide who owns dashboard content: provisioning repositories or Crosspla
 status: To Do
 assignee: []
 created_date: '2026-08-21 12:16'
+updated_date: '2026-09-08 08:08'
 labels: []
 dependencies: []
 ordinal: 23000
@@ -35,3 +36,25 @@ Recommendation to evaluate, not a foregone conclusion: keep classic Dashboard re
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Decision, taken by the repository owner 2026-09-08: adopt provisioning repositories as a new opt-in module, and plan the move to default
+
+RepositoryV0alpha1 and ConnectionV0alpha1 are vended as their own module. Classic Crossplane Dashboard
+rendering stays the supported default for baseline content in this wave, and the README states that
+provisioning repositories are the intended future default rather than a permanent alternative.
+
+The feature-toggle precondition is struck from the decision: this vending machine supports Grafana
+Cloud stacks only and will not support self-managed deployments, so the two self-managed feature
+toggles are not a constraint here. Say that in the README rather than repeating the toggle caveat.
+
+Preview status remains a real caveat and is documented as it stands at decision time, not used as a
+reason to defer the module.
+
+Ownership is enforced structurally, not by convention: a folder subtree declared as
+repository-provisioned renders no Crossplane Dashboard for that subtree, and admission rejects a
+request that declares both owners for one subtree. This is the same single-declarative-owner rule the
+folder and dashboard ACL surfaces already follow.
+<!-- SECTION:NOTES:END -->

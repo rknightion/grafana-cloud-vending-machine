@@ -3,7 +3,7 @@ id: doc-0002
 title: Wave operating model
 type: guide
 created_date: '2026-08-14 16:36'
-updated_date: '2026-08-14 16:36'
+updated_date: '2026-09-08 08:09'
 ---
 This document carries **only** what is specific to this repository. The campaign model itself —
 run contract and run modes, the routing contract, authority and the thread pool, child lane briefs,
@@ -42,17 +42,32 @@ path prefix case-sensitively. Anything committed here derives its paths — from
 test that this repository's guard was copied from hard-coded them, and would have failed this
 repository's own gate unchanged.
 
+## Grafana Cloud only, deliberately
+
+**This vending machine supports Grafana Cloud stacks and will not support self-managed Grafana.**
+Decided by the repository owner 2026-09-08. The consequence worth stating, because it removes a
+caveat that otherwise gets copied forward: preconditions that apply only to self-managed
+deployments are not constraints here. Grafana feature toggles are the live case — no provider
+resource sets a feature toggle on a Cloud stack, and several surveyed surfaces list two
+self-managed toggles as a precondition. Those rows are irrelevant to this repository and must not be
+recorded as blockers. Preview status is a separate question and remains a real caveat.
+
 ## The gate
 
 ```bash
-./scripts/validate.sh
+just check
 ```
 
-One command, and it is the whole local gate: the public-release scan, `gofmt`, `go mod tidy` with a
-`git diff --exit-code` on `go.mod`/`go.sum`, race-enabled tests with coverage, `go vet`, a YAML
-parse of every tracked YAML document, four Kustomize renders, the example-README coverage check,
-and the ApplicationSet watch-path assertion. `definition_of_done` in `backlog/config.yml` carries it
-plus the hosted run, so every task inherits both.
+One command, and it is the whole local gate: it runs `scripts/validate.sh`, byte for byte the same
+script the hosted `Validate public reference` workflow runs, covering the public-release scan,
+`gofmt`, `go mod tidy` with a `git diff --exit-code` on `go.mod`/`go.sum`, race-enabled tests with
+coverage, `go vet`, a YAML parse of every tracked YAML document, four Kustomize renders, the
+example-README coverage check, the digest-agreement check on both signed packages, and the
+ApplicationSet watch-path assertion. `definition_of_done` in `backlog/config.yml` carries it plus
+the hosted run, so every task inherits both.
+
+Discover the task surface rather than guessing it: `just --list`, `just --dump --dump-format json`,
+`just --show <recipe>`. Prefer `just <recipe>` over the underlying tool.
 
 **A green local gate is not sufficient for `Done`.** The hosted `Validate public reference` workflow
 must pass on the completing commit, and its run ID belongs in the task's final summary alongside the
@@ -105,20 +120,38 @@ to one of these is a design error, not a merge conflict to resolve.
 
 Natural boundaries, each with a single owner per wave:
 
-- `platform/function/*.go` — the composition function. `fn.go`, `roles.go`, `access.go`,
-  `options.go` and `plugins.go` split cleanly by feature area, but `fn_test.go` is **one file with
-  one owner**, and it is where lanes collide first. A wave touching two feature areas gives the test
-  file to one lane or defers it to the wiring pass.
-- `platform/apis/`, `platform/rbac/`, `platform/provider/` — the declarative surface.
+- `platform/function/*.go` — the composition function. **One feature area is one file, and a new
+  feature area gets a new file plus its own `_test.go`.** Decided by the repository owner
+  2026-09-08, replacing the earlier convention that piled new tests into `fn_test.go`: that made
+  `fn_test.go` the file every lane collided in first, which capped a wave at roughly two feature
+  areas regardless of how much independent work existed. `renderStack` in `fn.go` is reduced to a
+  frozen call list of `add<Feature>(...)` registration functions, one per feature file, and the call
+  list belongs to the root or the wiring pass — never to a lane.
+- `platform/apis/` — **one API is one file**, named for the API rather than only its version, and a
+  new API arrives as a new file. `platform/kustomization.yaml`, the
+  `ManagedResourceActivationPolicy` kind list and `platform/rbac/composition-rbac.yaml` are
+  append-only registries that cannot be split into per-lane files, so their entries are pre-assigned
+  in the goal and applied by the wiring pass. A lane wanting an entry other than its assigned one
+  stops and says so.
+- `platform/provider/` — the provider pin and its signature verification. The digest appears three
+  times in one file and always moves together.
 - `examples/catalog/*` — one lane may own several directories; they do not interact.
 - `deploy/` — installation and GitOps integration.
 - `docs/` and `README.md` — the README is a single 54 KB file and therefore a single owner, always.
+  Where several lanes each need a README section, the README owner is **scheduled last with declared
+  dependencies on those lanes** and writes the whole thing once from their briefs. That is a
+  deliberate exception to a lane writing its own documentation, not an accidental bottleneck.
 - `scripts/validate.sh` — an integration file. Never edited by two lanes in parallel; changes to it
   belong to the wiring pass, because it is what every other lane is being judged by.
 
 **The escape hatch:** a lane that needs a change inside another lane's file stops and returns the
 exact edit as a blocker rather than making it. The wiring pass applies it. A lane that finds the
 gate already red on `main` before it starts also stops — it is not that lane's failure to fix.
+
+**Lane-local validation, because the registries are wiring-pass owned.** A lane cannot run `just
+check` meaningfully before its kustomization and activation-policy entries exist, so a lane's own
+acceptance check is its package tests plus a YAML parse of the documents it wrote. One named gate
+owner runs `just check` after the wiring pass, against the integrated tree.
 
 ## The exclusive resource: function package publishing
 
