@@ -46,6 +46,51 @@ ruby -ryaml -e '
   missing = inventory_plurals - activated
   abort "platform/provider/provider-grafana.yaml: ManagedResourceActivationPolicy missing inventory resources: #{missing.join(", ")}" unless missing.empty?
 
+  # Walk every XRD version schema and enforce the structural constraints for
+  # Kubernetes set and map lists. These are decidable from the documents, so
+  # this check does not need an API server or envtest assets.
+  schema_walk = nil
+  schema_walk = lambda do |value, path|
+    case value
+    when Hash
+      if value.key?("x-kubernetes-list-type")
+        list_type = value["x-kubernetes-list-type"]
+        items = value["items"]
+        case list_type
+        when "set"
+          if items.is_a?(Hash) && items["type"] == "object" && items["x-kubernetes-map-type"] != "atomic"
+            abort "#{path}: x-kubernetes-list-type=set with object items requires items.x-kubernetes-map-type=atomic"
+          end
+        when "map"
+          keys = value["x-kubernetes-list-map-keys"]
+          abort "#{path}: x-kubernetes-list-type=map requires a non-empty x-kubernetes-list-map-keys" unless keys.is_a?(Array) && !keys.empty?
+          required = items.is_a?(Hash) ? items["required"] : nil
+          keys.each do |key|
+            abort "#{path}: x-kubernetes-list-type=map key #{key} must appear in items.required" unless required.is_a?(Array) && required.include?(key)
+          end
+        end
+      end
+      value.each { |key, child| schema_walk.call(child, "#{path}.#{key}") }
+    when Array
+      value.each_with_index { |child, index| schema_walk.call(child, "#{path}[#{index}]") }
+    end
+  end
+
+  Dir.glob("platform/apis/*.{yaml,yml}").sort.each do |path|
+    YAML.load_stream(File.read(path)).each_with_index do |document, document_index|
+      next unless document.is_a?(Hash)
+      versions = document.dig("spec", "versions")
+      next unless versions.is_a?(Array)
+
+      versions.each_with_index do |version, version_index|
+        next unless version.is_a?(Hash)
+        schema = version.dig("schema", "openAPIV3Schema")
+        next unless schema.is_a?(Hash)
+        schema_walk.call(schema, "#{path} document #{document_index + 1} spec.versions[#{version_index}].schema.openAPIV3Schema")
+      end
+    end
+  end
+
   # Installation manifests are self-contained signed-package pairs. Discover
   # every package resource and verification Job instead of maintaining the two
   # current filenames by hand, then require the exact digest to agree.
@@ -83,7 +128,7 @@ fi
   cd platform/function
   go mod tidy
   git diff --exit-code -- go.mod go.sum
-  go test -race -cover ./...
+  go test -v -race -cover ./...
   go vet ./...
 )
 
