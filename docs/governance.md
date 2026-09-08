@@ -5,7 +5,7 @@ description: Platform token policy, bounded product vending, promotion ladders, 
 
 # Governance and product modules
 
-Platform policy lives in Composition input. Request authors select approved names and supply their own workload definitions; they cannot supply policy ceilings or credential values. Catalog examples are inert Kustomize bases. Only `enabled/*` is watched for live requests.
+Platform policy lives in Composition input. Request authors select approved names and supply their own workload definitions; they cannot supply policy ceilings or credential values. Catalog examples are inert Kustomize bases. Only `enabled/*` is watched for live requests. Product credentials use identity-bound bootstrap exchanges; provider readiness is not live product proof.
 
 ## Token lifetime and where tokens may be used
 
@@ -53,7 +53,7 @@ Stack deletion is permanent. Review 1 of the decommission runbook must verify th
 
 The supported identity model is Team Sync external-group mapping through `GrafanaTeamAccess.spec.team.externalGroups` and `GrafanaCustomRoleBinding.spec.team.groups`. Team Sync maps groups onto existing Teams; these APIs create and reconcile those Teams. SCIM group sync can create and delete Teams from identity-provider changes, so it is mutually exclusive with that ownership model.
 
-SCIM requests are rejected by schema validation and defensively by the function, including attempts to mix SCIM with external-group mappings. The schema's rejected compatibility input exists only to prevent silent unknown-field pruning; it exposes no usable SCIM configuration. SAML's external-UID assertion attribute alone is not treated as SCIM activation.
+The schema rejects non-null SCIM input. Real API-server checks found that explicit `spec.scim: null` is admitted because CEL treats it as absent; this is an [unresolved admission defect in the held candidate](migration-1.0.md). The function independently rejects SCIM field presence, including attempts to mix SCIM with external-group mappings. No SCIM configuration is supported. SAML's external-UID assertion attribute alone is not treated as SCIM activation.
 
 Enabling SCIM later is a breaking migration for every existing tenant using these mappings. A future contract must couple SCIM, SAML SSO and an external-UID assertion attribute matching the identity provider's SCIM identifier. The identity-provider half has no declarative coverage and would require manual per-tenant setup. Any migration must inventory and resolve existing Team ownership before activation; its reversal cost grows with tenant count.
 
@@ -72,3 +72,80 @@ Temporary product bootstrap or verification interruptions abort reconciliation b
 Synthetic Monitoring owns deletion of its checks and disabled verifier. Removing a check from the whole list removes its external Check; rotating the derived credential retires the old verifier. This explicit ownership prevents orphaned active checks from continuing to consume the budget. Stack deletion still follows the separate reviewed lifecycle.
 
 The temporary expiry warning RuleGroup is deletion-managed so leaving the warning window removes the external alert instead of orphaning a firing rule. This policy applies only to that warning, not to Stack deletion.
+## Decommission runbook
+
+The default `spec.lifecycle.externalResources: Retain` is safe for ordinary pruning: removing an
+unarmed request from Git or pruning it from Argo orphans external resources. Stack-local Grafana
+content is safe to orphan because deleting the Stack destroys it; credential-bearing state that can
+outlive the Stack is the state covered by the optional Delete path.
+
+An actual deletion has three reviewed Git stages. It is not a one-command path. Approved sandbox expiry can delay Stage 1 arming until the effective deadline; it never executes Stages 2 or 3. See [Governance](governance.md#sandbox-expiry-uses-the-reviewed-deletion-path).
+
+### Review 1: arm deletion
+
+1. Inventory and record the exact stack identity (`status.stack.id`, slug, and URL), dependants,
+   access claims, credential consumers, and data-retention requirements. Verify the creation-time
+   `spec.retention.class` decision and actual receipt at its durable fan-out sink; decommission cannot
+   recover telemetry that was never forwarded.
+2. Have the platform owner add this request's exact namespace, name, Kubernetes UID, and immutable profile to the
+   platform-owned `deletionAuthorizations` list. If there is no exact match, stop; the request must
+   remain `Retain`.
+3. Change only the request lifecycle intent to
+   `spec.lifecycle.externalResources: Delete` and submit that change for review. Arming is intent
+   only; it does not delete anything.
+4. After reconciliation, confirm `status.deletionArmed=true`. Wait for
+   `status.deletionReady=true`; this means observed provider state reports the Stack's
+   `deleteProtection=false` and ESO has installed its deletion finalizer and successfully synced
+   each enabled external credential document at the current generation. Do not proceed on desired
+   specs or a stale Ready condition alone. New access claims fail closed as soon as deletion is
+   armed; already-observed access children remain managed until Stage 2 removes their claims.
+
+### Review 2: remove access claims
+
+1. In Stage 2, remove all dependent `GrafanaCustomRoleBinding`,
+   `GrafanaTeamAccess`, and `GrafanaContentAccessPolicy` objects. Merge or sync this change and
+   wait until each access-claim Kubernetes object and its finalizer are gone while the Stack and its
+   request still exist. Do not remove the request until this check passes.
+
+### Review 3: remove the stack request
+
+1. In a third reviewed change, remove the `GrafanaCloudStackRequest` from Git only after the
+   dependent access claims and their finalizers have cleared.
+2. Let Crossplane and ESO reconcile the armed deletion. The Delete mode covers only the Stack, its
+   administrator service account and token, the telemetry access policy and token, and the
+   administrator and telemetry `PushSecret` documents. Stack-local Grafana content remains
+   retain/orphan because Stack deletion destroys it.
+3. Verify the external deletion result and the credential-document outcome. AWS Secrets Manager
+   deletion defaults to a 30-day recovery window, and the supplied IAM policy includes
+   tag-conditioned `DeleteSecret` on the output prefix. A platform operator using another secret backend must
+   verify its `PushSecret` Delete support before enabling this workflow.
+
+This repository intentionally contains no one-command destructive path. If the request is pruned
+without first being armed and ready, the default Retain behaviour applies and external resources
+are orphaned.
+
+## Topology and retention reference
+
+This reference covers token lifetime ceilings and token-use subnet profiles, golden SLO handoff, bounded k6 and Synthetic Monitoring vending, explicit promotion ladders, creation-time retention classes, and the enforced SCIM exclusion. Both shared-stack access slices and stack-per-tenant deployments are intentional topologies. Product credentials use identity-bound bootstrap exchanges; provider readiness is not live product proof.
+
+
+Token-use subnet profiles restrict where Fleet Management and telemetry policy tokens may be used from. They are not inbound Grafana stack filtering; no inbound stack IP-filtering mechanism was identified. The administrator service-account token has no equivalent conditions field.
+
+Shared stacks centralize operations and isolate tenants through teams, folders, RBAC, datasource permissions and LBAC. Separate stacks provide independent lifecycles and complete departmental isolation, with duplicated configuration and stack-cap costs. Both are supported deliberately. Ladders require one organization and immutable region/rung identities. Free plans allow one stack and self-service paid plans three; larger ladders need a negotiated cap. Multi-stack datasources require one region and were capped at ten stacks in preview. Promotion direction is explicit and never causes a region replacement.
+
+Retention classes select durable collector fan-out at creation; they do not set retention periods. Logs export forwards a rolling window of roughly seven to thirty days. Logs retention can be changed through a self-serve API in thirty-day multiples up to one year, while shorter periods require a support request; this Composition does not reconcile that API. Metrics and traces have no self-serve retention API, and no equivalent bulk export was found. Stack deletion is permanent, so decommission cannot recover telemetry that was never forwarded.
+
+
+## Adaptive products: deliberately out of scope
+
+Adaptive Metrics is Grafana Cloud's largest cost lever, but this reference does not vend it.
+Adaptive Logs, Adaptive Traces, and Adaptive Profiles are also out of scope. This is a deliberate
+non-adoption decision, not an unsupported activation toggle hidden in the API: the stack request
+does not expose any adaptive-product configuration.
+
+Use the Grafana Cloud UI and the applicable ticket-based service route for those products. The
+reversal cost is low because no request, credential, or composition here depends on this decision.
+The feasible future route is a dedicated provider/module once upstream packaging is ready; any
+future Adaptive Metrics design must choose either rulesets or individual rules as the sole owner
+per segment, because mixing them overwrites rules. That merge question is not applicable while the
+product remains out of scope.

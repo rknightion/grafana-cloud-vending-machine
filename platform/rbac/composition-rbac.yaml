@@ -6,6 +6,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
   labels:
     rbac.crossplane.io/aggregate-to-crossplane: "true"
+# Deliberately manual support-resource allowlist: provider controllers obtain
+# managed-resource access from their CRDs; rendered GVKs do not define this role.
 rules:
   - apiGroups:
       - external-secrets.io

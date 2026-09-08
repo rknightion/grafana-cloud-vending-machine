@@ -17,6 +17,13 @@ configuration, starter content, configurable drift behaviour, OAuth and SAML SSO
 plugins, incident relay resources, teams, basic-role ACLs, fixed-role assignments, custom roles,
 and role assignments.
 
+One stack belongs to one Grafana Cloud organization. One vending-machine installation can serve
+several registered organizations, each with its own permitted regions and usages. Every namespace
+that accepts requests carries a same-named organization `ProviderConfig` and credential `Secret`
+for each registry entry because the v2 provider resolves `ProviderConfig` references in the
+managed-resource namespace. The request selects an immutable `spec.organization`; there is no
+implicit single-organization fallback.
+
 The source and issue tracker live on
 **[GitHub](https://github.com/rknightion/grafana-cloud-vending-machine)**.
 
@@ -59,6 +66,32 @@ Nothing under `examples/catalog` is applied by the supplied `ApplicationSet`, an
 review the rendered output, and commit it before a stack is created. This is a deliberate safety
 property: cloning or installing this platform cannot, by itself, create a Grafana Cloud stack.
 
+## Repository layout
+
+The core product is `platform/`. The other directories are integration examples, inert catalog
+entries, validation tooling, and the GitHub workflows that publish the composition function.
+
+~~~text
+.
+├── platform/
+│   ├── apis/                 XRDs and pipeline Compositions
+│   ├── function/             Go composition function, tests, package metadata
+│   ├── provider/             Grafana provider, activation policy, signature gate
+│   ├── rbac/                 minimum extra composition RBAC for ESO resources
+│   └── kustomization.yaml
+├── examples/
+│   ├── README.md             catalog index and safe enablement workflow
+│   └── catalog/              inert stack, SSO, Teams, RBAC, and content-ACL examples
+├── enabled/                  only path watched by the example ApplicationSet; empty by default
+├── deploy/
+│   ├── argocd/               controller, platform, and per-request GitOps examples
+│   ├── aws/                  SecretStore, ExternalSecrets, ProviderConfig, IAM policy
+│   ├── crossplane/           production-oriented Helm values
+│   └── external-secrets/     production-oriented Helm values
+├── scripts/                  validation and public-release safety scan
+└── .github/workflows/        validation and signed multi-platform function publishing
+~~~
+
 ## What the baseline includes
 
 Every enabled request gets, by default or by opt-in field:
@@ -89,16 +122,18 @@ Every enabled request gets, by default or by opt-in field:
 |---|---|
 | [Getting started](getting-started.md) | Prerequisites and the copy-edit-review-commit path to your first stack |
 | [Installation](installation.md) | Bootstrapping Crossplane, ESO, and the platform components |
-| [Configuration](configuration.md) | The request API fields, defaults, and what each does |
+| [Configuration](configuration.md) | Platform policy, profiles, and the organization registry |
 | [Architecture](architecture.md) | The three-controller split, reconciliation, and where state lives |
 | [Secrets](secrets.md) | ESO wiring and the credential rotation model |
 | [SSO](sso.md) | OAuth and SAML configuration |
 | [Security](security.md) | Supply-chain controls, secret handling, and the Retain-by-default lifecycle |
+| [Governance](governance.md) | Token ceilings, network restrictions, product modules, retention, and tenancy |
+| [Migration and adoption](migration-1.0.md) | Inventory-first adoption and the non-destructive handover path |
 | [Troubleshooting](troubleshooting.md) | Common failure modes |
 | [FAQ](faq.md) | Short answers to recurring questions |
 
 ## Project
 
-grafana-cloud-vending-machine is open source under the Apache 2.0 licence. Issues and pull
+grafana-cloud-vending-machine is open source under the Apache 2.0 licence. Apache License 2.0. See LICENSE. Issues and pull
 requests are welcome on
 [GitHub](https://github.com/rknightion/grafana-cloud-vending-machine).

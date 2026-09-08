@@ -1,0 +1,81 @@
+{
+  "providerPackageDigest": "sha256:3f078cf9f0fa4affbf65a5d9e288d3a33fced0b8e79354589763f1e7bd7c7048",
+  "managedKinds": [
+    {"apiVersion": "agento11y.grafana.m.crossplane.io/v1alpha1", "kind": "Collection", "plural": "collections"},
+    {"apiVersion": "agento11y.grafana.m.crossplane.io/v1alpha1", "kind": "EvaluationRule", "plural": "evaluationrules"},
+    {"apiVersion": "agento11y.grafana.m.crossplane.io/v1alpha1", "kind": "Evaluator", "plural": "evaluators"},
+    {"apiVersion": "agento11y.grafana.m.crossplane.io/v1alpha1", "kind": "HookRule", "plural": "hookrules"},
+    {"apiVersion": "agento11y.grafana.m.crossplane.io/v1alpha1", "kind": "RuleAction", "plural": "ruleactions"},
+    {"apiVersion": "alerting.grafana.m.crossplane.io/v1alpha1", "kind": "ContactPoint", "plural": "contactpoints"},
+    {"apiVersion": "alerting.grafana.m.crossplane.io/v1alpha1", "kind": "InhibitionruleV1Beta1", "plural": "inhibitionrulev1beta1s"},
+    {"apiVersion": "alerting.grafana.m.crossplane.io/v1alpha1", "kind": "MessageTemplate", "plural": "messagetemplates"},
+    {"apiVersion": "alerting.grafana.m.crossplane.io/v1alpha1", "kind": "MuteTiming", "plural": "mutetimings"},
+    {"apiVersion": "alerting.grafana.m.crossplane.io/v1alpha1", "kind": "RuleGroup", "plural": "rulegroups"},
+    {"apiVersion": "assistant.grafana.m.crossplane.io/v1alpha1", "kind": "McpServer", "plural": "mcpservers"},
+    {"apiVersion": "assistant.grafana.m.crossplane.io/v1alpha1", "kind": "Rule", "plural": "rules"},
+    {"apiVersion": "assistant.grafana.m.crossplane.io/v1alpha1", "kind": "TermsAcceptance", "plural": "termsacceptances"},
+    {"apiVersion": "cloud.grafana.m.crossplane.io/v1alpha1", "kind": "AccessPolicy", "plural": "accesspolicies"},
+    {"apiVersion": "cloud.grafana.m.crossplane.io/v1alpha1", "kind": "AccessPolicyRotatingToken", "plural": "accesspolicyrotatingtokens"},
+    {"apiVersion": "cloud.grafana.m.crossplane.io/v1alpha1", "kind": "Appo11YconfigV1Alpha1", "plural": "appo11yconfigv1alpha1s"},
+    {"apiVersion": "cloud.grafana.m.crossplane.io/v1alpha1", "kind": "Dbo11YconfigV1Alpha1", "plural": "dbo11yconfigv1alpha1s"},
+    {"apiVersion": "cloud.grafana.m.crossplane.io/v1alpha1", "kind": "K8So11YconfigV1Alpha1", "plural": "k8so11yconfigv1alpha1s"},
+    {"apiVersion": "cloud.grafana.m.crossplane.io/v1alpha1", "kind": "PluginInstallation", "plural": "plugininstallations"},
+    {"apiVersion": "cloud.grafana.m.crossplane.io/v1alpha1", "kind": "Stack", "plural": "stacks"},
+    {"apiVersion": "cloud.grafana.m.crossplane.io/v1alpha1", "kind": "StackServiceAccount", "plural": "stackserviceaccounts"},
+    {"apiVersion": "cloud.grafana.m.crossplane.io/v1alpha1", "kind": "StackServiceAccountRotatingToken", "plural": "stackserviceaccountrotatingtokens"},
+    {"apiVersion": "enterprise.grafana.m.crossplane.io/v1alpha1", "kind": "DataSourceConfigLbacRules", "plural": "datasourceconfiglbacrules"},
+    {"apiVersion": "enterprise.grafana.m.crossplane.io/v1alpha1", "kind": "DataSourcePermission", "plural": "datasourcepermissions"},
+    {"apiVersion": "enterprise.grafana.m.crossplane.io/v1alpha1", "kind": "Report", "plural": "reports"},
+    {"apiVersion": "enterprise.grafana.m.crossplane.io/v1alpha1", "kind": "Role", "plural": "roles"},
+    {"apiVersion": "enterprise.grafana.m.crossplane.io/v1alpha1", "kind": "RoleAssignment", "plural": "roleassignments"},
+    {"apiVersion": "enterprise.grafana.m.crossplane.io/v1alpha1", "kind": "RoleAssignmentItem", "plural": "roleassignmentitems"},
+    {"apiVersion": "fleetmanagement.grafana.m.crossplane.io/v1alpha1", "kind": "Pipeline", "plural": "pipelines"},
+    {"apiVersion": "fleetmanagement.grafana.o.crossplane.io/v1alpha1", "kind": "CollectorSet", "plural": "collectorsets"},
+    {"apiVersion": "k6.grafana.m.crossplane.io/v1alpha1", "kind": "Installation", "plural": "installations"},
+    {"apiVersion": "k6.grafana.m.crossplane.io/v1alpha1", "kind": "Project", "plural": "projects"},
+    {"apiVersion": "k6.grafana.m.crossplane.io/v1alpha1", "kind": "ProjectAllowedLoadZones", "plural": "projectallowedloadzones"},
+    {"apiVersion": "k6.grafana.m.crossplane.io/v1alpha1", "kind": "ProjectLimits", "plural": "projectlimits"},
+    {"apiVersion": "oncall.grafana.m.crossplane.io/v1alpha1", "kind": "OutgoingWebhook", "plural": "outgoingwebhooks"},
+    {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "Dashboard", "plural": "dashboards"},
+    {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "DashboardPermission", "plural": "dashboardpermissions"},
+    {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "DataSource", "plural": "datasources"},
+    {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "Folder", "plural": "folders"},
+    {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "FolderPermission", "plural": "folderpermissions"},
+    {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "OrganizationPreferences", "plural": "organizationpreferences"},
+    {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "RepositoryV0Alpha1", "plural": "repositoryv0alpha1s"},
+    {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "SsoSettings", "plural": "ssosettings"},
+    {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "Team", "plural": "teams"},
+    {"apiVersion": "oss.grafana.o.crossplane.io/v1alpha1", "kind": "DashboardSet", "plural": "dashboardsets"},
+    {"apiVersion": "oss.grafana.o.crossplane.io/v1alpha1", "kind": "FolderSet", "plural": "foldersets"},
+    {"apiVersion": "oss.grafana.o.crossplane.io/v1alpha1", "kind": "LibraryPanelSet", "plural": "librarypanelsets"},
+    {"apiVersion": "oss.grafana.o.crossplane.io/v1alpha1", "kind": "OrganizationUser", "plural": "organizationusers"},
+    {"apiVersion": "oss.grafana.o.crossplane.io/v1alpha1", "kind": "TeamSet", "plural": "teamsets"},
+    {"apiVersion": "oss.grafana.o.crossplane.io/v1alpha1", "kind": "UserSet", "plural": "usersets"},
+    {"apiVersion": "slo.grafana.m.crossplane.io/v1alpha1", "kind": "SLO", "plural": "slos"},
+    {"apiVersion": "sm.grafana.m.crossplane.io/v1alpha1", "kind": "Check", "plural": "checks"},
+    {"apiVersion": "sm.grafana.m.crossplane.io/v1alpha1", "kind": "Installation", "plural": "installations"},
+    {"apiVersion": "sm.grafana.o.crossplane.io/v1alpha1", "kind": "ProbeSet", "plural": "probesets"}
+  ],
+  "nonManagedExclusions": [
+    {
+      "apiVersion": "grafana.m.crossplane.io/v1beta1",
+      "kind": "ProviderConfig",
+      "reason": "ProviderConfig supplies provider credentials and configuration; it is not a managed resource activation target."
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Secret",
+      "reason": "syntheticMonitoringSecret creates a core Kubernetes Secret, not a provider managed resource."
+    },
+    {
+      "apiVersion": "external-secrets.io/v1",
+      "kind": "ExternalSecret",
+      "reason": "ExternalSecret is reconciled by the external-secrets controller, not the Grafana Crossplane provider activation policy."
+    },
+    {
+      "apiVersion": "external-secrets.io/v1alpha1",
+      "kind": "PushSecret",
+      "reason": "PushSecret is reconciled by the external-secrets controller, not the Grafana Crossplane provider activation policy."
+    }
+  ]
+}

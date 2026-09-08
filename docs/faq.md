@@ -31,8 +31,8 @@ Crossplane/ESO core.
 No. The current Grafana provider offers no resource that rewrites the global definitions of the
 built-in basic roles. The supported customization points are SSO basic-role mapping, fixed/custom
 role assignments, and per-folder or per-dashboard permissions — see
-[Teams, basic roles, fixed roles, custom roles, and content ACLs](https://github.com/rknightion/grafana-cloud-vending-machine#teams-basic-roles-fixed-roles-custom-roles-and-content-acls)
-in the project README.
+[Teams, roles, and content ACLs](reference/request-schema.md#teams-roles-and-content-acls)
+in the Request Schema Reference.
 
 ## What happens if I delete a request from Git?
 
@@ -62,7 +62,7 @@ Not casually. Adoption is a change of controller ownership, not just a manifest 
 needs a rehearsed inventory of the stack's current identity, service accounts, tokens, SSO
 provider, plugins, and content before any resource is created under this platform's control. See
 the adoption and migration guidance in the project
-[README](https://github.com/rknightion/grafana-cloud-vending-machine#migration-and-adoption).
+[Migration and adoption](migration-1.0.md).
 
 ## Why does a new request take more than one reconciliation to become Ready?
 

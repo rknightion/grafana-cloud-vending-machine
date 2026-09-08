@@ -173,7 +173,7 @@ request, after which ESO removes the administrator and telemetry documents. AWS 
 Manager defaults to a 30-day recovery window for that deletion, and the supplied IAM policy includes
 tag-conditioned `DeleteSecret` on the output prefix. A platform operator using another backend must verify its
 `PushSecret` Delete support before authorizing this lifecycle. See [Architecture → decommission and access-claim ordering](architecture.md#decommission-and-access-claim-ordering)
-and the [decommission runbook](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook).
+and the [decommission runbook](governance.md#decommission-runbook).
 
 ## Extra composition RBAC
 

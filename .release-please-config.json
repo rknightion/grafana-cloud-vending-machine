@@ -23,7 +23,8 @@
       "bump-patch-for-minor-pre-major": false,
       "draft": false,
       "prerelease": false,
-      "pull-request-title-pattern": "chore: release ${version}"
+      "pull-request-title-pattern": "chore: release ${version}",
+      "pull-request-header": "Migration guidance: [0.x to 1.0](https://github.com/rknightion/grafana-cloud-vending-machine/blob/main/docs/migration-1.0.md). Review the required request changes before applying the 1.0.0 candidate."
     }
   }
 }

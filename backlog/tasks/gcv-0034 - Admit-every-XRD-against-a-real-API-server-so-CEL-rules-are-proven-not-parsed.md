@@ -1,10 +1,10 @@
 ---
 id: GCV-0034
 title: 'Admit every XRD against a real API server so CEL rules are proven, not parsed'
-status: In Progress
+status: Parked
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 17:20'
+updated_date: '2026-09-08 18:19'
 labels: []
 dependencies: []
 ordinal: 34000
@@ -36,3 +36,19 @@ Every wave-3 lane closed with the same unproven line: the XRD CEL validation rul
 <!-- SECTION:PLAN:BEGIN -->
 Wave 4: implement the commissioned lane after the pushed root harness pre-pass; preserve frozen schemas and ownership; return acceptance evidence and required negative controls; root integrates, reviews, validates locally and at the exact hosted SHA, then reconciles status.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 4 admission attempt is blocked by an existing request-schema defect. The source census is 13 YAML paths containing 14 XRD documents, including both access APIs. A real local Kubernetes 1.37.0 API server, using the pinned Crossplane ForCompositeResource conversion without altering nested schemas, installed 13/14 CRDs. The remaining agent-observability-v1beta1.yaml CRD was rejected at spec.guards.ruleActions[].collectionRefs[]: x-kubernetes-map-type must be atomic when the parent list has x-kubernetes-list-type=set. Corrupting stack-v1beta1.yaml CEL to self.metadata.name == was rejected by the API server with its compilation error; restoring the scratch schema was accepted. A narrow diagnostic admitted 13 catalog examples and skipped 2 objects (the blocked API example and a Composition input with no XRD).
+
+No existing XRD may change under this wave's grant, so full installation and the mandatory admission gate are not delivered. Main retains the false pre-pass readiness seam and one skipped placeholder; a green existing gate is not admission proof. The owned implementation is preserved locally under codex/wave4/lane-A-artifact/ with A-admission-verbatim.log and A-catalog-diagnostic.log. Root wiring would promote existing crossplane-runtime and apimachinery imports and add the recorded test-only transitive checksum entries.
+
+Resume: explicitly authorize the structural-schema repair; rerun the preserved faithful all-XRD and catalog tests unchanged; require all 14 CRDs and every XRD-backed example; then flip readiness, integrate lane B, provision checksum-verified envtest assets locally and in hosted validation, and wire the admission recipe into just check. No acceptance or Definition of Done item is claimed complete.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Parked after real API-server evidence exposed a pre-existing schema defect outside the wave mutation boundary. The concrete repair and unchanged-test resume requirements are recorded above.
+<!-- SECTION:FINAL_SUMMARY:END -->

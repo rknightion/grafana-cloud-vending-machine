@@ -14,8 +14,8 @@ README describing its ownership boundary.
 | Directory | What it demonstrates | What an adopter changes or verifies |
 | --- | --- | --- |
 | [minimal](../../examples/catalog/minimal/) | Safe stack baseline, rotating credentials, create-only content, no SSO | Organization, slug, region, permitted usage, API group, and secret backend |
-| [comprehensive](../../examples/catalog/comprehensive/) | The original stack and access API surface in one renderable base | Approved profiles, entitlements, identities, role UIDs/actions, and ACL targets |
-| [access-and-rbac](../../examples/catalog/access-and-rbac/) | Teams, Team Sync, direct membership, roles, and content ACLs | Existing users, IdP groups, reviewed role scopes, and targets |
+| [comprehensive](../../examples/catalog/comprehensive/) | Original stack/access API surface: enforced content and OAuth SSO, report, plugin, incident relay, role and content access | All profile names, endpoints, recipients, identities, verified fixed-role UIDs, plugins, role actions/scopes, and ACL targets |
+| [access-and-rbac](../../examples/catalog/access-and-rbac/) | Direct and directory Team membership, preferences, custom/fixed roles, folder/dashboard ACLs | Team/group names, verified role UIDs, actions/scopes, ACL targets |
 | [stack-inventory](../../examples/catalog/stack-inventory/) | Observe-only declared/managed/unmanaged inventory for migration and adoption | A Ready stack and healthy per-stack ProviderConfig; exact declared selectors |
 | [fleet-pipelines](../../examples/catalog/fleet-pipelines/) | Selection of a platform-owned Fleet baseline pipeline profile | Fleet entitlement, approved profile, and stack reference |
 | [alerting-bundle](../../examples/catalog/alerting-bundle/) | Stack-scoped alert rules, contact points, mute timings, templates, and inhibitions | Folder UID, recipient, rules, and the deliberate provenance mode |
@@ -25,7 +25,7 @@ README describing its ownership boundary.
 | [observability-products](../../examples/catalog/observability-products/) | Stack-request product activation toggles | Organization, stack identity, and product-specific configuration outside this API |
 | [provisioning-repository](../../examples/catalog/provisioning-repository/) | Preview Git-provisioned dashboard subtree | Existing Grafana Connection, Git URL/branch/path, and exclusive subtree ownership |
 | [sso-create-only](../../examples/catalog/sso-create-only/) | OAuth initialization followed by administrator ownership | Approved OAuth profile and handoff policy |
-| [sso-azuread](../../examples/catalog/sso-azuread/) | Enforced Azure AD OAuth with group role mapping | Tenant/application values, group claims, and client-secret path |
+| [sso-azuread](../../examples/catalog/sso-azuread/) | Enforced Azure AD OAuth with group role mapping | Tenant/application values, group claims, role expression, and client-secret path |
 | [sso-saml](../../examples/catalog/sso-saml/) | Enforced SAML metadata and role mapping | Metadata, attributes, signing requirements, and a tested administrator login path |
 
 Each directory's own `README.md` explains what its manifests own, the expected reconciliation
@@ -68,8 +68,7 @@ Kubernetes objects and orphans external resources. `Delete` requires an exact re
 namespace/name/UID/profile entry in platform-owned `deletionAuthorizations` (empty by default). The decommission has three
 reviewed stages: arm Delete and reach `status.deletionReady=true`; remove dependent access claims
 and merge/sync until their Kubernetes objects and finalizers are gone while the Stack still exists;
-then remove the request. See the decommission runbook in the project
-[README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook).
+then remove the request. See the [Governance → decommission runbook](../governance.md#decommission-runbook).
 
 ## Governance catalog bases
 

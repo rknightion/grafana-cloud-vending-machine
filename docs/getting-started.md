@@ -9,8 +9,8 @@ description: Prerequisites and the copy-edit-review-commit path to vending your 
     Every request, XRD, and Composition in this repository uses the API group
     `platform.example.org`. It is not a production API group. Replace it everywhere — XRDs,
     Compositions, examples, Argo CD health customizations, and your own documentation — before
-    treating a fork as production. See [Configuration](configuration.md) for the full list of
-    places it appears.
+    treating a fork as production. See [Configuration](configuration.md) for platform policy and
+    [Request Schema Reference](reference/request-schema.md) for the per-API fields.
 
 ## Prerequisites
 
@@ -36,22 +36,7 @@ Before you begin, you need:
 
 ## Pinned versions
 
-This reference pins versions and immutable artefacts rather than following latest tags:
-
-| Component | Version | Why |
-| --- | --- | --- |
-| Crossplane | 2.3.4 | Namespaced composite resources, namespaced managed resources, `ManagedResourceActivationPolicy` |
-| Grafana Crossplane provider | v2.14.0, immutable digest | Tagged release generated from Grafana Terraform provider 4.45.1 with the complete resource surface used here |
-| ESO Helm chart | 2.6.0 | Last release before the open AWS `PushSecret` creation regression in 2.7.0 and 2.8.0 |
-| Cosign verification image | 3.1.2, immutable digest | Verifies the Grafana provider and this repository's function package |
-| Composition function SDK | 0.7.1 | Pinned by the function Go module |
-| Vending composition function | `sha256:3e76c7a4d00ad9bab1c214eb7eed121c7af40adb5f040569bfcbefe26f1c2ecc` | Signed amd64/arm64 package built from commit `1c48c7e376a2` |
-
-The Grafana Crossplane provider describes itself as experimental and unsupported. This reference pins
-the v2.14.0 release by digest. Cosign verifies it against the provider's tag-publishing workflow
-identity scoped to `refs/tags/v2.14.0`. Test provider upgrades against non-production stacks before
-rollout. See [Installation](installation.md) for how the provider and function packages are verified
-before Crossplane installs them.
+Use the [installation version table and signature requirements](installation.md#status-and-pinned-versions). The 1.0 candidate is held pending the [documented admission repairs](migration-1.0.md).
 
 ## The copy-edit-review-commit path
 
@@ -118,7 +103,7 @@ spec:
     enabled: false
 ```
 
-See [Configuration](configuration.md) for what every field does.
+See [Request Schema Reference](reference/request-schema.md) for what every field does.
 
 The example omits `spec.lifecycle.externalResources`, so it uses the safe `Retain` default. An
 authorized `Delete` value is a decommission intent only: it requires an exact platform-owned
@@ -166,11 +151,35 @@ The request becomes `Ready` only when every currently desired composed resource 
 Rotating-token resources render one reconciliation after Grafana assigns the parent
 service-account or policy ID, so a brand-new request takes at least two reconciliation passes
 before its credentials exist.
+## Direct-apply command reference
+
+Copy the minimal catalog directory into `enabled/`, edit every placeholder, select a real Grafana Cloud region, and review every optional feature. Apply it directly for an evaluation:
+
+~~~bash
+cp -R examples/catalog/minimal enabled/my-stack
+kubectl apply -k enabled/my-stack
+~~~
+
+For GitOps, commit the enabled directory and let the ApplicationSet create one Argo CD Application for it.
+
+### 6. Observe reconciliation
+
+~~~bash
+kubectl get grafanacloudstackrequests -n grafana-vending
+kubectl describe grafanacloudstackrequest -n grafana-vending REPLACE_WITH_SLUG
+kubectl get managed -n grafana-vending
+kubectl get pushsecrets,externalsecrets -n grafana-vending
+kubectl get providerconfigs.grafana.m.crossplane.io -n grafana-vending
+~~~
+
+The request becomes Ready only when all currently desired composed resources report Ready. Rotating-token resources are intentionally rendered one reconciliation after Grafana assigns the parent service-account or policy ID.
+
 
 ## Next steps
 
 - [Installation](installation.md) — bootstrapping Crossplane, ESO, and the platform components.
-- [Configuration](configuration.md) — the complete request API field reference.
+- [Request Schema Reference](reference/request-schema.md) — the complete request API field reference.
+- [Configuration](configuration.md) — platform policy, profiles, and the organization registry.
 - [Secrets](secrets.md) — how per-organization credentials get in, and how per-stack tokens get
   out.
 - [Architecture](architecture.md) — the three-controller split and reconciliation model.

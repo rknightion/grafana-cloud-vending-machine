@@ -65,7 +65,7 @@ the `sso-create-only`, `sso-azuread`, and `sso-saml` catalog examples:
   (Admin/Editor/Viewer/None).
 
 All three are placeholder identities under `platform.example.org` and `identity.example.com` — do
-not point live SSO at them; see [Configuration](configuration.md) for the full placeholder
+not point live SSO at them; see [Getting started](getting-started.md) for the full placeholder
 warning.
 
 Each profile's OAuth client secret or SAML material is read through an `ExternalSecret` — see
@@ -85,8 +85,8 @@ non-SSO examples.
 
 ## Next steps
 
-- [Configuration](configuration.md) — the `spec.sso.*` request fields and platform-level
-  `ssoProfiles` shape.
+- [Request Schema Reference](reference/request-schema.md) — the `spec.sso.*` request fields.
+- [Configuration](configuration.md) — the platform-level `ssoProfiles` shape.
 - [Secrets](secrets.md) — how OAuth client secrets and SAML key material reach the cluster.
 - [Architecture → reconciliation](architecture.md#reconciliation-and-out-of-band-changes) — the
   full drift-behaviour table across every resource type, not just SSO.

@@ -54,9 +54,9 @@ never matches its Composition.
 
 **Fix.** Replace `platform.example.org` in every XRD `spec.group`, every Composition
 `spec.compositeTypeRef.apiVersion`, the stack Composition input `apiVersion`, the examples, and
-your own request manifests. See [Configuration](configuration.md) for the complete list of
-places it appears, and [Getting started](getting-started.md) for the warning at the top of that
-flow.
+your own request manifests. See [Configuration](configuration.md) for platform policy and
+[Request Schema Reference](reference/request-schema.md) for the per-API fields, and [Getting started](getting-started.md)
+for the warning at the top of that flow.
 
 ## `PushSecret` fails to create an AWS Secrets Manager target
 
@@ -110,8 +110,7 @@ kubectl get grafanacloudstackrequest -n grafana-vending <slug> -o yaml
 `deleteProtection=false` and ESO has finalized and successfully synced every enabled credential
 PushSecret at its current generation. Arming itself never deletes anything.
 
-**Fix.** If destruction is approved, follow the [decommission runbook in the project
-README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook). It uses
+**Fix.** If destruction is approved, follow the [decommission runbook](governance.md#decommission-runbook). It uses
 three reviewed stages: first arm Delete and wait for readiness; then remove dependent access claims,
 merge or sync, and wait until their Kubernetes objects and finalizers are gone while the Stack still
 exists; finally remove the request. Armed Delete affects only the Stack, administrator service
@@ -132,6 +131,58 @@ unit tests with coverage, `go vet`, YAML syntax parsing, and Kustomize rendering
 platform, AWS examples, and comprehensive catalog base. See
 [Security → public-release scanning](security.md#public-release-scanning) for what the scan
 itself covers.
+
+## Validation
+
+Run the complete local gate:
+
+~~~bash
+just check
+~~~
+
+It performs:
+
+- public-release scanning of the working tree and reachable Git history for source identifiers, credential prefixes, private keys, local paths, private endpoints, account IDs, JWT-like values, Kubernetes Secret manifests, sensitive file names, and tracked archives/key containers;
+- Go formatting and module consistency checks;
+- race-enabled unit tests with coverage;
+- go vet;
+- YAML syntax parsing;
+- Kustomize rendering for the platform, AWS examples, and comprehensive catalog base.
+
+The unit tests pin the desired-resource contracts, deterministic external identities, gating behavior for observed IDs, rotating-token parameters, least-privilege scopes, output-document shape, reconciliation modes, OAuth and SAML rendering, SSO Secret references, incident resources, the pinned Role initializer workaround, Team membership, administration and preferences, three-segment custom and fixed-role assignments, whole-target content ACLs, and safe composite status.
+
+Before making the repository public, also review repository settings, issues, workflow logs, releases, packages, and commit-author metadata. The automated history scan covers reachable local Git objects, but it cannot inspect deleted remote refs or external artifacts that are no longer present in a checkout.
+## Known limitations
+
+- The upstream Synthetic Monitoring Installation resource can report Ready/Synced without configuring the product. This module therefore requires an independently observed disabled Check through the derived credential. The full bootstrap chain and the disabled verifier's zero-execution behavior still require deployed validation; no live verification is claimed here.
+
+- The Grafana provider is experimental and may lag the Terraform provider.
+- Provider schemas and Grafana APIs may expose fields that do not round-trip cleanly; test drift rather than assuming.
+- The pinned provider requires the optional Role autoIncrementVersion field to be present because of an initializer defect; this reference pins it to false and omits version.
+- The pinned v2.14.0 release is digest-pinned and signed by the provider's tag workflow; future upgrades must move the tag-scoped certificate identity and both digest occurrences together.
+- AccessPolicy realm is a Block List at the pinned build where v2.13.0 generated a Block Set. This reference emits exactly one realm entry, so element ordering is not load-bearing here; a multi-realm policy would need to treat order as significant.
+- Stack status gained per-service allowlist URL fields at the pinned build. They are endpoint references for retrieving source IP addresses to allow, not a means of restricting inbound access to a stack.
+- The reference has no one-command destructive workflow; the authorized Delete path still requires
+  three reviewed stages and a readiness wait.
+- It does not provision Kubernetes, AWS infrastructure, DNS, identity providers, or incident relays.
+- It uses generic starter dashboards rather than a full observability content library.
+- Report, Enterprise, OnCall, plugin, and other resources require the relevant Grafana Cloud capabilities.
+- SSO profiles are examples and must be replaced with reviewed identity settings.
+- Built-in Viewer, Editor, and Admin definitions cannot be globally rewritten through the current provider; use SSO mapping, fixed/custom roles, and content ACLs.
+- Fixed role UIDs and available RBAC actions vary by Grafana version, edition, and entitlement; inventory and test them before assignment.
+- FolderPermission, DashboardPermission, RoleAssignment, NotificationPolicy, and similar whole-set APIs need exactly one declarative owner per external target.
+- Crossplane readiness reports only the child resources currently desired; an optional disabled domain is not health-checked.
+- Secret-store publication is eventually consistent with the configured ESO refresh interval.
+- A successful render or unit test does not prove acceptance by a specific Grafana Cloud region or account. Use a disposable stack for live acceptance.
+- This is Grafana Cloud only; self-managed Grafana feature toggles and deployment variants are not
+  supported.
+- Adaptive Metrics, Logs, Traces, and Profiles are deliberately out of scope. Use the UI and
+  ticket-based routes until a separately designed module is adopted.
+- Datasource LBAC requires Grafana 11.5 or later, a Cloud or Enterprise entitlement, basic auth,
+  and governance of inherited/fixed/independently managed grants that can bypass its rules.
+- Fleet usage groups are UI-only and Advanced-tier. Agent Observability plugin availability and
+  permissions, and Assistant terms, remain environment prerequisites.
+
 
 ## Next steps
 

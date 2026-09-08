@@ -48,4 +48,4 @@ Kubernetes objects while orphaning external resources. `Delete` requires an exac
 namespace/name/UID/profile tuple in platform-owned `deletionAuthorizations`, empty by default. The decommission
 has three reviewed stages: arm Delete and wait for `status.deletionReady=true`; remove dependent
 access claims and merge/sync until their Kubernetes objects and finalizers are gone while the Stack
-still exists; then remove the request. See the [decommission runbook](../README.md#decommission-runbook).
+still exists; then remove the request. See the [decommission runbook](../docs/governance.md#decommission-runbook).

@@ -6,6 +6,73 @@ cd "$repo_root"
 
 ./scripts/public-release-scan.sh
 
+ruby -ryaml -e '
+  # platform/kustomization.yaml is the deployment registry for the platform
+  # documents. Discover manifests recursively so a new directory cannot escape
+  # coverage. The Kustomization itself and OCI package metadata are deliberately
+  # excluded: neither is a Kubernetes resource to install through this base.
+  kustomization = YAML.safe_load(File.read("platform/kustomization.yaml"))
+  listed = kustomization.fetch("resources", []) || []
+  excluded = ["platform/kustomization.yaml", "platform/function/package/crossplane.yaml"]
+  expected = (Dir.glob("platform/**/*.{yaml,yml}") - excluded).
+    map { |path| path.delete_prefix("platform/") }.sort
+  missing = expected - listed
+  extra = listed - expected
+  abort "platform/kustomization.yaml: missing resources: #{missing.join(", ")}" unless missing.empty?
+  abort "platform/kustomization.yaml: unexpected resources: #{extra.join(", ")}" unless extra.empty?
+
+  # A composite renderer is the implementation of an XRD composite kind.
+  # Both sets are declared in this repository, so a missing implementation or
+  # a renderer that has no API definition is always a repository defect.
+  xrd_kinds = Dir.glob("platform/apis/*.{yaml,yml}").flat_map do |path|
+    YAML.load_stream(File.read(path)).compact.select do |document|
+      document["kind"] == "CompositeResourceDefinition"
+    end.map { |document| document.dig("spec", "names", "kind") }
+  end.sort
+  renderer_kinds = File.read("platform/function/fn.go").scan(/^\s*"([^"]+)":\s*\{/).flatten.sort
+  missing = xrd_kinds - renderer_kinds
+  extra = renderer_kinds - xrd_kinds
+  abort "platform/function/fn.go: compositeRenderers missing XRD kinds: #{missing.join(", ")}" unless missing.empty?
+  abort "platform/function/fn.go: compositeRenderers have no XRD: #{extra.join(", ")}" unless extra.empty?
+
+  # Check the explicitly declared inventory plurals here. Go registry coverage
+  # tests additionally resolve every renderer GVK against the pinned CRD map.
+  inventory_plurals = File.read("platform/function/inventory.go").scan(/^\s*plural:\s*"([^"]+)"/).flatten
+  activation_policy = YAML.load_stream(File.read("platform/provider/provider-grafana.yaml")).compact.find do |document|
+    document["kind"] == "ManagedResourceActivationPolicy"
+  end
+  abort "platform/provider/provider-grafana.yaml: missing ManagedResourceActivationPolicy" if activation_policy.nil?
+  activated = activation_policy.dig("spec", "activate") || []
+  missing = inventory_plurals - activated
+  abort "platform/provider/provider-grafana.yaml: ManagedResourceActivationPolicy missing inventory resources: #{missing.join(", ")}" unless missing.empty?
+
+  # Installation manifests are self-contained signed-package pairs. Discover
+  # every package resource and verification Job instead of maintaining the two
+  # current filenames by hand, then require the exact digest to agree.
+  Dir.glob("platform/**/*.{yaml,yml}").sort.each do |path|
+    documents = YAML.load_stream(File.read(path)).compact
+    packages = documents.select do |document|
+      %w[Function Provider].include?(document["kind"]) && document.dig("spec", "package").is_a?(String)
+    end
+    verification_jobs = documents.select do |document|
+      args = document.dig("spec", "template", "spec", "containers", 0, "args") || []
+      document["kind"] == "Job" && args.include?("verify") && args.any? { |argument| argument.include?("@sha256:") }
+    end
+    if packages.empty?
+      abort "#{path}: verification Job has no package resource" unless verification_jobs.empty?
+      next
+    end
+    abort "#{path}: package resource has no verification Job" if verification_jobs.empty?
+    abort "#{path}: expected one package resource and one verification Job" unless packages.length == 1 && verification_jobs.length == 1
+
+    installed = packages.fetch(0).dig("spec", "package")
+    verified = verification_jobs.fetch(0).dig("spec", "template", "spec", "containers", 0, "args").grep(/@sha256:/)
+    abort "#{path}: package resource has no digest" unless installed.include?("@sha256:")
+    abort "#{path}: verification Job must carry exactly one digest argument" unless verified.length == 1
+    abort "#{path}: verifies #{verified.fetch(0)} but installs #{installed}" unless verified.fetch(0) == installed
+  end
+'
+
 if [[ -n $(gofmt -l platform/function/*.go) ]]; then
   echo "Go source is not formatted:" >&2
   gofmt -l platform/function/*.go >&2
@@ -49,29 +116,17 @@ for example_dir in "${catalog_dirs[@]}"; do
     echo "Missing example kustomization: $example_dir/kustomization.yaml" >&2
     exit 1
   fi
+  ruby -ryaml -e '
+    kustomization_path, example_dir = ARGV
+    listed = YAML.safe_load(File.read(kustomization_path)).fetch("resources", []) || []
+    expected = Dir.glob(File.join(example_dir, "*.{yaml,yml}")).reject { |path| File.basename(path) == "kustomization.yaml" }.map { |path| File.basename(path) }.sort
+    missing = expected - listed
+    extra = listed - expected
+    abort "#{kustomization_path}: missing resources: #{missing.join(", ")}" unless missing.empty?
+    abort "#{kustomization_path}: unexpected resources: #{extra.join(", ")}" unless extra.empty?
+  ' "$example_dir/kustomization.yaml" "$example_dir"
   kubectl kustomize "$example_dir" >/dev/null
 done
-
-ruby -ryaml -e '
-  # The signature-verification jobs carry their digest in argv, and the package
-  # resources carry it in spec.package. Nothing links the two, so a package bump
-  # that forgets the job leaves a green verification of the previous digest.
-  def digests(path)
-    documents = YAML.load_stream(File.read(path)).compact
-    job = documents.find { |d| d["kind"] == "Job" }
-    package = documents.find { |d| %w[Function Provider].include?(d["kind"]) }
-    abort "#{path}: expected one verification Job and one package resource" if job.nil? || package.nil?
-    args = job.dig("spec", "template", "spec", "containers", 0, "args") || []
-    [args.grep(/@sha256:/).first, package["spec"]["package"]]
-  end
-
-  ["platform/function/install.yaml", "platform/provider/provider-grafana.yaml"].each do |path|
-    verified, installed = digests(path)
-    abort "#{path}: verification job has no digest argument" if verified.nil?
-    next if verified == installed
-    abort "#{path}: verifies #{verified} but installs #{installed}"
-  end
-'
 
 ruby -ryaml -e '
   document = YAML.safe_load(File.read("deploy/argocd/requests-applicationset.yaml"))

@@ -56,6 +56,7 @@ Operations = [
     { Security = "security.md" },
     { Troubleshooting = "troubleshooting.md" },
     { FAQ = "faq.md" },
+    { "Migration and adoption" = "migration-1.0.md" },
 ]
 
 [assets]

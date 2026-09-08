@@ -5,12 +5,68 @@ description: Bootstrapping Crossplane, External Secrets Operator, and the platfo
 
 # Installation
 
+The 1.0 candidate is held pending the [admission repairs described in the migration guide](migration-1.0.md). The steps below are for use after that validation succeeds.
+
 This page covers bootstrapping the platform itself. Once it is installed and healthy, vending a
 stack is the copy-edit-review-commit path in [Getting started](getting-started.md).
 
 Review every manifest and replace `platform.example.org`, the region, repository URLs, secret
 paths, profiles, and the function package reference before treating either path below as
-production. See [Configuration](configuration.md) for the full list of what to change.
+production. See [Configuration](configuration.md) for platform policy and profiles, and [Request Schema Reference](reference/request-schema.md)
+for the per-API fields.
+## Status and pinned versions
+
+This reference pins versions and immutable artifacts instead of following latest tags.
+
+| Component | Version | Why |
+| --- | --- | --- |
+| Crossplane | 2.3.4 | Required for namespaced composite resources, namespaced managed resources, and ManagedResourceActivationPolicy |
+| Grafana Crossplane provider | v2.14.0, immutable digest | Tagged release generated from Grafana Terraform provider 4.45.1 with the complete upstream resource surface used here |
+| ESO Helm chart | 2.6.0 | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
+| Cosign verification image | 3.1.2, immutable digest | Verifies the Grafana provider and this repository's function package |
+| Composition function SDK | 0.7.1 | Pinned by the function Go module |
+| Vending composition function | sha256:09ff21ddf5436d0f0165ac7849d86ab4c22a6633551d91ab6aab4edc48f88652 | Signed amd64/arm64 package; canonical pin in `platform/function/install.yaml` |
+
+The Grafana Crossplane provider describes itself as experimental and unsupported. The v2.14.0 tag is
+generated from Terraform provider 4.45.1 and carries the resource surface used by this reference. It
+is pinned by digest and Cosign-verified against the provider's `ci_tag.yaml` identity scoped to
+`refs/tags/v2.14.0`. Test provider upgrades and drift behavior against non-production stacks before
+rollout.
+
+ESO issue [external-secrets/external-secrets#6593](https://github.com/external-secrets/external-secrets/issues/6593) remains open. Versions 2.7.0 and 2.8.0 send an empty replica-region request when creating an AWS Secrets Manager PushSecret target, which AWS rejects. Do not add a replica region merely to hide the bug. Upgrade after a fixed release exists and prove creation of a brand-new remote secret before removing the pin.
+
+## Supply-chain controls
+
+The Grafana provider manifest:
+
+- pins an immutable OCI digest, carried identically in spec.package and in the verification job's argv;
+- verifies Grafana's keyless signature against the exact publishing workflow identity scoped to `refs/tags/v2.14.0`;
+- runs the provider with SafeStart;
+- activates only the managed-resource kinds used by this reference.
+
+The repository function workflow:
+
+1. tidies and checks the Go module;
+2. runs race-enabled tests and vet;
+3. builds amd64 and arm64 distroless images from pinned bases;
+4. assembles a multi-platform Crossplane package;
+5. publishes an immutable commit-derived version;
+6. signs the OCI index with keyless Cosign.
+
+platform/function/install.yaml must pin the resulting signed digest for production. A fork must also change the package repository and the expected Cosign workflow identity. If the package is private, provide a dedicated read-only registry credential through an external secret; do not commit a Docker config or reuse a developer token.
+
+The supplied install manifest verifies the pinned function package against this repository's exact main-branch workflow identity before Crossplane installs it. The verification Job name contains the digest prefix, so changing the digest creates a new gate rather than reusing an old successful Job.
+
+
+## Releases
+
+Pushes to `main` run release-please. Use Conventional Commits: `feat:` creates a minor release;
+`fix:` and `perf:` create patch releases; a `!` marker or `BREAKING CHANGE:` footer records a
+breaking change. The manifest starts at `0.1.0`; a pre-1.0 breaking change advances to `1.0.0`.
+
+Release automation mints a short-lived, repository-scoped broker token. It never needs a
+long-lived personal token. Broker or OpenBao reachability and unseal state are infrastructure
+prerequisites, not evidence that the source validation gate failed.
 
 ## Direct installation
 
@@ -85,25 +141,74 @@ profile definitions are ready — it contains OAuth inputs for the example `gene
 `azuread` profiles plus the incident relay input. The example SAML profile uses public IdP
 metadata and needs no committed key material.
 
-### 5. Enable one request
+### 5. Hand off to the first-request guide
 
-See [Getting started](getting-started.md) for the full copy-edit-review-commit path. For a quick
-evaluation:
+The platform bootstrap is complete once the provider, function, `ProviderConfig`, and secret
+handoffs are healthy. Follow [Getting started](getting-started.md) for the end-to-end
+copy-edit-review-commit flow, including the first request and reconciliation checks.
+### Installation command reference
 
-```bash
-cp -R examples/catalog/minimal enabled/my-stack
-kubectl apply -k enabled/my-stack
-```
+These steps are suitable for a disposable or evaluation cluster. Review every manifest and replace the API group, region, repository, secret paths, profiles, and package reference before treating the result as production.
 
-### 6. Observe reconciliation
+### 1. Prepare the repository
 
-```bash
-kubectl get grafanacloudstackrequests -n grafana-vending
-kubectl describe grafanacloudstackrequest -n grafana-vending REPLACE_WITH_SLUG
-kubectl get managed -n grafana-vending
-kubectl get pushsecrets,externalsecrets -n grafana-vending
-kubectl get providerconfigs.grafana.m.crossplane.io -n grafana-vending
-```
+Fork or copy the repository, choose an API group under a domain you control, and update platform.example.org everywhere. Change the repository URLs and function package path to your fork.
+
+Keep `enabled/` empty until the controllers, provider, secret store, and every registered
+organization ProviderConfig are healthy.
+
+### 2. Install Crossplane
+
+~~~bash
+helm upgrade --install crossplane crossplane \
+  --repo https://charts.crossplane.io/stable \
+  --version 2.3.4 \
+  --namespace crossplane-system \
+  --create-namespace \
+  --values deploy/crossplane/values.yaml
+~~~
+
+Wait for the Crossplane and RBAC manager deployments to become Available.
+
+### 3. Install ESO
+
+~~~bash
+helm upgrade --install external-secrets external-secrets \
+  --repo https://charts.external-secrets.io \
+  --version 2.6.0 \
+  --namespace external-secrets \
+  --create-namespace \
+  --values deploy/external-secrets/values.yaml
+~~~
+
+Configure workload identity before applying the SecretStore. Confirm every organization credential
+exists at its configured remote path.
+
+### 4. Install the platform and environment configuration
+
+~~~bash
+kubectl create namespace grafana-vending
+kubectl apply -k platform
+kubectl apply -k deploy/aws
+~~~
+
+Wait for the provider and function:
+
+~~~bash
+kubectl wait provider.pkg.crossplane.io/provider-grafana \
+  --for=condition=HealthyPackageRevision \
+  --timeout=10m
+
+kubectl wait function.pkg.crossplane.io/function-grafana-vending \
+  --for=condition=HealthyPackageRevision \
+  --timeout=10m
+
+kubectl get providerconfig.grafana.m.crossplane.io -n grafana-vending
+~~~
+
+The optional profile secrets are intentionally excluded from deploy/aws/kustomization.yaml. Apply deploy/aws/optional-profile-secrets.yaml only after the corresponding remote secrets and profile definitions are ready. The file includes OAuth inputs for example-oidc and example-azuread plus the incident relay input; the example-saml profile uses public IdP metadata and needs no committed key material.
+
+
 
 ## Argo CD installation
 
@@ -155,8 +260,36 @@ first reviewed request change arms intent and waits for `status.deletionReady=tr
 credential PushSecrets); Stage 2 removes dependent access claims and waits for their Kubernetes
 objects and finalizers to be gone while the Stack still exists; Stage 3 removes the request. Armed
 Delete removes only the Stack, administrator service account/token, telemetry
-access policy/token, and administrator/telemetry `PushSecret` documents. See the decommission runbook in
-the project [README](https://github.com/rknightion/grafana-cloud-vending-machine#decommission-runbook).
+access policy/token, and administrator/telemetry `PushSecret` documents. See the
+[decommission runbook](governance.md#decommission-runbook).
+
+## Upgrade runbook
+
+For a provider upgrade:
+
+1. read the provider release and the underlying Terraform provider changelogs;
+2. compare generated CRD schemas for every activated kind;
+3. verify the OCI signature and pin the new digest;
+4. run function unit/render tests against the new schemas;
+5. deploy to a cluster with a disposable stack;
+6. make controlled out-of-band changes for each reconciliation mode;
+7. prove both rotating-token paths and creation of new PushSecret targets;
+8. inspect the desired and observed state of every child before promotion.
+
+For a function upgrade:
+
+1. keep the XRD API backward compatible within v1beta1;
+2. add tests for the new desired-resource contract;
+3. publish and sign the multi-platform package;
+4. verify the signature against the exact workflow identity;
+5. pin the immutable digest in platform/function/install.yaml;
+6. let Automatic Composition updates reconcile a disposable request first.
+
+For a Crossplane upgrade:
+
+1. read the release notes for changes to package revision naming, because a new revision id re-mints a revision for every installed package and exercises the runtime hand-off on all of them at once;
+2. keep serviceAccountTemplate.metadata.name unset in both DeploymentRuntimeConfigs. Crossplane names the runtime ServiceAccount after the revision unless the runtime config supplies a name, and a supplied name makes it a single object shared by every revision. Package runtime objects are applied with server-side apply and ownerReferences is a merge-keyed list, so the incoming revision's controller reference merges alongside the outgoing one and the API server rejects the object with "Only one reference can have Controller set to true". crossplane/crossplane#7714 fixed this for the Service and the TLS secrets and left the ServiceAccount on the plain applicator;
+3. after the upgrade, confirm both packages report Healthy=True and that a runtime pod exists for each. A package that is Installed=True Healthy=False with no pod fails the pipeline closed with DeadlineExceeded and no children to pick from, which stops every request from reconciling, deletions included.
 
 ## Next steps
 

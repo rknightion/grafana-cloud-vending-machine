@@ -120,6 +120,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
+  # Activation is a deliberately reviewed subset of provider CRDs, not every
+  # installed kind. The gate checks all emitted kinds against the pinned CRD map.
   activate:
     - stacks.cloud.grafana.m.crossplane.io
     - stackserviceaccounts.cloud.grafana.m.crossplane.io
