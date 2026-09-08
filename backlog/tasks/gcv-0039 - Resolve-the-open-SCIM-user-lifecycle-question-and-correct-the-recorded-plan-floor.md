@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-08 17:03'
-updated_date: '2026-09-08 18:33'
+updated_date: '2026-09-08 18:39'
 labels: []
 dependencies: []
 ordinal: 39000
@@ -28,8 +28,8 @@ GCV-0028 decided SCIM stays out of scope and closed with two explicitly unresolv
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -62,4 +62,6 @@ No live tenant, Grafana Cloud API, identity provider or secret store was contact
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Parked correctly: all-plan availability correction recorded; disabled-user-sync lifecycle remains unresolved. Resume only with the exact dated vendor statement or separately authorized controlled disposable evidence specified in the notes.
+
+Completing checkpoint SHA 5c482ffcf2100714cfe1c3751733d805a501489a; hosted Validate 34263860085 success. Implementation SHA 9c559d105c5cd7761db3c9ca290150d35c936175; hosted Validate 34263352393 success. Local just check passed with 85.4% coverage. Main still has zero real admission cases and one skipped placeholder; these tasks do not claim admission completion. The all-plan correction is published and the unresolved lifecycle remains Parked as required.
 <!-- SECTION:FINAL_SUMMARY:END -->

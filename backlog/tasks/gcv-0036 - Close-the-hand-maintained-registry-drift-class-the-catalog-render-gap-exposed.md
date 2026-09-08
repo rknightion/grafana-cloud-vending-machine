@@ -1,10 +1,10 @@
 ---
 id: GCV-0036
 title: Close the hand-maintained registry drift class the catalog render gap exposed
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 18:33'
+updated_date: '2026-09-08 18:39'
 labels: []
 dependencies: []
 ordinal: 36000
@@ -18,16 +18,16 @@ Four catalog directories shipped with no kustomization.yaml and failed to render
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Every hand-maintained registry in the repository is inventoried, each recorded as either derivable-and-now-asserted or as deliberately manual with the reason
-- [ ] #2 For each registry that can drift, the gate asserts its coverage against the thing it is supposed to enumerate
-- [ ] #3 Each new assertion is proven by a negative control: an entry is removed, the gate fails naming it, and the removal is reverted
-- [ ] #4 A registry left deliberately manual carries a comment at its definition saying so, so the next agent does not silently automate it
+- [x] #1 Every hand-maintained registry in the repository is inventoried, each recorded as either derivable-and-now-asserted or as deliberately manual with the reason
+- [x] #2 For each registry that can drift, the gate asserts its coverage against the thing it is supposed to enumerate
+- [x] #3 Each new assertion is proven by a negative control: an entry is removed, the gate fails naming it, and the removal is reverted
+- [x] #4 A registry left deliberately manual carries a comment at its definition saying so, so the next agent does not silently automate it
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -61,3 +61,9 @@ Root independently compared every one of the 54 compact-map entries to the exact
 
 Negative controls are preserved in codex/wave4/C-negative-controls.log, C3-* logs and C-root-* logs. They cover missing platform/API/catalog entries, missing verifier, missing inventory and k6 activation, provider-map pin mismatch, constructor alias/direct literal/package initializer escapes, and malformed resources or missing source-file diagnostics. Each control fails by the affected path/kind and the restored sources pass. CodeRabbit returned four minor findings: three fixed for clear failures or unused code; the read-only Close return wrapper was left because it changes no behavior or configured gate.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Closed the registry drift class with recursive manifest/catalog discovery, XRD/renderer agreement, discovered package/verifier matching, and a source-derived census of 65 constructor calls / 54 provider-managed GVKs verified against the exact pinned CRD artifact. Manual selection boundaries are commented. Removed-entry, pin-mismatch and unsupported-constructor controls fail by path/kind; restored checks pass. Completing checkpoint SHA 5c482ffcf2100714cfe1c3751733d805a501489a; hosted Validate 34263860085 success. Implementation SHA 9c559d105c5cd7761db3c9ca290150d35c936175; hosted Validate 34263352393 success. Local just check passed with 85.4% coverage. Main still has zero real admission cases and one skipped placeholder; these tasks do not claim admission completion.
+<!-- SECTION:FINAL_SUMMARY:END -->
