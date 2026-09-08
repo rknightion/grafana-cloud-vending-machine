@@ -4,6 +4,7 @@ title: Onboard release-please so a breaking API change is recorded as a version
 status: To Do
 assignee: []
 created_date: '2026-09-08 08:08'
+updated_date: '2026-09-08 08:18'
 labels: []
 dependencies: []
 priority: medium
@@ -36,3 +37,29 @@ The OpenBao permission set, policy and JWT role are an external secret-store mut
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+OpenBao side provisioned and read back 2026-09-08, before any wave work. All three objects are live and
+structurally identical to the working autopi-ha consumer, which is the reference to copy in the
+workflow:
+
+- permission set release-please-grafana-cloud-vending-machine: installation 152037622 (rknightion),
+  repositories scoped to this repository alone, permissions contents=write and pull_requests=write.
+- policy gha-release-please-grafana-cloud-vending-machine: create/read/update on that one token path
+  and nothing else. No token wildcard.
+- JWT role of the same name, binding repository owner id, this repository id, ref refs/heads/main and
+  runner_environment github-hosted, with a 5 minute TTL and 3 uses.
+
+Because the permission set and the role share one name, the workflow may default the role and needs
+only the permission-set input. Passing only permission-set when the two names diverge is what killed
+the first docs-sync rollout with a 400; it is safe here precisely because they match.
+
+TS_WIF_CLIENT_ID and TS_WIF_AUDIENCE already exist as repository secrets and are identifiers rather
+than credentials, so this task adds no repository secret. The job needs permissions id-token write or
+the OIDC request returns nothing and the mint step fails before anything else.
+
+Releases now depend on camden being up, unsealed and on the tailnet. A failure at the mint step is
+infrastructure, not the commit.
+<!-- SECTION:NOTES:END -->
