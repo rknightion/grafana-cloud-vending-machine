@@ -4,7 +4,7 @@ title: Decide the SCIM and Team Sync direction before the tenant count grows
 status: Done
 assignee: []
 created_date: '2026-08-21 12:18'
-updated_date: '2026-09-08 16:43'
+updated_date: '2026-09-08 18:33'
 labels: []
 dependencies: []
 ordinal: 28000
@@ -69,6 +69,14 @@ The identity-provider half has no declarative coverage, so this decision accepts
 configuration per tenant. State that in the README next to the API rather than only here.
 
 Correction for wave 3: the binding goal supersedes the older in-scope note. SCIM is out of scope; external-group mapping remains the supported identity model. The lane records the frozen decision and admission enforcement. Plan floor and disabled-user-sync semantics remain explicitly unresolved under the no-network decision brief; evidence required to settle them will be recorded.
+
+## Superseding correction - 2026-09-08
+
+This note supersedes only the historical plan-floor statement. The repository owner has decided that SCIM is available on all Grafana Cloud plans; there is no Pro-and-above or Advanced-only entitlement floor. Earlier plan-floor wording remains as historical context and must not guide future admission decisions.
+
+The lifecycle question remains unresolved: current Grafana documentation describes `user_sync_enabled` only while it is enabled, when SCIM requests can create, update, and deactivate users. It also says a SCIM-provisioned user cannot be deleted and can be deactivated through the identity provider. It does not state whether disabling `user_sync_enabled` removes, deactivates, suspends, or leaves already-provisioned users unchanged. Do not infer any of those outcomes.
+
+This is settled only by either an authoritative, dated Grafana Cloud statement explicitly describing the post-disable state of already-provisioned users, or a controlled disposable Grafana Cloud test that records the same SCIM user before and after disabling user sync, without an identity-provider membership or provisioning change, and verifies the user record, active state, and authentication result.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

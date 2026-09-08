@@ -3,7 +3,7 @@ id: doc-0002
 title: Wave operating model
 type: guide
 created_date: '2026-08-14 16:36'
-updated_date: '2026-09-08 08:09'
+updated_date: '2026-09-08 18:33'
 ---
 This document carries **only** what is specific to this repository. The campaign model itself —
 run contract and run modes, the routing contract, authority and the thread pool, child lane briefs,
@@ -61,9 +61,12 @@ just check
 One command, and it is the whole local gate: it runs `scripts/validate.sh`, byte for byte the same
 script the hosted `Validate public reference` workflow runs, covering the public-release scan,
 `gofmt`, `go mod tidy` with a `git diff --exit-code` on `go.mod`/`go.sum`, race-enabled tests with
-coverage, `go vet`, a YAML parse of every tracked YAML document, four Kustomize renders, the
-example-README coverage check, the digest-agreement check on both signed packages, and the
-ApplicationSet watch-path assertion. `definition_of_done` in `backlog/config.yml` carries it plus
+coverage, `go vet`, a YAML parse of every tracked YAML document, platform and environment Kustomize
+renders plus every discovered catalog base, recursive platform-manifest coverage, XRD/renderer
+registry agreement, emitted-kind activation coverage against the pinned provider CRD map, discovered
+signed-package/verifier digest agreement, and the exact ApplicationSet watch-path assertion. The
+admission harness remains parked: its pre-pass placeholder is skipped, so this gate is not proof of
+complete API-server admission. `definition_of_done` in `backlog/config.yml` carries it plus
 the hosted run, so every task inherits both.
 
 Discover the task surface rather than guessing it: `just --list`, `just --dump --dump-format json`,
@@ -104,9 +107,9 @@ it rather than assuming it is still needed.
 Kustomize patches forces Kustomize rendering for *every* selected catalog path, so a directory
 without a `kustomization.yaml` fails before deployment even though it validates in isolation. This
 shipped once: `examples/catalog/minimal` lacked one and broke a consumer render. The gate now checks
-README coverage, but it does not check that every catalog directory renders — only `comprehensive`
-and `minimal` are rendered explicitly. **Adding a catalog directory means adding its render to
-`scripts/validate.sh` too.**
+README and Kustomization coverage, discovers every catalog directory, checks all sibling manifest
+entries, and renders every directory. **Adding a catalog directory requires no hand-kept render-list
+entry.** A missing directory manifest or resource entry must fail the gate by path.
 
 **The ApplicationSet must watch only top-level `enabled/*`.** `scripts/validate.sh` asserts the
 generator's `directories` equals exactly `[{path: enabled/*}]`. `enabled/` starts empty and inert;
@@ -137,10 +140,10 @@ Natural boundaries, each with a single owner per wave:
   times in one file and always moves together.
 - `examples/catalog/*` — one lane may own several directories; they do not interact.
 - `deploy/` — installation and GitOps integration.
-- `docs/` and `README.md` — the README is a single 54 KB file and therefore a single owner, always.
-  Where several lanes each need a README section, the README owner is **scheduled last with declared
-  dependencies on those lanes** and writes the whole thing once from their briefs. That is a
-  deliberate exception to a lane writing its own documentation, not an accidental bottleneck.
+- `docs/` — one subject per page, following the `docs.toml` navigation. Lanes own their subject
+  pages; the wiring pass owns navigation and shared manifest updates. `README.md` is first-minute
+  orientation and a link map only. The former single-owner README exception and its scheduling
+  dependency are retired: a subject lane can deliver its documentation with its implementation.
 - `scripts/validate.sh` — an integration file. Never edited by two lanes in parallel; changes to it
   belong to the wiring pass, because it is what every other lane is being judged by.
 

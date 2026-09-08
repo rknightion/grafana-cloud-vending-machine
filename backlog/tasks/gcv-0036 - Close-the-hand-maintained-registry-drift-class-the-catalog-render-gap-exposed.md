@@ -4,7 +4,7 @@ title: Close the hand-maintained registry drift class the catalog render gap exp
 status: In Progress
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 17:20'
+updated_date: '2026-09-08 18:33'
 labels: []
 dependencies: []
 ordinal: 36000
@@ -35,3 +35,29 @@ Four catalog directories shipped with no kustomization.yaml and failed to render
 <!-- SECTION:PLAN:BEGIN -->
 Wave 4: implement the commissioned lane after the pushed root harness pre-pass; preserve frozen schemas and ownership; return acceptance evidence and required negative controls; root integrates, reviews, validates locally and at the exact hosted SHA, then reconciles status.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 4 registry implementation delivered at 9c559d105c5cd7761db3c9ca290150d35c936175; hosted Validate 34263352393 success, local just check passed at 85.4% coverage.
+
+| Registry | Decision and evidence |
+|---|---|
+| Platform Kustomization resources | Recursively enumerate platform YAML/YML; exclude only the Kustomization itself and OCI package metadata; missing entries fail by path. |
+| XRD composite kinds and renderer registry | Compare every XRD YAML document with registry keys: 14 kinds from 13 API paths, including both access APIs. |
+| Catalog bases and sibling resources | Enumerate all 18 directories, require README and Kustomization, require every sibling manifest, render every directory. |
+| Signed package/verifier pairs | Discover every Function/Provider install under platform, require one paired verification Job and exact digest equality. |
+| ManagedResourceActivationPolicy | Selection stays deliberately manual. Coverage derives 54 emitted provider-managed GVKs from actual Go constructors and resolves them against a compact map verified from all 297 CRDs in the exact pinned provider artifact. Current 55 activations retain the separately operated Connection resource. |
+| Inventory kind/plural table | Existing actual Go table contributes the full dynamic input set; pinned-provider mapping verifies the plural for each emitted kind. The shell checker independently checks the eight explicit inventory plurals. |
+| Composition support RBAC | Deliberately manual and commented at definition: this role grants External Secrets support access, whereas provider controller access is supplied through provider CRDs. Rendered GVKs do not mechanically define this role. |
+| AWS base resource selection | Deliberately manual and commented at definition: optional profile-secret manifests are opt-in, not automatic sibling resources. |
+| ApplicationSet directories | Existing exact policy assertion remains `[{path: enabled/*}]`; no other watch path is introduced and enabled stays empty. |
+
+The compact CRD map is an extracted provider schema artifact, not an independently maintained list of what the renderer emits. The Go census derives the latter and requires exact set agreement. A changed provider pin fails until the map is regenerated from its corresponding artifact; no network request is hidden inside the gate.
+
+The production census is 65 calls to newDesired, yielding 57 unique GVKs: 54 provider-managed targets and three explicit exclusions (ProviderConfig, ExternalSecret and PushSecret). A separate direct core Secret constructor is verified and excluded with its reason. Dynamic kind sources use the actual inventory tables, product table and content-access enum; unresolved forms fail by file and line. The checker tolerates unrelated source-line shifts and rejects non-call newDesired references and unsupported direct DesiredComposed literals.
+
+Root independently compared every one of the 54 compact-map entries to the exact retained provider artifact: all matched. The one retained activation beyond those 54 is the separately configured Connection resource.
+
+Negative controls are preserved in codex/wave4/C-negative-controls.log, C3-* logs and C-root-* logs. They cover missing platform/API/catalog entries, missing verifier, missing inventory and k6 activation, provider-map pin mismatch, constructor alias/direct literal/package initializer escapes, and malformed resources or missing source-file diagnostics. Each control fails by the affected path/kind and the restored sources pass. CodeRabbit returned four minor findings: three fixed for clear failures or unused code; the read-only Close return wrapper was left because it changes no behavior or configured gate.
+<!-- SECTION:NOTES:END -->
