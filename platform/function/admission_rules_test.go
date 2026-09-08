@@ -64,7 +64,7 @@ func TestAdmissionRules(t *testing.T) {
 		{
 			name:            "explicit null SCIM is refused",
 			expectedMessage: "SCIM is out of scope; use external-group mapping",
-			skipReason:      "blocked: Kubernetes 1.37 prunes and admits explicit spec.scim: null; another schema design requires owner authority",
+			skipReason:      "blocked: under the shipped nullable: true schema the API server PERSISTS spec.scim: null while CEL has() treats it as absent; removing nullable prunes it instead. Both admit. renderStack still refuses the persisted key, so the platform fails closed at reconcile. Another schema design requires owner authority",
 			run: createRule(
 				func() *unstructured.Unstructured { return stackRequest("scimnullok", nil) },
 				func() *unstructured.Unstructured { return stackRequest("scimnull", map[string]any{"scim": nil}) },
