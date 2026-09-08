@@ -1,10 +1,10 @@
 ---
 id: GCV-0035
 title: 'Prove every fail-closed CEL rule actually rejects, against a real API server'
-status: Parked
+status: To Do
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 18:19'
+updated_date: '2026-09-08 19:15'
 labels: []
 dependencies:
   - GCV-0034
@@ -46,6 +46,14 @@ Wave 4 real-apiserver diagnostic ran 16 leaf tests: 15 passed, 1 failed, 0 skipp
 Negative control, verbatim: baseline output: SCIM is out of scope; use external-group mapping. Weakened scratch rule output: admitted. Restored rule output: SCIM is out of scope; use external-group mapping. Full API-server errors and all cases are preserved in codex/wave4/B-admission-rules-real.log; the owned test artifact is codex/wave4/lane-B-artifact.go. The unrelated subnet restriction belongs to GrafanaVendingConfig Composition input, not an XRD: both focused configured-profile and explicit-empty renderer tests passed. That earlier command also contained one skipped pre-pass placeholder, separately from the later zero-skip real suite.
 
 Main has not received the implementation and still has the false readiness seam. Resume: explicitly authorize a presence/schema design that preserves omission and rejects explicit null; rerun the unchanged null case plus all rejection/allowed/update pairs and the weaken/restore control, then integrate with GCV-0034. Removing nullable alone is not a verified fix because pruning must be tested. No completing hosted validation or delivered admission gate is claimed.
+
+## Resume authority granted - 2026-09-08 (wave 4 review)
+
+The repository owner authorized removing nullable: true from spec.scim in platform/apis/stack-v1beta1.yaml, so that an explicit spec.scim: null fails structural type validation instead of slipping past !has(self.scim). Accepting explicit null as equivalent to omission, and attaching a property-level CEL rule to the nullable field, were both offered and both rejected.
+
+The grant is conditional and the condition is the acceptance check, not a caveat: the repair is only accepted once a test proves the API server ERRORS on explicit null rather than PRUNING it. A pruned field is admitted, which is the same failure under a different mechanism. Prove the behaviour before claiming the fix. Assert on the resulting message, whatever it is - a structural type error is a different message from the SCIM rule message, so AC #2's own-message requirement is satisfied by the type error for this one case and by the rule message for the other fourteen.
+
+No other schema change is authorized by this grant.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

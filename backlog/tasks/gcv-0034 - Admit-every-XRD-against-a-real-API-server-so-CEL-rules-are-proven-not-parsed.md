@@ -1,10 +1,10 @@
 ---
 id: GCV-0034
 title: 'Admit every XRD against a real API server so CEL rules are proven, not parsed'
-status: Parked
+status: To Do
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 18:19'
+updated_date: '2026-09-08 19:15'
 labels: []
 dependencies: []
 ordinal: 34000
@@ -45,6 +45,14 @@ Wave 4 admission attempt is blocked by an existing request-schema defect. The so
 No existing XRD may change under this wave's grant, so full installation and the mandatory admission gate are not delivered. Main retains the false pre-pass readiness seam and one skipped placeholder; a green existing gate is not admission proof. The owned implementation is preserved locally under codex/wave4/lane-A-artifact/ with A-admission-verbatim.log and A-catalog-diagnostic.log. Root wiring would promote existing crossplane-runtime and apimachinery imports and add the recorded test-only transitive checksum entries.
 
 Resume: explicitly authorize the structural-schema repair; rerun the preserved faithful all-XRD and catalog tests unchanged; require all 14 CRDs and every XRD-backed example; then flip readiness, integrate lane B, provision checksum-verified envtest assets locally and in hosted validation, and wire the admission recipe into just check. No acceptance or Definition of Done item is claimed complete.
+
+## Resume authority granted - 2026-09-08 (wave 4 review)
+
+The repository owner authorized the structural-schema repair at the wave 4 review. The repair is bounded to exactly one line in platform/apis/agent-observability-v1beta1.yaml: add x-kubernetes-map-type: atomic to the items object of spec.guards.ruleActions[].collectionRefs. It is non-breaking, preserves apiserver-enforced set dedupe, and leaves the request shape and the published migration guide untouched. Collapsing the item to a string set and dropping the set constraint were both offered and both rejected.
+
+Reviewer finding that raises this above a harness blocker: the derived CRD is invalid, so this XRD cannot install into ANY Kubernetes cluster today, not only the test harness. The published reference currently ships an uninstallable API. A reviewer sweep of all 13 XRD files found 35 list-type declarations (16 set, 18 map, 1 atomic) and exactly this one violation; GCV-0040 now covers the class statically.
+
+No other schema change is authorized by this grant.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
