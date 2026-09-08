@@ -1,9 +1,10 @@
 ---
 id: GCV-0040
 title: 'Reject structurally invalid XRD schemas in the gate, without an API server'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-08 19:15'
+updated_date: '2026-09-08 20:06'
 labels: []
 dependencies: []
 priority: high
@@ -31,3 +32,9 @@ The agent-observability XRD ships a collectionRefs array declared x-kubernetes-l
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 5: add the frozen static set-list and map-list structural walk to scripts/validate.sh; prove all three rules with negative controls, including the second XRD document in access-v1beta1.yaml; root integrates and validates hosted execution.
+<!-- SECTION:PLAN:END -->

@@ -1,10 +1,10 @@
 ---
 id: GCV-0035
 title: 'Prove every fail-closed CEL rule actually rejects, against a real API server'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 19:15'
+updated_date: '2026-09-08 20:06'
 labels: []
 dependencies:
   - GCV-0034
@@ -36,6 +36,8 @@ The vending machine's safety story rests on rules that are asserted to reject: S
 
 <!-- SECTION:PLAN:BEGIN -->
 Wave 4: implement the commissioned lane after the pushed root harness pre-pass; preserve frozen schemas and ownership; return acceptance evidence and required negative controls; root integrates, reviews, validates locally and at the exact hosted SHA, then reconciles status.
+
+Wave 5: resume the preserved 16-case admission table; remove only nullable: true from spec.scim; accept the repair only if the API server errors rather than prunes explicit null; re-prove allowed pairs, immutable updates, tight messages, and weaken/restore control.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes

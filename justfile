@@ -14,6 +14,7 @@ setup:
     @command -v kubectl >/dev/null
     @command -v go >/dev/null
     @test -x "${KUBEBUILDER_ASSETS:?Set KUBEBUILDER_ASSETS to the pinned envtest binary directory}/kube-apiserver" && test -x "${KUBEBUILDER_ASSETS}/etcd" || { echo 'Install the pinned envtest kube-apiserver and etcd binaries before just setup' >&2; exit 1; }
+    @actual_version="$("${KUBEBUILDER_ASSETS}/kube-apiserver" --version)"; expected_version="Kubernetes v${ENVTEST_KUBERNETES_VERSION}"; test "$actual_version" = "$expected_version" || { echo "Expected envtest $expected_version, found $actual_version" >&2; exit 1; }
     cd platform/function && go mod download
 
 # format Go source and the justfile in place

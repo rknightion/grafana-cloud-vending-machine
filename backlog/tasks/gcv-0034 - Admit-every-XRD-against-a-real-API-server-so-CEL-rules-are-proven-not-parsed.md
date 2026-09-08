@@ -1,10 +1,10 @@
 ---
 id: GCV-0034
 title: 'Admit every XRD against a real API server so CEL rules are proven, not parsed'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 19:53'
+updated_date: '2026-09-08 20:06'
 labels: []
 dependencies: []
 ordinal: 34000
@@ -35,6 +35,8 @@ Every wave-3 lane closed with the same unproven line: the XRD CEL validation rul
 
 <!-- SECTION:PLAN:BEGIN -->
 Wave 4: implement the commissioned lane after the pushed root harness pre-pass; preserve frozen schemas and ownership; return acceptance evidence and required negative controls; root integrates, reviews, validates locally and at the exact hosted SHA, then reconciles status.
+
+Wave 5: resume the preserved envtest harness after the root lands the one-line collectionRefs repair; prove 14/14 derived CRDs, every XRD-backed catalog example, corrupt-CEL and reverted-collectionRefs controls; root wires it into check and verifies local and hosted execution.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes

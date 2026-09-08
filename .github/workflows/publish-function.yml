@@ -77,7 +77,7 @@ jobs:
           changed = os.environ["EVENT_NAME"] == "workflow_dispatch" or not base or set(base) == {"0"}
           if not changed:
               for path in git("diff", "--name-only", base, head, "--", "platform/function").splitlines():
-                  if path.endswith("_test.go") or path == "platform/function/admission_harness.go":
+                  if path.endswith("_test.go"):
                       continue
                   if path == "platform/function/go.mod" and module_lines(base) == module_lines(head):
                       continue

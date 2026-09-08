@@ -3,9 +3,10 @@ id: GCV-0041
 title: >-
   Provision pinned envtest assets in hosted CI so the admission gate can run
   there
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-08 19:53'
+updated_date: '2026-09-08 20:06'
 labels: []
 dependencies:
   - GCV-0034
@@ -34,3 +35,9 @@ The admission harness is deliberately part of just check rather than a heavy ci 
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 5: provision linux-amd64 envtest assets in the hosted Validate workflow from the justfile pin; verify the release sidecar checksum and fail-closed control; root lands provisioning with harness wiring in one commit and confirms admission ran in hosted logs.
+<!-- SECTION:PLAN:END -->
