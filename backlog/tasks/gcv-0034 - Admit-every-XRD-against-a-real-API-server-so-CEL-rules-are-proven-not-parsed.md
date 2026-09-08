@@ -4,7 +4,7 @@ title: 'Admit every XRD against a real API server so CEL rules are proven, not p
 status: To Do
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 19:15'
+updated_date: '2026-09-08 19:53'
 labels: []
 dependencies: []
 ordinal: 34000
@@ -53,6 +53,10 @@ The repository owner authorized the structural-schema repair at the wave 4 revie
 Reviewer finding that raises this above a harness blocker: the derived CRD is invalid, so this XRD cannot install into ANY Kubernetes cluster today, not only the test harness. The published reference currently ships an uninstallable API. A reviewer sweep of all 13 XRD files found 35 list-type declarations (16 set, 18 map, 1 atomic) and exactly this one violation; GCV-0040 now covers the class statically.
 
 No other schema change is authorized by this grant.
+
+## Hosted-CI prerequisite found at the wave 4 review - 2026-09-08
+
+Wiring the harness into scripts/validate.sh makes the hosted Validate public reference workflow fail, because that workflow installs only ripgrep, Go and just, and KUBEBUILDER_ASSETS is asserted solely in just setup which CI never calls. The harness is correctly forbidden from skipping when its binaries are absent, so this surfaces as a red hosted run rather than a silent pass. This task's DoD item 2 therefore cannot be met until GCV-0041 lands. GCV-0041 is now a recorded dependency and both are commissioned in the same wave.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
