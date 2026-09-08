@@ -1,10 +1,10 @@
 ---
 id: GCV-0035
 title: 'Prove every fail-closed CEL rule actually rejects, against a real API server'
-status: In Progress
+status: Parked
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 20:06'
+updated_date: '2026-09-08 21:01'
 labels: []
 dependencies:
   - GCV-0034
@@ -56,10 +56,14 @@ The repository owner authorized removing nullable: true from spec.scim in platfo
 The grant is conditional and the condition is the acceptance check, not a caveat: the repair is only accepted once a test proves the API server ERRORS on explicit null rather than PRUNING it. A pruned field is admitted, which is the same failure under a different mechanism. Prove the behaviour before claiming the fix. Assert on the resulting message, whatever it is - a structural type error is a different message from the SCIM rule message, so AC #2's own-message requirement is satisfied by the type error for this one case and by the rule message for the other fourteen.
 
 No other schema change is authorized by this grant.
+
+Wave 5 exercised the owner-authorized nullable removal against Kubernetes 1.37. The API server pruned and admitted explicit spec.scim: null instead of returning a type error, twice with the same signature, so the candidate schema line was rejected and the lane parked under the conditional grant. Fourteen refusal variants, every paired allowed case, every admitted-create then refused-update sequence, and the weaken/admit/restore negative control passed and were integrated. The explicit-null leaf remains visibly skipped with the park reason. Resume only after owner authorization for another schema design; accepting null as omission and property-level CEL remain rejected.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Parked after real API-server evidence exposed a pre-existing schema defect outside the wave mutation boundary. The concrete repair and unchanged-test resume requirements are recorded above.
+
+Wave 5 parked because removing nullable did not reject explicit spec.scim: null: Kubernetes 1.37 pruned and admitted it. Fourteen other refusal variants and the negative control are delivered; AC 1 and 2 remain unmet for the explicit-null case.
 <!-- SECTION:FINAL_SUMMARY:END -->
