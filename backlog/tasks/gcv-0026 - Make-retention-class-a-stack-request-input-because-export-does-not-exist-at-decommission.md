@@ -3,9 +3,10 @@ id: GCV-0026
 title: >-
   Make retention class a stack-request input, because export does not exist at
   decommission
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:17'
+updated_date: '2026-09-08 15:15'
 labels: []
 dependencies: []
 ordinal: 26000
@@ -38,3 +39,9 @@ Leave room for the logs retention API as an escape hatch if it becomes worth cal
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 3: root pushes fail-closed seams; assigned lane implements owned files test-first; root audits ownership, integrates documentation and wiring, reviews and validates, verifies signed package publication, pins both references, then finalizes with exact-SHA hosted validation.
+<!-- SECTION:PLAN:END -->

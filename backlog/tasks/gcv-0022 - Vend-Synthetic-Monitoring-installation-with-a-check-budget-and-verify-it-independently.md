@@ -3,9 +3,10 @@ id: GCV-0022
 title: >-
   Vend Synthetic Monitoring installation with a check budget, and verify it
   independently
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:16'
+updated_date: '2026-09-08 15:15'
 labels: []
 dependencies: []
 ordinal: 22000
@@ -39,3 +40,9 @@ Private probes emit a sensitive token that a self-hosted probe binary needs; tre
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 3: root pushes fail-closed seams; assigned lane implements owned files test-first; root audits ownership, integrates documentation and wiring, reviews and validates, verifies signed package publication, pins both references, then finalizes with exact-SHA hosted validation.
+<!-- SECTION:PLAN:END -->

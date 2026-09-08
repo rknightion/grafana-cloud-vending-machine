@@ -52,6 +52,11 @@ spec:
                 - region
                 - usage
                 - organization
+              x-kubernetes-validations:
+                - rule: has(self.retention) == has(oldSelf.retention)
+                  message: retention must be selected at creation
+                - rule: has(self.expiry) == has(oldSelf.expiry)
+                  message: expiry must be selected at creation
               properties:
                 displayName:
                   type: string
@@ -96,6 +101,61 @@ spec:
                     databaseObservability:
                       type: boolean
                       default: false
+                retention:
+                  type: object
+                  required: [class]
+                  x-kubernetes-validations:
+                    - rule: self == oldSelf
+                      message: retention class is a creation-time decision
+                  properties:
+                    class:
+                      type: string
+                      minLength: 1
+                      maxLength: 32
+                      pattern: ^[a-z0-9-]+$
+                      description: Platform-recognised durable fan-out class, not a retention period.
+                expiry:
+                  type: object
+                  required: [expiresAt]
+                  x-kubernetes-validations:
+                    - rule: "!has(oldSelf.extensions) || has(self.extensions)"
+                      message: extension history cannot be removed
+                  properties:
+                    expiresAt:
+                      type: string
+                      format: date-time
+                      x-kubernetes-validations:
+                        - rule: self == oldSelf
+                          message: original expiry is immutable; append an extension instead
+                    extensions:
+                      type: array
+                      default: []
+                      maxItems: 100
+                      x-kubernetes-list-type: map
+                      x-kubernetes-list-map-keys: [recordedAt]
+                      x-kubernetes-validations:
+                        - rule: oldSelf.all(e, e in self)
+                          message: extension records cannot be removed or changed
+                      items:
+                        type: object
+                        required: [extendedTo, reason, requestedBy, recordedAt]
+                        properties:
+                          extendedTo:
+                            type: string
+                            format: date-time
+                          reason:
+                            type: string
+                            minLength: 1
+                            maxLength: 1024
+                          requestedBy:
+                            description: Declared requester; correlate with Kubernetes audit logs for authenticated actor provenance.
+                            type: string
+                            minLength: 1
+                            maxLength: 128
+                          recordedAt:
+                            description: Declared recording time; Kubernetes audit logs provide the server timestamp.
+                            type: string
+                            format: date-time
                 lifecycle:
                   type: object
                   default:

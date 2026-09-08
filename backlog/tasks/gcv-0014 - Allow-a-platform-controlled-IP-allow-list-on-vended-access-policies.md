@@ -1,9 +1,10 @@
 ---
 id: GCV-0014
 title: Allow a platform-controlled IP allow-list on vended access policies
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:14'
+updated_date: '2026-09-08 15:15'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -31,3 +32,9 @@ The allow-list belongs to the platform, not the request author, so it should be 
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 3: root pushes fail-closed seams; assigned lane implements owned files test-first; root audits ownership, integrates documentation and wiring, reviews and validates, verifies signed package publication, pins both references, then finalizes with exact-SHA hosted validation.
+<!-- SECTION:PLAN:END -->

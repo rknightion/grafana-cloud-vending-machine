@@ -1,0 +1,164 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanastackladders.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaStackLadder
+    plural: grafanastackladders
+    singular: grafanastackladder
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-stack-ladder-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: [spec]
+          properties:
+            spec:
+              type: object
+              required: [organization, region, promotionDirection, rungs, repository]
+              x-kubernetes-validations:
+                - rule: self.organization == oldSelf.organization
+                  message: ladder organization is immutable
+                - rule: self.region == oldSelf.region
+                  message: region is immutable; a ladder cannot replace stacks
+                - rule: self.rungs.map(r, r.slug) == oldSelf.rungs.map(r, r.slug)
+                  message: rung stack slugs are immutable
+                - rule: self.rungs.map(r, r.name) == oldSelf.rungs.map(r, r.name)
+                  message: rung identities and order are immutable
+              properties:
+                organization:
+                  type: string
+                  minLength: 1
+                  maxLength: 63
+                  pattern: ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$
+                region:
+                  type: string
+                  maxLength: 63
+                  pattern: ^prod-[a-z0-9-]+-[0-9]+$
+                promotionDirection:
+                  type: string
+                  enum: [forward, reverse]
+                  description: Forward follows declared rung order; reverse follows its opposite. No automatic promotion occurs.
+                repository:
+                  type: object
+                  required: [url, path]
+                  properties:
+                    url:
+                      type: string
+                      maxLength: 2048
+                      pattern: ^https://[A-Za-z0-9.-]+(:[0-9]+)?(/[^?#]*)?$
+                    path:
+                      type: string
+                      minLength: 1
+                      maxLength: 1024
+                rungs:
+                  type: array
+                  minItems: 2
+                  maxItems: 10
+                  x-kubernetes-list-type: atomic
+                  items:
+                    type: object
+                    required: [name, slug, displayName, usage, branch, connectionRef]
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 32
+                        pattern: ^[a-z0-9-]+$
+                      slug:
+                        type: string
+                        minLength: 3
+                        maxLength: 32
+                        pattern: ^[a-z0-9]+$
+                      displayName:
+                        type: string
+                        minLength: 1
+                        maxLength: 128
+                      usage:
+                        type: string
+                        minLength: 1
+                        maxLength: 32
+                        pattern: ^[a-z0-9-]+$
+                      profile:
+                        type: string
+                        default: standard
+                        maxLength: 32
+                        pattern: ^[a-z0-9-]+$
+                      branch:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      connectionRef:
+                        type: object
+                        required: [name]
+                        properties:
+                          name:
+                            type: string
+                            minLength: 1
+                            maxLength: 190
+            status:
+              type: object
+              properties:
+                promotionDirection:
+                  type: string
+                rungs:
+                  type: array
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys: [name]
+                  items:
+                    type: object
+                    required: [name]
+                    properties:
+                      name:
+                        type: string
+                      stackName:
+                        type: string
+                      ready:
+                        type: boolean
+                      branch:
+                        type: string
+                      observedRevision:
+                        type: string
+                      sourceRung:
+                        type: string
+                      drift:
+                        type: string
+                        enum: [Unknown, InSync, Drifted, Source]
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-stack-ladder-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaStackLadder
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-stack-ladder
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          ladderPolicy:
+            maxStacks: 3
+          organizations:
+            - name: example-primary
+              providerConfigName: grafana-cloud-org-example-primary
+              allowedRegions: [prod-us-central-0]
+              allowedUsages: [development, production]
+          allowedUsages: [development, production]

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	xpv2 "github.com/crossplane/crossplane/apis/v2/core/v2"
 	"github.com/crossplane/function-sdk-go/errors"
@@ -24,6 +25,7 @@ type Function struct {
 	fnv1.UnimplementedFunctionRunnerServiceServer
 
 	log logging.Logger
+	now func() time.Time
 }
 
 type compositeRenderer struct {
@@ -32,10 +34,15 @@ type compositeRenderer struct {
 	implemented bool
 }
 
+const reconcileTimeConfigKey = "_reconcileTime"
+
 const resolvedStackProfileConfigKey = "_resolvedStackProfile"
 
 var compositeRenderers = map[string]compositeRenderer{
-	"GrafanaCloudStackRequest": {render: renderStack, implemented: true},
+	"GrafanaK6Project":           {render: renderK6Project, gateOnStack: true, implemented: k6RendererImplemented},
+	"GrafanaSyntheticMonitoring": {render: renderSyntheticMonitoring, gateOnStack: true, implemented: syntheticMonitoringRendererImplemented},
+	"GrafanaStackLadder":         {render: renderStackLadder, gateOnStack: false, implemented: ladderRendererImplemented},
+	"GrafanaCloudStackRequest":   {render: renderStack, implemented: true},
 	"GrafanaCustomRoleBinding": {
 		render: func(xr map[string]any, _ map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
 			profile, _ := config[resolvedStackProfileConfigKey].(string)
@@ -84,6 +91,12 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 	if req.GetInput() != nil {
 		config = req.GetInput().AsMap()
 	}
+
+	clock := f.now
+	if clock == nil {
+		clock = time.Now
+	}
+	config[reconcileTimeConfigKey] = clock().UTC()
 
 	content := xr.Resource.UnstructuredContent()
 	kind, _ := content["kind"].(string)
@@ -632,9 +645,34 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 		return nil, err
 	}
 
+	if sloRendererImplemented {
+		if err := addGoldenSLO(whenCredentialsPublished, xr, observed, config); err != nil {
+			return nil, err
+		}
+	} else if platformSpec, ok := config["spec"].(map[string]any); ok {
+		if _, configured := platformSpec["goldenSLOProfiles"]; configured {
+			return nil, errors.New("golden SLO renderer is not implemented")
+		}
+	}
+	if retentionRendererImplemented {
+		if err := addRetentionFanout(whenCredentialsPublished, xr, observed, config); err != nil {
+			return nil, err
+		}
+	} else if _, requested := spec["retention"]; requested {
+		return nil, errors.New("retention renderer is not implemented")
+	}
+
 	stackServes := observedReady(observed, "stack")
 	admitStaged(desired, whenStackServes, observed, stackServes)
 	admitStaged(desired, whenCredentialsPublished, observed, stackServes && observedReady(observed, "instance-credentials"))
+
+	if expiryRendererImplemented {
+		if err := addStackExpiry(desired, xr, observed, config); err != nil {
+			return nil, err
+		}
+	} else if _, requested := spec["expiry"]; requested {
+		return nil, errors.New("expiry renderer is not implemented")
+	}
 
 	return desired, nil
 }

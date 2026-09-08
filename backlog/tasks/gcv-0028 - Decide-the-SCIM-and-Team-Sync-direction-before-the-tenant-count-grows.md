@@ -1,10 +1,10 @@
 ---
 id: GCV-0028
 title: Decide the SCIM and Team Sync direction before the tenant count grows
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:18'
-updated_date: '2026-08-27 09:27'
+updated_date: '2026-09-08 15:15'
 labels: []
 dependencies: []
 ordinal: 28000
@@ -38,6 +38,12 @@ The identity-provider half of SCIM has no declarative coverage at all, so any de
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 3: root pushes fail-closed seams; assigned lane implements owned files test-first; root audits ownership, integrates documentation and wiring, reviews and validates, verifies signed package publication, pins both references, then finalizes with exact-SHA hosted validation.
+<!-- SECTION:PLAN:END -->
+
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
@@ -61,4 +67,6 @@ building, and record what was found.
 
 The identity-provider half has no declarative coverage, so this decision accepts manual console
 configuration per tenant. State that in the README next to the API rather than only here.
+
+Correction for wave 3: the binding goal supersedes the older in-scope note. SCIM is out of scope; external-group mapping remains the supported identity model. The lane records the frozen decision and admission enforcement. Plan floor and disabled-user-sync semantics remain explicitly unresolved under the no-network decision brief; evidence required to settle them will be recorded.
 <!-- SECTION:NOTES:END -->

@@ -1,9 +1,10 @@
 ---
 id: GCV-0021
 title: Vend a k6 project with limits and allowed load zones as a blast-radius cap
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-21 12:15'
+updated_date: '2026-09-08 15:15'
 labels: []
 dependencies: []
 ordinal: 21000
@@ -35,3 +36,9 @@ Private load zones can only be allow-listed, never provisioned, from this provid
 - [ ] #1 ./scripts/validate.sh passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 3: root pushes fail-closed seams; assigned lane implements owned files test-first; root audits ownership, integrates documentation and wiring, reviews and validates, verifies signed package publication, pins both references, then finalizes with exact-SHA hosted validation.
+<!-- SECTION:PLAN:END -->
