@@ -1,10 +1,10 @@
 ---
 id: GCV-0035
 title: 'Prove every fail-closed CEL rule actually rejects, against a real API server'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 22:48'
+updated_date: '2026-09-08 22:59'
 labels: []
 dependencies:
   - GCV-0034
@@ -19,8 +19,8 @@ The vending machine's safety story rests on rules that are asserted to reject: S
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Each fail-closed rule has a table-driven case that submits the forbidden request to the real apiserver and asserts admission is refused
-- [ ] #2 Each rejection case asserts on the rule's own message, so a request refused for an unrelated reason cannot pass as proof
+- [x] #1 Each fail-closed rule has a table-driven case that submits the forbidden request to the real apiserver and asserts admission is refused
+- [x] #2 Each rejection case asserts on the rule's own message, so a request refused for an unrelated reason cannot pass as proof
 - [x] #3 The paired allowed case is admitted for every rule, so no case passes by rejecting everything
 - [x] #4 Immutability rules are proven by admitting a create then submitting the forbidden update, not by a create alone
 - [x] #5 A deliberately weakened rule is shown to fail the harness, recorded as a negative control in the task summary
@@ -28,8 +28,8 @@ The vending machine's safety story rests on rules that are asserted to reject: S
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -91,4 +91,6 @@ Resume boundary, restated: no CRD schema shape found so far can refuse an explic
 Parked after real API-server evidence exposed a pre-existing schema defect outside the wave mutation boundary. The concrete repair and unchanged-test resume requirements are recorded above.
 
 Wave 5 parked because removing nullable did not reject explicit spec.scim: null: Kubernetes 1.37 pruned and admitted it. Fourteen other refusal variants and the negative control are delivered; AC 1 and 2 remain unmet for the explicit-null case.
+
+Wave 6 closes the explicit-null leaf by the owner-authorized exclusion from admission rejection, not by a CEL rule that rejects it. On the shipped nullable schema, API admission persists the scim key with null; CEL has() treats it as absent, but renderStack refuses the same persisted object and emits zero children. The paired omitted object persists without the key. Fourteen other refusal cases, allowed pairs, immutable updates and weaken/admit/restore controls remain unchanged. Local just check: 20 admission tests passed, zero skipped; hosted Validate 34288400397 succeeded at completing SHA c42bbc1e3eaac612747a786f35a3319f877a9bf6. This supersedes the earlier Parked final-summary statements.
 <!-- SECTION:FINAL_SUMMARY:END -->
