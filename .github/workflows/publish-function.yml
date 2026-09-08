@@ -98,7 +98,7 @@ jobs:
           cache-dependency-path: platform/function/go.sum
 
       - name: Set up just
-        uses: extractions/setup-just@ab69394e50e1d5e1f0c5f934148bda82526d8db1 # v3
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
         with:
           just-version: '1.58.0'
 
