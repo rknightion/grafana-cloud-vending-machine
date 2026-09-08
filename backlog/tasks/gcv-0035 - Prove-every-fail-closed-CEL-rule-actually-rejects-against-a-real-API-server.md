@@ -4,7 +4,7 @@ title: 'Prove every fail-closed CEL rule actually rejects, against a real API se
 status: Parked
 assignee: []
 created_date: '2026-09-08 17:02'
-updated_date: '2026-09-08 21:01'
+updated_date: '2026-09-08 22:25'
 labels: []
 dependencies:
   - GCV-0034
@@ -58,6 +58,29 @@ The grant is conditional and the condition is the acceptance check, not a caveat
 No other schema change is authorized by this grant.
 
 Wave 5 exercised the owner-authorized nullable removal against Kubernetes 1.37. The API server pruned and admitted explicit spec.scim: null instead of returning a type error, twice with the same signature, so the candidate schema line was rejected and the lane parked under the conditional grant. Fourteen refusal variants, every paired allowed case, every admitted-create then refused-update sequence, and the weaken/admit/restore negative control passed and were integrated. The explicit-null leaf remains visibly skipped with the park reason. Resume only after owner authorization for another schema design; accepting null as omission and property-level CEL remain rejected.
+
+## Reviewer correction to the recorded mechanism - 2026-09-08
+
+The wave 5 park is correct and stands. Its recorded reason was WRONG and is corrected here, because a wrong mechanism sends the next attempt down a dead end.
+
+WRONG: "Kubernetes 1.37 prunes and admits explicit spec.scim: null."
+TRUE: that describes the REJECTED candidate schema, with nullable removed. Under the SHIPPED nullable: true schema the API server PERSISTS the null; it does not prune it. Proven against a real API server at the pinned envtest version:
+
+  PERSISTED explicit-null: spec has 'scim' key = true, value = null
+  PERSISTED omitted:       spec has 'scim' key = false
+
+So the admission gap is not pruning. It is that CEL has() does not see a null-valued field, and !has(self.scim) therefore returns true.
+
+Two further designs were probed against the same API server and both are dead:
+
+- A property-level x-kubernetes-validations rule on the nullable scim field rejects spec.scim: {} but still ADMITS spec.scim: null, so the rule does not evaluate for an explicit null. This was one of the two alternatives rejected by the owner at the wave 4 review; it would not have worked in any case.
+- !('scim' in self) does not compile. The API server refuses the XRD with "found no matching overload for '@in' applied to '(string, selfType...)'", so @in has no overload for an object-typed self in CRD CEL.
+
+The safety consequence is materially better than the report implied. Because the null is persisted with its key present, renderStack's Go map lookup at platform/function/fn.go:453 DOES see it and refuses the request, and platform/function/scim_test.go already covers the nil value explicitly. The platform therefore fails closed; the only real gap is that the refusal happens at reconcile rather than at kubectl apply.
+
+The skip reason in platform/function/admission_rules_test.go was corrected to match, in commit baa4a27.
+
+Resume boundary, restated: no CRD schema shape found so far can refuse an explicit spec.scim: null at admission. Anything that would requires either accepting the reconcile-time refusal as sufficient, or a validating admission webhook that reads the raw request before CEL. Both are owner decisions.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
