@@ -18,14 +18,14 @@ for the per-API fields.
 
 This reference pins versions and immutable artifacts instead of following latest tags.
 
-| Component | Version | Why |
-| --- | --- | --- |
-| Crossplane | 2.3.4 | Required for namespaced composite resources, namespaced managed resources, and ManagedResourceActivationPolicy |
-| Grafana Crossplane provider | v2.14.0, immutable digest | Tagged release generated from Grafana Terraform provider 4.45.1 with the complete upstream resource surface used here |
-| ESO Helm chart | 2.6.0 | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
-| Cosign verification image | 3.1.2, immutable digest | Verifies the Grafana provider and this repository's function package |
-| Composition function SDK | 0.7.1 | Pinned by the function Go module |
-| Vending composition function | sha256:1faa72fa959a55aeb44a4e9d5ff148d89ccb75a0134bc917a4ee89d5dfeceda5 | Signed amd64/arm64 package; canonical pin in `platform/function/install.yaml` |
+| Component | Version | Source | Why |
+| --- | --- | --- | --- |
+| Crossplane | 2.3.4 | `deploy/argocd/crossplane.yaml` (`targetRevision: 2.3.4`) | Required for namespaced composite resources, namespaced managed resources, and ManagedResourceActivationPolicy |
+| Grafana Crossplane provider | v2.14.0, immutable digest | `platform/provider/provider-grafana.yaml` (`refs/tags/v2.14.0`) | Tagged release generated from Grafana Terraform provider 4.45.1 with the complete upstream resource surface used here |
+| ESO Helm chart | 2.6.0 | `deploy/argocd/external-secrets.yaml` (`targetRevision: 2.6.0`) | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
+| Cosign verification image | 3.1.2, immutable digest | `platform/function/install.yaml`, `platform/provider/provider-grafana.yaml` (`cosign/cosign:v3.1.2`) | Verifies the Grafana provider and this repository's function package |
+| Composition function SDK | 0.7.1 | `platform/function/go.mod` (`github.com/crossplane/function-sdk-go v0.7.1`) | Pinned by the function Go module |
+| Vending composition function | sha256:1faa72fa959a55aeb44a4e9d5ff148d89ccb75a0134bc917a4ee89d5dfeceda5 | `platform/function/install.yaml` (`function-grafana-vending@sha256:1faa72fa959a55aeb44a4e9d5ff148d89ccb75a0134bc917a4ee89d5dfeceda5`) | Signed amd64/arm64 package |
 
 The Grafana Crossplane provider describes itself as experimental and unsupported. The v2.14.0 tag is
 generated from Terraform provider 4.45.1 and carries the resource surface used by this reference. It

@@ -20,6 +20,17 @@ Everything under `catalog/` is inert reference material. The supplied Argo CD Ap
 | [sso-create-only](catalog/sso-create-only/) | Initializing OAuth/OIDC before handing later changes to stack administrators | Approved OAuth profile and client-secret ExternalSecret |
 | [sso-azuread](catalog/sso-azuread/) | Enforced Azure AD OAuth with group-based role mapping | Tenant application, group claims, and client-secret ExternalSecret |
 | [sso-saml](catalog/sso-saml/) | Enforced SAML with metadata and role-value mapping | IdP metadata, matching attributes, and a tested administrator login path |
+| [alerting-routing](catalog/alerting-routing/) | Complete notification-policy routing joined to an observed OnCall receiver | Whole-tree ownership, folder UID and same-stack OnCall request |
+| [cloud-integrations](catalog/cloud-integrations/) | Budgeted cloud-account and endpoint telemetry configuration | Approved account and credential profiles |
+| [frontend-observability](catalog/frontend-observability/) | Platform-profiled Faro browser application | Approved origins and browser-visible endpoint handling |
+| [golden-slo](catalog/golden-slo/) | Platform-owned SLO profile with bounded objectives | Approved selectors, queries and objective profile |
+| [k6-project](catalog/k6-project/) | Bounded k6 project, tests and schedules | Approved limits, load zones and workload contract |
+| [ml](catalog/ml/) | Capped forecasting, outlier detection and holiday resources | Datasource UIDs, queries and running-resource allowance |
+| [oncall](catalog/oncall/) | Rotating responders, escalation and inbound-email routing | Existing responder identities and explicit UTC schedule anchor |
+| [pdc](catalog/pdc/) | Private data-source connect networks and bounded tokens | Approved region, lifetime ceiling and credential store |
+| [promotion-ladder](catalog/promotion-ladder/) | Ordered stack promotion through Git-provisioned rungs | Repository connection, rung identities and promotion direction |
+| [service-accounts](catalog/service-accounts/) | Rotating in-stack identities and authoritative permissions | Approved roles, profiles and observed target IDs |
+| [synthetic-monitoring](catalog/synthetic-monitoring/) | Budgeted checks with optional provider-native alerts | Targets, probes and alert criteria |
 
 Each directory README explains what its manifests own, the expected reconciliation behavior, and every value that must be replaced.
 

@@ -1,9 +1,11 @@
 ---
 id: GCV-0057
 title: Close the documentation-drift class the stale function digest exposed
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@codex-wave7'
 created_date: '2026-09-09 08:10'
+updated_date: '2026-09-09 08:51'
 labels: []
 dependencies: []
 ordinal: 57000
@@ -32,3 +34,9 @@ Prefer discovery over a hand-maintained list of what to check, matching how the 
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Extend the documentation drift gate by discovering quoted versions, shipped API kinds, and catalog directories from their machine-readable sources; prove each class through weaken/reject/restore controls.
+<!-- SECTION:PLAN:END -->

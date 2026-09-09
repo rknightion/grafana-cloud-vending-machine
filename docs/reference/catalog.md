@@ -37,6 +37,8 @@ README describing its ownership boundary.
 | [ml](../../examples/catalog/ml/) | Capped forecasting jobs, outlier detectors and holidays | Datasource UIDs, queries and allowed running-resource count |
 | [k6-project](../../examples/catalog/k6-project/) | Bounded k6 project | Approved limits and load zones; review the directory's exact test/schedule contract |
 | [synthetic-monitoring](../../examples/catalog/synthetic-monitoring/) | Budgeted checks and optional provider-native alert criteria | Targets, probes and alert criteria; private probes remain excluded |
+| [golden-slo](../../examples/catalog/golden-slo/) | Platform-owned SLO profile with bounded objectives | Approved service selectors, queries and objective profile |
+| [promotion-ladder](../../examples/catalog/promotion-ladder/) | Ordered stack promotion through Git-provisioned rungs | Repository connection, rung identities and reviewed promotion direction |
 
 Each directory's own `README.md` explains what its manifests own, the expected reconciliation
 behaviour, and every value that must be replaced.

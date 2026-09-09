@@ -130,6 +130,102 @@ ruby -ryaml -e '
       abort "#{path}: documents #{digest}, which no platform manifest pins" unless platform_digests.include?(digest)
     end
   end
+
+  # A pinned-versions table is a public restatement of machine-readable
+  # manifests and module requirements. Each row names its authoritative source
+  # path, so new rows register themselves without a validator edit.
+  markdown_paths = (Dir.glob("docs/**/*.md") + Dir.glob("examples/**/*.md") + ["README.md"]).
+    select { |path| File.file?(path) }.uniq.sort
+  pinned_table_paths = markdown_paths.select do |path|
+    File.read(path).include?("| Component | Version | Source | Why |")
+  end
+  abort "documentation: no pinned-versions table found" if pinned_table_paths.empty?
+  pinned_table_paths.each do |path|
+    lines = File.readlines(path)
+    header_index = lines.index { |line| line.include?("| Component | Version | Source | Why |") }
+    index = header_index + 2
+    while index < lines.length && lines.fetch(index).lstrip.start_with?("|")
+      cells = lines.fetch(index).split("|").map(&:strip)
+      component = cells.fetch(1, "")
+      version_cell = cells.fetch(2, "")
+      source_tokens = cells.fetch(3, "").scan(/`([^`]+)`/).flatten
+      sources, locators = source_tokens.partition do |token|
+        token.start_with?("deploy/", "platform/") && !token.include?(" ")
+      end
+      abort "#{path}: pinned component #{component} names no source path" if sources.empty?
+      sources.each do |source|
+        unless source.start_with?("deploy/", "platform/") && File.file?(source)
+          abort "#{path}: pinned component #{component} source is missing or outside deploy/ and platform/: #{source}"
+        end
+      end
+      abort "#{path}: pinned component #{component} names no exact source locator" if locators.empty?
+      sources.each do |source|
+        source_text = File.read(source)
+        unless locators.any? { |locator| source_text.include?(locator) }
+          abort "#{path}: pinned component #{component} locator is absent from #{source}"
+        end
+      end
+      locator_text = locators.join("\n")
+      source_versions = locator_text.scan(/\bv?(\d+\.\d+\.\d+)\b/).flatten.uniq
+      version_cell.scan(/\bv?(\d+\.\d+\.\d+)\b/).flatten.each do |version|
+        unless source_versions.include?(version)
+          abort "#{path}: documents #{component} version #{version}, source locator pins #{source_versions.join(", ")}"
+        end
+      end
+      version_cell.scan(digest_pattern).uniq.each do |digest|
+        abort "#{path}: documents #{component} #{digest}, source locator does not pin it" unless locator_text.include?(digest)
+      end
+      index += 1
+    end
+  end
+
+  # Documents that declare a complete XRD or catalog inventory must agree with
+  # the discovered repository inventory. Select them by their section heading,
+  # so a new inventory document is covered without adding its filename here.
+  section_body = lambda do |text, heading|
+    lines = text.lines
+    start = lines.index { |line| line.strip == heading }
+    next nil if start.nil?
+    body = []
+    lines[(start + 1)..-1].each do |line|
+      break if line.start_with?("## ")
+      body << line
+    end
+    body.join
+  end
+
+  xrd_inventory_paths = markdown_paths.select do |path|
+    !section_body.call(File.read(path), "## CompositeResourceDefinitions").nil?
+  end
+  abort "documentation: no CompositeResourceDefinitions inventory found" if xrd_inventory_paths.empty?
+  xrd_inventory_paths.each do |path|
+    body = section_body.call(File.read(path), "## CompositeResourceDefinitions")
+    documented = body.scan(/\bGrafana[A-Za-z0-9]+\b/).uniq.sort
+    missing = xrd_kinds - documented
+    extra = documented - xrd_kinds
+    abort "#{path}: missing shipped XRD kinds: #{missing.join(", ")}" unless missing.empty?
+    abort "#{path}: documents XRD kinds not shipped: #{extra.join(", ")}" unless extra.empty?
+  end
+
+  catalog_dirs = Dir.glob("examples/catalog/*/").map do |path|
+    File.basename(path.delete_suffix("/"))
+  end.sort
+  catalog_inventory_paths = markdown_paths.select do |path|
+    text = File.read(path)
+    !section_body.call(text, "## Catalog").nil? ||
+      !section_body.call(text, "## Catalog directories").nil?
+  end
+  abort "documentation: no catalog inventory found" if catalog_inventory_paths.empty?
+  catalog_inventory_paths.each do |path|
+    text = File.read(path)
+    body = section_body.call(text, "## Catalog") ||
+      section_body.call(text, "## Catalog directories")
+    documented = body.scan(%r{(?:examples/)?catalog/([a-z0-9-]+)/}).flatten.uniq.sort
+    missing = catalog_dirs - documented
+    extra = documented - catalog_dirs
+    abort "#{path}: missing catalog directories: #{missing.join(", ")}" unless missing.empty?
+    abort "#{path}: documents catalog directories not shipped: #{extra.join(", ")}" unless extra.empty?
+  end
 '
 
 if [[ -n $(gofmt -l platform/function/*.go) ]]; then
