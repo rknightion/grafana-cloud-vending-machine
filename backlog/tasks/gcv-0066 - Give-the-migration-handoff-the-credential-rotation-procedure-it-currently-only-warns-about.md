@@ -3,11 +3,11 @@ id: GCV-0066
 title: >-
   Give the migration handoff the credential rotation procedure it currently only
   warns about
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-09-09 21:28'
-updated_date: '2026-09-09 22:42'
+updated_date: '2026-09-09 22:50'
 labels: []
 dependencies: []
 ordinal: 66000
@@ -21,16 +21,16 @@ The migration guide tells the operator that credentials retained under non-delet
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The migration guide carries an ordered procedure for retiring source-held credentials after target ownership is proven
-- [ ] #2 The procedure names each retained object class it covers and states what evidence proves the target has replaced it before anything is revoked
-- [ ] #3 The procedure states the failure mode of revoking too early and of never revoking at all
-- [ ] #4 Any step that cannot be verified from this repository is marked as an operator prerequisite rather than presented as proven
+- [x] #1 The migration guide carries an ordered procedure for retiring source-held credentials after target ownership is proven
+- [x] #2 The procedure names each retained object class it covers and states what evidence proves the target has replaced it before anything is revoked
+- [x] #3 The procedure states the failure mode of revoking too early and of never revoking at all
+- [x] #4 Any step that cannot be verified from this repository is marked as an operator prerequisite rather than presented as proven
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -67,3 +67,17 @@ Not applied, with reasons:
 2. Per-executable checksums for the envtest binaries (raised on GCV-0065). Upstream publishes one archive sidecar and no per-binary digests; the archive hash already fail-closes on any tampered member.
 3. An etcd version assertion in the cached-asset reuse path (GCV-0065). The justfile pins the Kubernetes version only; there is no etcd pin to assert against and inventing one would be a fabricated control.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added `### Retire the source-held credentials` to the ownership-transfer section of the migration guide, replacing the bare warning that step 6 previously carried.
+
+It inventories the four retained classes (the AccessPolicy, every rotating token that policy issued, every StackServiceAccount with every token issued against it, and the delivered copies), recording each `remoteKey` with the store identity it is written through, because a key is unique only within its store. It requires set-against-set proof that the target minted its own provider identities and that consumers have demonstrably reloaded them, then retires in an order that removes the Kubernetes owner before revoking, so the source Composition cannot re-mint what was just revoked. Both failure modes are stated: revoking too early is an outage with no rollback because a provider identity cannot be restored, and never revoking leaves a full-scope credential that outlives its cluster and appears in no cluster inventory. Everything unverifiable from this repository is marked as an operator prerequisite.
+
+Two data-loss traps the review surfaced are now named explicitly: this repository renders `deletionPolicy: Delete` on PushSecrets whenever deletion is armed (platform/function/access.go:47-51), so removing a writer takes the remote document with it and the check must happen during inventory before the transfer procedure removes output-document writers; and step 7 of that procedure permits the target to keep the source output path, so cleanup deletes only source-only (store, key) pairs with no remaining live writer.
+
+Verified as documentation: ten CodeRabbit passes with the disposition of all 28 findings recorded in the notes, 25 applied and 3 declined with reasons; field names checked against this repository own rendering (`spec.selector.secret.name`, `spec.data[].match.remoteRef.remoteKey` at platform/function/stackconsumer.go:240,249) and both service-account kinds confirmed present in the pinned managed-kind map; full gate green.
+
+Completing SHA 70a896c7a63b222bcbbbfad041d605b8b2643abe; hosted Validate public reference run 34413634975 success.
+<!-- SECTION:FINAL_SUMMARY:END -->

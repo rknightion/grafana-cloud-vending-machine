@@ -3,11 +3,11 @@ id: GCV-0067
 title: >-
   Record live behavioural proof as permanently out of scope, not as outstanding
   work
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-09-09 21:28'
-updated_date: '2026-09-09 22:42'
+updated_date: '2026-09-09 22:50'
 labels: []
 dependencies: []
 ordinal: 67000
@@ -21,16 +21,16 @@ Every wave report closes by listing live minting, adoption, migration and reconc
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The settled boundary is recorded where a future run will read it before designing a wave, stating that live behavioural proof is out of scope by construction and why
-- [ ] #2 The record names what evidence classes stand in for live proof and what each of them does and does not establish
-- [ ] #3 The published documentation states the same boundary in operator-facing terms, so a consumer is not left believing the reference was exercised against a live stack
-- [ ] #4 The constraint states that any local cluster tooling invocation runs against an explicitly empty or ephemeral kubeconfig, so an ambient context cannot be contacted by default
+- [x] #1 The settled boundary is recorded where a future run will read it before designing a wave, stating that live behavioural proof is out of scope by construction and why
+- [x] #2 The record names what evidence classes stand in for live proof and what each of them does and does not establish
+- [x] #3 The published documentation states the same boundary in operator-facing terms, so a consumer is not left believing the reference was exercised against a live stack
+- [x] #4 The constraint states that any local cluster tooling invocation runs against an explicitly empty or ephemeral kubeconfig, so an ambient context cannot be contacted by default
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -52,3 +52,17 @@ The same section carries the ambient-kubeconfig constraint. Wave 9 ran `kubectl 
 
 The documentation landing page gains an operator-facing section with the same boundary in consumer terms and a table of what each evidence class establishes and does not. It ends by directing the reader to rehearse every migration procedure against a disposable stack, which is what the boundary means in practice for someone adopting this.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Recorded in the two places the two audiences read.
+
+The Wave operating model document gains `## Live behavioural proof is out of scope, permanently`, placed directly after the standing constraint it follows from. It states that no wave can close it and none should plan to, names the four substitute evidence classes with the limit of each, and instructs reports to say "not exercised, and not exercisable here" instead of "unproven", because the latter reads as a backlog item and invites each run to re-decide it. Wave 9 R17 is the worked example of why provider CRD readback against a self-written fixture proves nothing about provider behaviour: every gate was green while the comparator expected a slash and the pinned provider joins with a colon.
+
+The same section carries the ambient-kubeconfig constraint. Checked live while reviewing the wave 9 report: this machine has exactly one kubeconfig context, it is the current one, it is a real cluster, and the discovery cache is populated, so the unscoped `kubectl apply --dry-run=client --validate=true` that lane A ran could not afterwards be ruled out as having read a live server. Nothing was mutated and nothing leaked, but the constraint stopped being provable. Cluster tooling now runs against an explicitly empty or ephemeral kubeconfig, and a client-side dry run is recorded as not being evidence of zero network contact.
+
+`docs/index.md` gains the operator-facing statement, with a table of what each evidence class establishes and does not, ending in the instruction to rehearse every migration procedure against a disposable stack.
+
+Completing SHA 70a896c7a63b222bcbbbfad041d605b8b2643abe; hosted Validate public reference run 34413634975 success.
+<!-- SECTION:FINAL_SUMMARY:END -->

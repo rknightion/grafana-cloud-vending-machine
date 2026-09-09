@@ -1,11 +1,11 @@
 ---
 id: GCV-0065
 title: Give the local gate a way to provision the pinned envtest assets
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-09-09 21:28'
-updated_date: '2026-09-09 22:42'
+updated_date: '2026-09-09 22:50'
 labels: []
 dependencies: []
 ordinal: 65000
@@ -19,18 +19,18 @@ The admission harness needs a pinned kube-apiserver and etcd, and hosted CI down
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A just recipe provisions the pinned envtest assets for the local platform and is discoverable from `just --list`
-- [ ] #2 The recipe verifies the downloaded archive against the publisher checksum sidecar and fails closed when it does not match, so no unverified binary is ever extracted
-- [ ] #3 The recipe verifies the extracted kube-apiserver reports the version the justfile pins, and fails by name when it does not
-- [ ] #4 Assets land outside the repository tree, so neither the gate YAML walk nor the publication scan forbidden-filename walk can reach them
-- [ ] #5 The contributor documentation states how to provision the assets before running the gate for the first time
-- [ ] #6 A gate run that is missing the assets fails with a message naming the provisioning recipe rather than only the raw environment-variable error
+- [x] #1 A just recipe provisions the pinned envtest assets for the local platform and is discoverable from `just --list`
+- [x] #2 The recipe verifies the downloaded archive against the publisher checksum sidecar and fails closed when it does not match, so no unverified binary is ever extracted
+- [x] #3 The recipe verifies the extracted kube-apiserver reports the version the justfile pins, and fails by name when it does not
+- [x] #4 Assets land outside the repository tree, so neither the gate YAML walk nor the publication scan forbidden-filename walk can reach them
+- [x] #5 The contributor documentation states how to provision the assets before running the gate for the first time
+- [x] #6 A gate run that is missing the assets fails with a message naming the provisioning recipe rather than only the raw environment-variable error
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -71,3 +71,15 @@ Controls run:
 - missing assets at the gate: `env -u KUBEBUILDER_ASSETS ./scripts/validate.sh` exits 1 naming `just envtest`.
 - full gate with the recipe-provided path: `Validation passed.`, coverage 84.9%.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added `just envtest` in the `dev` group, plus a fail-fast guard in `scripts/validate.sh` and a recipe reference in `just setup`. The recipe resolves the local platform pair, verifies the release archive against its published `.sha512` sidecar before extracting anything, asserts the extracted kube-apiserver reports the pinned Kubernetes version, reuses an already-provisioned directory, and refuses a cache path that resolves inside the repository.
+
+Assets land under the XDG cache rather than an ignored directory in the tree, because `scripts/validate.sh` walks every YAML document under the working directory and `scripts/public-release-scan.sh` walks it for forbidden filenames with `find`, and neither consults gitignore.
+
+Verified by running each path, not by inspection: cold cache downloads and verifies (`kube-apiserver: Kubernetes v1.37.0`, `etcd: etcd Version: 3.7.0`); warm cache reuses without downloading; an absent pin fails at download with curl 404; a cache inside the repository is refused with the path named and nothing created; `env -u KUBEBUILDER_ASSETS ./scripts/validate.sh` exits 1 naming `just envtest`; and the full gate run with the recipe-provided path reports `Validation passed.` at 84.9% coverage, against the 84.5% a run without assets silently produced.
+
+Completing SHA 70a896c7a63b222bcbbbfad041d605b8b2643abe; hosted Validate public reference run 34413634975 success.
+<!-- SECTION:FINAL_SUMMARY:END -->

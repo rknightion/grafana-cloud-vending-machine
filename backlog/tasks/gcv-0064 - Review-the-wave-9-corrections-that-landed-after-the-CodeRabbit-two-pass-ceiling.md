@@ -3,11 +3,11 @@ id: GCV-0064
 title: >-
   Review the wave 9 corrections that landed after the CodeRabbit two-pass
   ceiling
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-09-09 21:28'
-updated_date: '2026-09-09 21:52'
+updated_date: '2026-09-09 22:50'
 labels: []
 dependencies: []
 ordinal: 64000
@@ -21,16 +21,16 @@ Wave 9 spent both CodeRabbit passes before its two most load-bearing corrections
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A CodeRabbit review has run against the wave 9 diff range that contains the R16 and R17 corrections
-- [ ] #2 Every critical and major finding is fixed
-- [ ] #3 Each finding below major is either fixed or left with a recorded reason naming why it is not impactful in context
-- [ ] #4 The review command, its base, the finding counts by severity and the disposition of each finding are recorded in the task notes
+- [x] #1 A CodeRabbit review has run against the wave 9 diff range that contains the R16 and R17 corrections
+- [x] #2 Every critical and major finding is fixed
+- [x] #3 Each finding below major is either fixed or left with a recorded reason naming why it is not impactful in context
+- [x] #4 The review command, its base, the finding counts by severity and the disposition of each finding are recorded in the task notes
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -67,3 +67,13 @@ builds `region + ":" + id`. The pre-correction slash form would never have match
 provider-assigned AccessPolicy external name, and no synthetic fixture could have exposed that,
 because the fixture supplied the same wrong form the comparator expected.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Ran `coderabbit review --agent --base 90094fdc1bfe32666e37d816ecc0bc993a2323e7 --dir platform/function`, covering the whole wave 9 change including the R16 terminal-dispatch repairs and the R17 provider identity delimiter correction, both of which landed after the wave spent its second and final CodeRabbit pass. The run emitted a complete event over 10 files and returned zero findings across every severity band, so nothing needed fixing or a recorded disposition.
+
+Independently confirmed R17 against the pinned upstream while verifying: grafana/terraform-provider-grafana v4.45.1, commit 7f3311691b0e124c55347f7204501fba77f61453, internal/common/resource_id.go (SHA-256 e6e9ac299f849b65d5785a0c3bf37706292ee5e7e8cd9f517361368666193a95) declares `ResourceIDSeparator = ":"`. That is the separator the corrected comparator uses. The correction was right, and no synthetic fixture could have exposed the original error because the fixture supplied the same wrong form the comparator expected.
+
+Completing SHA 70a896c7a63b222bcbbbfad041d605b8b2643abe; hosted Validate public reference run 34413634975 success; local `just check` green on the same SHA at 84.9% coverage.
+<!-- SECTION:FINAL_SUMMARY:END -->
