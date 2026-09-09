@@ -203,6 +203,83 @@ func TestAlertingJoinAtAPIServer(t *testing.T) {
 	}
 }
 
+func TestOnCallReceiverStatusRefusesUnusableObservations(t *testing.T) {
+	xr := map[string]any{
+		"metadata": map[string]any{"generation": int64(1)},
+		"spec":     map[string]any{"stackRef": map[string]any{"name": "teamdemo01"}},
+	}
+	desired := map[resource.Name]*resource.DesiredComposed{
+		"integration": newDesired(
+			"oncall.grafana.m.crossplane.io/v1alpha1",
+			"Integration",
+			"grafana-vending",
+			"teamdemo01-integration",
+			nil,
+			map[string]any{"providerConfigRef": map[string]any{"name": "teamdemo01"}},
+		),
+		"catch-all-route": newDesired(
+			"oncall.grafana.m.crossplane.io/v1alpha1",
+			"Route",
+			"grafana-vending",
+			"teamdemo01-catch-all-route",
+			nil,
+			map[string]any{"providerConfigRef": map[string]any{"name": "teamdemo01"}},
+		),
+	}
+
+	t.Run("stale", func(t *testing.T) {
+		observed := currentOnCallReceiverObservations(t, desired)
+		integration := observed["integration"].Resource.UnstructuredContent()
+		integration["metadata"].(map[string]any)["generation"] = int64(2)
+		observed["integration"].Resource.SetUnstructuredContent(integration)
+		if _, ready := onCallReceiverStatus(xr, observed, desired); ready {
+			t.Fatal("stale integration observation published a receiver")
+		}
+	})
+
+	t.Run("absent", func(t *testing.T) {
+		observed := currentOnCallReceiverObservations(t, desired)
+		delete(observed, "integration")
+		if _, ready := onCallReceiverStatus(xr, observed, desired); ready {
+			t.Fatal("absent integration observation published a receiver")
+		}
+	})
+
+	t.Run("malformed", func(t *testing.T) {
+		observed := currentOnCallReceiverObservations(t, desired)
+		integration := observed["integration"].Resource.UnstructuredContent()
+		integration["status"].(map[string]any)["atProvider"] = map[string]any{"inboundEmail": "not-an-email"}
+		observed["integration"].Resource.SetUnstructuredContent(integration)
+		if _, ready := onCallReceiverStatus(xr, observed, desired); ready {
+			t.Fatal("malformed integration observation published a receiver")
+		}
+	})
+}
+
+func currentOnCallReceiverObservations(t *testing.T, desired map[resource.Name]*resource.DesiredComposed) map[resource.Name]resource.ObservedComposed {
+	t.Helper()
+	observed := make(map[resource.Name]resource.ObservedComposed, len(desired))
+	for name, child := range desired {
+		object := child.Resource.DeepCopy()
+		content := object.UnstructuredContent()
+		metadata := content["metadata"].(map[string]any)
+		metadata["generation"] = int64(1)
+		metadata["annotations"] = map[string]any{"crossplane.io/external-name": "fixture-" + string(name)}
+		content["status"] = map[string]any{
+			"conditions": []any{
+				map[string]any{"type": "Synced", "status": "True", "observedGeneration": int64(1)},
+				map[string]any{"type": "Ready", "status": "True"},
+			},
+		}
+		if name == "integration" {
+			content["status"].(map[string]any)["atProvider"] = map[string]any{"inboundEmail": "fixture-integration@example.invalid"}
+		}
+		object.SetUnstructuredContent(content)
+		observed[name] = resource.ObservedComposed{Resource: object}
+	}
+	return observed
+}
+
 func TestAlertingJoinAdmissionGuards(t *testing.T) {
 	e := &admissionEnv{paths: []string{"../apis/alerting-routing-v1beta1.yaml"}}
 	if err := e.Start(t); err != nil {

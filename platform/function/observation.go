@@ -73,8 +73,3 @@ func containsDesiredFields(got, want any) bool {
 		return string(a) == string(b)
 	}
 }
-
-// observedDesiredReady is the keyed form used by staged product renderers.
-func observedDesiredReady(observed map[resource.Name]resource.ObservedComposed, name resource.Name, desired *resource.DesiredComposed) bool {
-	return observedDesiredCurrent(observed[name], desired)
-}
