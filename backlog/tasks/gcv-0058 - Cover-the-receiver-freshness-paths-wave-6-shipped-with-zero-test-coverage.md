@@ -1,11 +1,11 @@
 ---
 id: GCV-0058
 title: Cover the receiver-freshness paths wave 6 shipped with zero test coverage
-status: In Progress
+status: Done
 assignee:
   - '@codex-wave7'
 created_date: '2026-09-09 08:10'
-updated_date: '2026-09-09 10:47'
+updated_date: '2026-09-09 10:53'
 labels: []
 dependencies: []
 ordinal: 58000
@@ -23,16 +23,16 @@ Scope is the wave 6 alerting-join and observation code. Do not retro-fit tests o
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The zero-coverage functions on the receiver and freshness path are either exercised by tests that pin their refusal behaviour, or removed as unreachable with evidence that nothing calls them
-- [ ] #2 Each added test fails against the pre-change behaviour for the right reason before it passes, and that is shown rather than claimed
-- [ ] #3 The refusal branches are covered, not just the success path: stale, absent and malformed observations each have a named case
-- [ ] #4 No test asserts on an implementation detail that a refactor of the same behaviour would break
+- [x] #1 The zero-coverage functions on the receiver and freshness path are either exercised by tests that pin their refusal behaviour, or removed as unreachable with evidence that nothing calls them
+- [x] #2 Each added test fails against the pre-change behaviour for the right reason before it passes, and that is shown rather than claimed
+- [x] #3 The refusal branches are covered, not just the success path: stale, absent and malformed observations each have a named case
+- [x] #4 No test asserts on an implementation detail that a refactor of the same behaviour would break
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -46,3 +46,9 @@ Establish red-before controls for stale, absent, and malformed receiver observat
 <!-- SECTION:NOTES:BEGIN -->
 Lane E evidence: added named stale, absent, and malformed receiver-observation cases at behavioral boundaries. Each case failed when its matching freshness guard was weakened and passed after restoration. Removed observedDesiredReady after call-site search proved it unreachable. CodeRabbit reviewed the two changed function files with zero findings. Integrated just check passed with 84.3% coverage and zero skips before the lane commit.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Pinned stale, absent, and malformed receiver-observation refusals with named behavioral tests; each failed under its matching weakened guard and passed after restoration. Removed unreachable observedDesiredReady after call-site proof. Completing SHA d86b40713a55136506cac824c1ea7a320c141412; hosted Validate public reference run 34338537668 succeeded; local just check passed at 84.3% with zero skips. Integrated review SHA d1713e78d0969ad58569e9d207a6ecf5c8dbedd3 also passed hosted run 34342127436.
+<!-- SECTION:FINAL_SUMMARY:END -->

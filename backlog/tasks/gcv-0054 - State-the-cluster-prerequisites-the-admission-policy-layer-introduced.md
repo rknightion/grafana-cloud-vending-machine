@@ -1,11 +1,11 @@
 ---
 id: GCV-0054
 title: State the cluster prerequisites the admission-policy layer introduced
-status: In Progress
+status: Done
 assignee:
   - '@codex-wave7'
 created_date: '2026-09-09 08:09'
-updated_date: '2026-09-09 09:33'
+updated_date: '2026-09-09 10:53'
 labels: []
 dependencies: []
 ordinal: 54000
@@ -19,16 +19,16 @@ Wave 6 added ValidatingAdmissionPolicy and binding documents to five XRD files (
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The installation guide states the minimum Kubernetes version the shipped manifests require, and names ValidatingAdmissionPolicy as the reason
-- [ ] #2 Operator-facing documentation explains that five XRDs ship a cluster-scoped admission policy bound to their own Composition, and what an operator sees if that Composition is absent or renamed
-- [ ] #3 The pinned-versions table carries the Kubernetes floor alongside the other pins, so a single table answers what a cluster must provide
-- [ ] #4 The gate asserts the documented Kubernetes floor against the version the manifests actually require, so the two cannot drift apart silently
+- [x] #1 The installation guide states the minimum Kubernetes version the shipped manifests require, and names ValidatingAdmissionPolicy as the reason
+- [x] #2 Operator-facing documentation explains that five XRDs ship a cluster-scoped admission policy bound to their own Composition, and what an operator sees if that Composition is absent or renamed
+- [x] #3 The pinned-versions table carries the Kubernetes floor alongside the other pins, so a single table answers what a cluster must provide
+- [x] #4 The gate asserts the documented Kubernetes floor against the version the manifests actually require, so the two cannot drift apart silently
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -42,3 +42,9 @@ Derive the Kubernetes floor from all shipped platform API versions; document the
 <!-- SECTION:NOTES:BEGIN -->
 Documented Kubernetes 1.30+ from the discovered platform API inventory, named all five cluster-scoped admission bindings and their missing-Composition denial behavior, and added a drift assertion. Negative control weakened the table to 1.29 and the full gate rejected docs/installation.md against the derived 1.30 floor; restored just check passed with 84.3% coverage and zero skips.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Documented Kubernetes 1.30+ and all five cluster-scoped admission bindings, including the named-Composition failure mode. The gate derives and checks the floor; weaken to 1.29 was rejected before restoration. Completing SHA b998937b1af2ccaf852bc677602b813dcce850d4; hosted Validate public reference run 34335459253 succeeded; local just check passed at 84.3% with zero skips.
+<!-- SECTION:FINAL_SUMMARY:END -->

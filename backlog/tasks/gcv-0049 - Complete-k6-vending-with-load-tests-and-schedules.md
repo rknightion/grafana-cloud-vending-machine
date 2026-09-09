@@ -1,11 +1,11 @@
 ---
 id: GCV-0049
 title: Complete k6 vending with load tests and schedules
-status: In Progress
+status: Done
 assignee:
   - '@codex-wave7'
 created_date: '2026-09-08 22:36'
-updated_date: '2026-09-09 09:41'
+updated_date: '2026-09-09 10:53'
 labels: []
 dependencies: []
 type: feature
@@ -23,8 +23,8 @@ The provider carries k6 loadtests, loadtestsets, schedules and schedulesets at v
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Load tests and schedules are vended per project from platform-controlled input, with an explicit external name on every deterministic child
-- [ ] #2 Admission refuses declared load-test VUs, browser VUs, duration, or load zones outside the Composition profile with its own message, proven against the real API server; reconciliation refuses usage that differs from the referenced stack's observed usage and withholds dynamic children until current observed ProjectLimits and allowed load zones match desired
-- [ ] #3 A scheduled test cannot outlive its project, and the deletion path is proven, not asserted
+- [x] #2 Admission refuses declared load-test VUs, browser VUs, duration, or load zones outside the Composition profile with its own message, proven against the real API server; reconciliation refuses usage that differs from the referenced stack's observed usage and withholds dynamic children until current observed ProjectLimits and allowed load zones match desired
+- [x] #3 A scheduled test cannot outlive its project, and the deletion path is proven, not asserted
 - [x] #4 Every emitted kind appears in the provider activation map and the XRD/renderer registry, and the gate fails by path if one is missing
 - [x] #5 A catalog example renders inert and is covered by the catalog README and Kustomization checks
 <!-- AC:END -->
@@ -54,5 +54,5 @@ Wave 7 acceptance amendment under the owner settlement. Before AC2: A load test 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-PARTIAL: structured HTTPS GET load tests and schedules land with observed identities, explicit constant-vus and gracefulStop 0s. Declared-profile admission and cap weaken/admit/restore passed. Current cap observation gates new loads while prior requested workload specs are preserved so revised caps can converge. AC2 remains incomplete because actual referenced-stack usage is checked only at reconcile; AC3 remote schedule/project lifetime and deletion behavior is unproven. Resume: commission cross-object admission or generated policy lifecycle without changing caps, then prove the remote deletion boundary. Completing source/pin SHA: 187b03ea40ee32fcea890e40c138f00a8c73bd5f. Hosted Validate run 34296536930: success. Local just check passed with 23 real API-server tests, zero skips.
+DONE: k6 load tests and schedules are vended within declared-profile admission limits and observed-stack reconcile limits. Delete management and withdrawal of LoadTest and Schedule children were proven while the Project remains. Settlement decision-0001 records why cross-object admission is not pursued. Completing source SHA ed4f3fd93103d8fc84261b1e578699eed1e3cece; hosted Validate public reference run 34336742523 succeeded; local just check passed with zero skips.
 <!-- SECTION:FINAL_SUMMARY:END -->

@@ -1,11 +1,11 @@
 ---
 id: GCV-0055
 title: Close the k6 vending surface at the settled admission boundary
-status: In Progress
+status: Done
 assignee:
   - '@codex-wave7'
 created_date: '2026-09-09 08:09'
-updated_date: '2026-09-09 09:47'
+updated_date: '2026-09-09 10:53'
 labels: []
 dependencies: []
 ordinal: 55000
@@ -23,17 +23,17 @@ This task closes GCV-0049. It does not weaken any existing cap.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 GCV-0049 acceptance criteria state the enforcement boundary that actually holds: declared profile limits at admission, referenced-stack usage at reconciliation
-- [ ] #2 A Backlog decision records why cross-object admission is not pursued, naming both rejected routes and their costs, so it is not re-litigated
-- [ ] #3 The scheduled-test and project deletion path is proven at the boundary the machine actually controls, not asserted
-- [ ] #4 Public documentation for the k6 surface states which guarantees are admission-time and which are reconcile-time, with no claim the machine does not meet
-- [ ] #5 GCV-0049 reaches Done with its remaining evidence, or the reason it cannot is a new fact rather than the admission gap this task settles
+- [x] #1 GCV-0049 acceptance criteria state the enforcement boundary that actually holds: declared profile limits at admission, referenced-stack usage at reconciliation
+- [x] #2 A Backlog decision records why cross-object admission is not pursued, naming both rejected routes and their costs, so it is not re-litigated
+- [x] #3 The scheduled-test and project deletion path is proven at the boundary the machine actually controls, not asserted
+- [x] #4 Public documentation for the k6 surface states which guarantees are admission-time and which are reconcile-time, with no claim the machine does not meet
+- [x] #5 GCV-0049 reaches Done with its remaining evidence, or the reason it cannot is a new fact rather than the admission gap this task settles
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -47,3 +47,9 @@ Apply the frozen cross-object admission settlement, record the decision, prove s
 <!-- SECTION:NOTES:BEGIN -->
 Recorded accepted decision decision-0001 for the settled admission/reconciliation boundary. Extended TestK6ProjectDynamicChildrenAreDeleteManaged to prove LoadTest and Schedule carry Delete, both disappear from desired state when withdrawn, and the retained Project remains. Removing Delete made the focused test fail for both children; restored focused test and just check passed at 84.3% with zero skips. CodeRabbit reviewed platform/function/k6_test.go and raised 0 issues. Root scope amendment: corrected docs/governance.md because it claimed scripts pass through unchanged, while generatedK6Script emits a structured HTTPS GET workload; leaving that sentence would preserve a false public claim.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Closed GCV-0049 at the owner-settled admission and reconciliation boundary without weakening caps. decision-0001 records the rejected webhook and generated-policy routes; machine-controlled deletion semantics are proven. Completing SHA ed4f3fd93103d8fc84261b1e578699eed1e3cece; hosted Validate public reference run 34336742523 succeeded; local just check passed at 84.3% with zero skips.
+<!-- SECTION:FINAL_SUMMARY:END -->

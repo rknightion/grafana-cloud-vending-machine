@@ -1,11 +1,11 @@
 ---
 id: GCV-0057
 title: Close the documentation-drift class the stale function digest exposed
-status: In Progress
+status: Done
 assignee:
   - '@codex-wave7'
 created_date: '2026-09-09 08:10'
-updated_date: '2026-09-09 08:51'
+updated_date: '2026-09-09 10:53'
 labels: []
 dependencies: []
 ordinal: 57000
@@ -23,16 +23,16 @@ Prefer discovery over a hand-maintained list of what to check, matching how the 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Every version and identifier the pinned-versions table quotes is checked against the file that actually carries it, and disagreement fails the gate by path
-- [ ] #2 Documentation that enumerates shipped kinds or catalog directories is checked against what the repository actually ships, so a new surface cannot land undocumented
-- [ ] #3 Each new check is proven by a weaken/reject/restore control, not by observing that the gate is currently green
-- [ ] #4 The checks discover their inputs rather than hard-coding filenames, so a new document or manifest is covered without editing the gate
+- [x] #1 Every version and identifier the pinned-versions table quotes is checked against the file that actually carries it, and disagreement fails the gate by path
+- [x] #2 Documentation that enumerates shipped kinds or catalog directories is checked against what the repository actually ships, so a new surface cannot land undocumented
+- [x] #3 Each new check is proven by a weaken/reject/restore control, not by observing that the gate is currently green
+- [x] #4 The checks discover their inputs rather than hard-coding filenames, so a new document or manifest is covered without editing the gate
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -40,3 +40,9 @@ Prefer discovery over a hand-maintained list of what to check, matching how the 
 <!-- SECTION:PLAN:BEGIN -->
 Extend the documentation drift gate by discovering quoted versions, shipped API kinds, and catalog directories from their machine-readable sources; prove each class through weaken/reject/restore controls.
 <!-- SECTION:PLAN:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+The gate now discovers and reconciles documented pinned versions, shipped API kinds, and catalog directories against machine-readable sources. Each class passed weaken, reject, restore controls. Completing SHA 5e6c0c259726c88158af71e0fc8a9e7f0cb31a4c; hosted Validate public reference run 34333791331 succeeded; local just check passed at 84.3% with zero skips.
+<!-- SECTION:FINAL_SUMMARY:END -->

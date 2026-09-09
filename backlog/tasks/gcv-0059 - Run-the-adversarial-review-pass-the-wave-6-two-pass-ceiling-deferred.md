@@ -1,11 +1,11 @@
 ---
 id: GCV-0059
 title: Run the adversarial review pass the wave 6 two-pass ceiling deferred
-status: In Progress
+status: Done
 assignee:
   - '@codex-wave7'
 created_date: '2026-09-09 08:10'
-updated_date: '2026-09-09 10:47'
+updated_date: '2026-09-09 10:53'
 labels: []
 dependencies: []
 ordinal: 59000
@@ -23,16 +23,16 @@ This is a review task, not a rewrite task. Findings become fixes or recorded dec
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The nine wave 6 surfaces are reviewed as integrated code, with the review scope and what was excluded both stated
-- [ ] #2 Every finding is read and dispositioned: fixed, or left with a stated reason; no severity band is dismissed unread
-- [ ] #3 Any finding that changes a public schema is treated as a compatibility question and recorded before 1.0.0, not applied silently
-- [ ] #4 Fixes carry a control that failed before and passes after, and the full gate passes on the completing commit
+- [x] #1 The nine wave 6 surfaces are reviewed as integrated code, with the review scope and what was excluded both stated
+- [x] #2 Every finding is read and dispositioned: fixed, or left with a stated reason; no severity band is dismissed unread
+- [x] #3 Any finding that changes a public schema is treated as a compatibility question and recorded before 1.0.0, not applied silently
+- [x] #4 Fixes carry a control that failed before and passes after, and the full gate passes on the completing commit
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -54,3 +54,9 @@ Rejected the ML optional-list guard because envtest admitted a Composition profi
 
 All accepted repairs carry behavioral controls that failed against the prior behavior and pass after restoration. The integrated gate passed after pass 2: Validation passed, function coverage 84.4%, zero skips.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Reviewed all nine wave 6 surfaces across the complete platform tree in two CodeRabbit passes and dispositioned every finding. Fixed all valid major findings and the valid minor/public-schema issues; recorded rejected findings with evidence. The k6 one-schedule-per-load-test schema correction was escalated and accepted before 1.0.0. Completing SHA d1713e78d0969ad58569e9d207a6ecf5c8dbedd3; hosted Validate public reference run 34342127436 succeeded; local just check passed at 84.4% with zero skips.
+<!-- SECTION:FINAL_SUMMARY:END -->
