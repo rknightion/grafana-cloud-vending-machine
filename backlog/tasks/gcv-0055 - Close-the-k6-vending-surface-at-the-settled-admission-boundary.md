@@ -1,9 +1,11 @@
 ---
 id: GCV-0055
 title: Close the k6 vending surface at the settled admission boundary
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@codex-wave7'
 created_date: '2026-09-09 08:09'
+updated_date: '2026-09-09 09:47'
 labels: []
 dependencies: []
 ordinal: 55000
@@ -33,3 +35,15 @@ This task closes GCV-0049. It does not weaken any existing cap.
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Apply the frozen cross-object admission settlement, record the decision, prove scheduled-test/project deletion semantics at the render boundary, reconcile public k6 documentation, and close GCV-0049 without weakening caps.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Recorded accepted decision decision-0001 for the settled admission/reconciliation boundary. Extended TestK6ProjectDynamicChildrenAreDeleteManaged to prove LoadTest and Schedule carry Delete, both disappear from desired state when withdrawn, and the retained Project remains. Removing Delete made the focused test fail for both children; restored focused test and just check passed at 84.3% with zero skips. CodeRabbit reviewed platform/function/k6_test.go and raised 0 issues. Root scope amendment: corrected docs/governance.md because it claimed scripts pass through unchanged, while generatedK6Script emits a structured HTTPS GET workload; leaving that sentence would preserve a false public claim.
+<!-- SECTION:NOTES:END -->

@@ -554,11 +554,30 @@ func TestK6ProjectDynamicChildrenAreDeleteManaged(t *testing.T) {
 	if err != nil {
 		t.Fatalf("second renderK6Project returned an error: %v", err)
 	}
+	wantDynamicPolicies := []any{"Create", "Observe", "Update", "Delete", "LateInitialize"}
 	for _, name := range []resource.Name{"load-test-smoke", "schedule-nightly"} {
 		policies := nestedMap(t, k6Desired(t, desired, name), "spec")["managementPolicies"]
-		if diff := cmp.Diff(k6DynamicManagementPolicies, policies); diff != "" {
+		if diff := cmp.Diff(wantDynamicPolicies, policies); diff != "" {
 			t.Errorf("%s management policies differ (-want +got):\n%s", name, diff)
 		}
+	}
+	projectPolicies := nestedMap(t, k6Desired(t, desired, "project"), "spec")["managementPolicies"]
+	if diff := cmp.Diff(managementPolicies, projectPolicies); diff != "" {
+		t.Fatalf("retained project management policies differ (-want +got):\n%s", diff)
+	}
+
+	withdrawn := k6ProjectDocument(map[string]any{"usage": "development"})
+	withdrawnDesired, err := renderK6Project(withdrawn, observed, k6Config())
+	if err != nil {
+		t.Fatalf("renderK6Project after dynamic withdrawal returned an error: %v", err)
+	}
+	for _, name := range []resource.Name{"load-test-smoke", "schedule-nightly"} {
+		if _, ok := withdrawnDesired[name]; ok {
+			t.Errorf("withdrawn dynamic child %q remained in desired state", name)
+		}
+	}
+	if _, ok := withdrawnDesired["project"]; !ok {
+		t.Fatal("retained project disappeared when its dynamic children were withdrawn")
 	}
 }
 

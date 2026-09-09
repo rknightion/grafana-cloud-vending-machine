@@ -44,14 +44,17 @@ duration. The request supplies a structured HTTPS GET workload; the function
 generates the bounded k6 script and sets its VUs, duration, and load-zone
 distribution from the admitted fields.
 Schedules wait for the provider-assigned LoadTest ID and are delete-managed
-with the project, so a removed request cannot leave a recurring schedule
-behind.
+with their load tests. Removing a dynamic workload removes its LoadTest and
+Schedule from desired state, and both carry `Delete` management while the
+project itself retains. The function test proves this declarative deletion
+boundary; it does not claim a live remote deletion was observed.
 
 `allowedLoadZones` must be explicit: an empty array means no private load zones. Omission is rejected rather than clearing a prior set or leaving the policy unmanaged.
 
 Admission checks the declared VUs, duration and zones against the selected
-Composition profile. The renderer also checks the declared usage against the
-observed stack and waits for its ProjectLimits and allowed-zone resources to
-be Ready before creating dynamic children. The generated script is inert in
-this repository: live test execution and remote schedule deletion are not
-exercised by the API-server harness.
+Composition profile. Admission cannot read the referenced stack. Reconciliation
+therefore checks the declared usage against that stack's observed usage and
+withholds dynamic children until the observed `ProjectLimits` and allowed-zone
+resources match the desired profile at their current generation. The generated
+script is inert in this repository: live test execution and remote schedule
+deletion are not exercised by the API-server harness.
