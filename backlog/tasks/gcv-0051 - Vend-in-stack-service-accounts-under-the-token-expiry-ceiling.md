@@ -1,10 +1,10 @@
 ---
 id: GCV-0051
 title: Vend in-stack service accounts under the token expiry ceiling
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-08 22:36'
-updated_date: '2026-09-08 22:48'
+updated_date: '2026-09-09 00:53'
 labels: []
 dependencies: []
 type: feature
@@ -21,17 +21,17 @@ That means the ceiling covers roughly half the tokens a real platform hands out.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 In-stack service accounts and their rotating tokens are vended from platform-controlled input, with an explicit external name on every deterministic child
-- [ ] #2 The existing composition token expiry ceiling binds in-stack tokens exactly as it binds cloud tokens, and a request exceeding it is refused with its own message, proven against the real API server
-- [ ] #3 Service account permissions have exactly one declarative owner, consistent with the whole-set resources rule, and that ownership is tested
-- [ ] #4 No token value reaches status or a rendered example; only derived credentials are published, and a test proves it
-- [ ] #5 Every emitted kind appears in the provider activation map and the XRD/renderer registry, and the gate fails by path if one is missing
+- [x] #1 In-stack service accounts and their rotating tokens are vended from platform-controlled input, with an explicit external name on every deterministic child
+- [x] #2 The existing composition token expiry ceiling binds in-stack tokens exactly as it binds cloud tokens, and a request exceeding it is refused with its own message, proven against the real API server
+- [x] #3 Service account permissions have exactly one declarative owner, consistent with the whole-set resources rule, and that ownership is tested
+- [x] #4 No token value reaches status or a rendered example; only derived credentials are published, and a test proves it
+- [x] #5 Every emitted kind appears in the provider activation map and the XRD/renderer registry, and the gate fails by path if one is missing
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -39,3 +39,9 @@ That means the ceiling covers roughly half the tokens a real platform hands out.
 <!-- SECTION:PLAN:BEGIN -->
 Wave 6: implement the commissioned surface under the frozen goal and root-owned integration; prove admission and renderer boundaries with required negative controls, then just check and exact-SHA hosted Validate before finalization.
 <!-- SECTION:PLAN:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Vended in-stack service accounts, rotating credentials and one whole-set permission owner per stack. Deterministic names are explicit; provider-assigned account IDs are observed before dependents. Real API-server policy consumes the existing Composition maximumTokenLifetime and proves weaken/admit/restore. No credential values appear in XR status or examples. Completing source/pin SHA: 187b03ea40ee32fcea890e40c138f00a8c73bd5f. Hosted Validate run 34296536930: success. Local just check passed with 23 real API-server tests, zero skips.
+<!-- SECTION:FINAL_SUMMARY:END -->

@@ -1,10 +1,10 @@
 ---
 id: GCV-0048
 title: Vend Private Data source Connect networks
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-08 22:36'
-updated_date: '2026-09-08 22:48'
+updated_date: '2026-09-09 00:53'
 labels: []
 dependencies: []
 type: feature
@@ -21,17 +21,17 @@ It belongs in a fail-closed machine specifically because it is a network boundar
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A PDC network is vended per stack from platform-controlled input, with an explicit external name so a re-adopt does not attempt a create
-- [ ] #2 PDC network tokens are bounded by the existing composition token expiry ceiling, and a request that would exceed it is refused with its own message
-- [ ] #3 No token value reaches status or a rendered example; only derived credentials are published, and a test proves it
-- [ ] #4 A datasource request that names a PDC network the platform did not vend is refused with its own message, proven against the real API server
-- [ ] #5 Every emitted kind appears in the provider activation map and the XRD/renderer registry, and the gate fails by path if one is missing
+- [x] #1 A PDC network is vended per stack from platform-controlled input, with an explicit external name so a re-adopt does not attempt a create
+- [x] #2 PDC network tokens are bounded by the existing composition token expiry ceiling, and a request that would exceed it is refused with its own message
+- [x] #3 No token value reaches status or a rendered example; only derived credentials are published, and a test proves it
+- [x] #4 A datasource request that names a PDC network the platform did not vend is refused with its own message, proven against the real API server
+- [x] #5 Every emitted kind appears in the provider activation map and the XRD/renderer registry, and the gate fails by path if one is missing
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -39,3 +39,9 @@ It belongs in a fail-closed machine specifically because it is a network boundar
 <!-- SECTION:PLAN:BEGIN -->
 Wave 6: implement the commissioned surface under the frozen goal and root-owned integration; prove admission and renderer boundaries with required negative controls, then just check and exact-SHA hosted Validate before finalization.
 <!-- SECTION:PLAN:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Vended PDC networks and bounded token windows with distinct resource and connection-Secret names, preserving assigned identities and dependent resources on observation gaps. Existing shared ceiling and same-request datasource network ownership have real API-server negative controls. Pinned source marks expiry ForceNew; old tokens remain remote until their bounded natural expiry. No live agent credential refresh proof. Completing source/pin SHA: 187b03ea40ee32fcea890e40c138f00a8c73bd5f. Hosted Validate run 34296536930: success. Local just check passed with 23 real API-server tests, zero skips.
+<!-- SECTION:FINAL_SUMMARY:END -->

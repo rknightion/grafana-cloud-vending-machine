@@ -1,10 +1,10 @@
 ---
 id: GCV-0049
 title: Complete k6 vending with load tests and schedules
-status: In Progress
+status: Parked
 assignee: []
 created_date: '2026-09-08 22:36'
-updated_date: '2026-09-08 22:48'
+updated_date: '2026-09-09 00:53'
 labels: []
 dependencies: []
 type: feature
@@ -21,17 +21,17 @@ The provider carries k6 loadtests, loadtestsets, schedules and schedulesets at v
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Load tests and schedules are vended per project from platform-controlled input, with an explicit external name on every deterministic child
+- [x] #1 Load tests and schedules are vended per project from platform-controlled input, with an explicit external name on every deterministic child
 - [ ] #2 A load test or schedule that would breach the existing ProjectLimits or leave the allowed load zones is refused with its own message, proven against the real API server
 - [ ] #3 A scheduled test cannot outlive its project, and the deletion path is proven, not asserted
-- [ ] #4 Every emitted kind appears in the provider activation map and the XRD/renderer registry, and the gate fails by path if one is missing
-- [ ] #5 A catalog example renders inert and is covered by the catalog README and Kustomization checks
+- [x] #4 Every emitted kind appears in the provider activation map and the XRD/renderer registry, and the gate fails by path if one is missing
+- [x] #5 A catalog example renders inert and is covered by the catalog README and Kustomization checks
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -39,3 +39,15 @@ The provider carries k6 loadtests, loadtestsets, schedules and schedulesets at v
 <!-- SECTION:PLAN:BEGIN -->
 Wave 6: implement the commissioned surface under the frozen goal and root-owned integration; prove admission and renderer boundaries with required negative controls, then just check and exact-SHA hosted Validate before finalization.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Final root integration narrows new workloads to generated structured HTTPS GET scripts with explicit constant-vus scenarios and zero graceful-stop time; arbitrary JavaScript and browser workloads are excluded. API admission proves declared-profile limits; trusted referenced-stack usage remains a reconcile-time check, so AC2 is not fully satisfied. Dynamic child Delete policies are emitted, but remote project/schedule deletion is unproven. Cap transitions now preserve prior configured workloads while publishing revised caps, keeping the composite not Ready until the current Synced generation is observed. GCV-0049 remains incomplete pending exact cross-object admission and deletion acceptance.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+PARTIAL: structured HTTPS GET load tests and schedules land with observed identities, explicit constant-vus and gracefulStop 0s. Declared-profile admission and cap weaken/admit/restore passed. Current cap observation gates new loads while prior requested workload specs are preserved so revised caps can converge. AC2 remains incomplete because actual referenced-stack usage is checked only at reconcile; AC3 remote schedule/project lifetime and deletion behavior is unproven. Resume: commission cross-object admission or generated policy lifecycle without changing caps, then prove the remote deletion boundary. Completing source/pin SHA: 187b03ea40ee32fcea890e40c138f00a8c73bd5f. Hosted Validate run 34296536930: success. Local just check passed with 23 real API-server tests, zero skips.
+<!-- SECTION:FINAL_SUMMARY:END -->
