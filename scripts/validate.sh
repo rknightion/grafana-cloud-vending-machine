@@ -4,6 +4,17 @@ set -euo pipefail
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 
+# Fail here rather than four minutes in. Without these the admission harness
+# cannot start an API server, so every admission test fails individually, the
+# suite still reports the rest as passing, and coverage silently drops - which
+# reads as a broken repository instead of a missing prerequisite. Hosted CI
+# provisions the assets and exports the path before calling this script.
+if [[ ! -x "${KUBEBUILDER_ASSETS:-}/kube-apiserver" || ! -x "${KUBEBUILDER_ASSETS:-}/etcd" ]]; then
+  echo "The admission gate needs the pinned envtest assets." >&2
+  echo "Run 'just envtest', then export the KUBEBUILDER_ASSETS path it prints." >&2
+  exit 1
+fi
+
 ./scripts/public-release-scan.sh
 
 ruby -ryaml -e '
