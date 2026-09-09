@@ -25,7 +25,7 @@ This reference pins versions and immutable artifacts instead of following latest
 | ESO Helm chart | 2.6.0 | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
 | Cosign verification image | 3.1.2, immutable digest | Verifies the Grafana provider and this repository's function package |
 | Composition function SDK | 0.7.1 | Pinned by the function Go module |
-| Vending composition function | sha256:09ff21ddf5436d0f0165ac7849d86ab4c22a6633551d91ab6aab4edc48f88652 | Signed amd64/arm64 package; canonical pin in `platform/function/install.yaml` |
+| Vending composition function | sha256:1faa72fa959a55aeb44a4e9d5ff148d89ccb75a0134bc917a4ee89d5dfeceda5 | Signed amd64/arm64 package; canonical pin in `platform/function/install.yaml` |
 
 The Grafana Crossplane provider describes itself as experimental and unsupported. The v2.14.0 tag is
 generated from Terraform provider 4.45.1 and carries the resource surface used by this reference. It

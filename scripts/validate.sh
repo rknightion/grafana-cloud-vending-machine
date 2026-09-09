@@ -116,6 +116,20 @@ ruby -ryaml -e '
     abort "#{path}: verification Job must carry exactly one digest argument" unless verified.length == 1
     abort "#{path}: verifies #{verified.fetch(0)} but installs #{installed}" unless verified.fetch(0) == installed
   end
+
+  # Documentation quotes pinned digests and names platform/ as canonical for
+  # them. A digest that reaches a doc and is then superseded by a publish is
+  # invisible to every other check here, so discover both sides and require
+  # every documented digest to still exist in a platform manifest.
+  digest_pattern = /sha256:[0-9a-f]{64}/
+  platform_digests = Dir.glob("platform/**/*.{yaml,yml,json}").sort.flat_map do |path|
+    File.read(path).scan(digest_pattern)
+  end.uniq
+  Dir.glob("docs/**/*.md").sort.each do |path|
+    File.read(path).scan(digest_pattern).uniq.each do |digest|
+      abort "#{path}: documents #{digest}, which no platform manifest pins" unless platform_digests.include?(digest)
+    end
+  end
 '
 
 if [[ -n $(gofmt -l platform/function/*.go) ]]; then
