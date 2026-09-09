@@ -1,0 +1,35 @@
+---
+id: GCV-0055
+title: Close the k6 vending surface at the settled admission boundary
+status: To Do
+assignee: []
+created_date: '2026-09-09 08:09'
+labels: []
+dependencies: []
+ordinal: 55000
+---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+GCV-0049 is Parked with AC2 and AC3 unmet. Both were written expecting admission to read the referenced stack@s actual usage, which one ValidatingAdmissionPolicy cannot do: a policy takes a single paramRef and cannot also read a second object. Wave 6 established that closing the gap needs either a deployed validating webhook with TLS, RBAC and cert rotation, or a generated per-stack policy lifecycle owned by the function.
+
+The repository owner settled this on 2026-09-09: neither route is taken. Crossplane already refuses at reconcile, the catalog README already tells adopters the budget is not a tenant quota, and a webhook would duplicate the function@s logic in a second place that can drift. The acceptance criteria are rewritten to the boundary that actually holds, and the admission gap becomes a recorded design decision rather than carried debt.
+
+This task closes GCV-0049. It does not weaken any existing cap.
+<!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [ ] #1 GCV-0049 acceptance criteria state the enforcement boundary that actually holds: declared profile limits at admission, referenced-stack usage at reconciliation
+- [ ] #2 A Backlog decision records why cross-object admission is not pursued, naming both rejected routes and their costs, so it is not re-litigated
+- [ ] #3 The scheduled-test and project deletion path is proven at the boundary the machine actually controls, not asserted
+- [ ] #4 Public documentation for the k6 surface states which guarantees are admission-time and which are reconcile-time, with no claim the machine does not meet
+- [ ] #5 GCV-0049 reaches Done with its remaining evidence, or the reason it cannot is a new fact rather than the admission gap this task settles
+<!-- AC:END -->
+
+## Definition of Done
+<!-- DOD:BEGIN -->
+- [ ] #1 just check passes locally
+- [ ] #2 hosted Validate workflow passes on the completing commit
+<!-- DOD:END -->
