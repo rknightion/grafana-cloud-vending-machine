@@ -3,7 +3,7 @@ id: doc-0002
 title: Wave operating model
 type: guide
 created_date: '2026-08-14 16:36'
-updated_date: '2026-09-09 00:17'
+updated_date: '2026-09-09 00:55'
 ---
 This document carries **only** what is specific to this repository. The campaign model itself —
 run contract and run modes, the routing contract, authority and the thread pool, child lane briefs,
@@ -138,8 +138,8 @@ Natural boundaries, each with a single owner per wave:
   append-only registries that cannot be split into per-lane files, so their entries are pre-assigned
   in the goal and applied by the wiring pass. A lane wanting an entry other than its assigned one
   stops and says so.
-- `platform/provider/` — the provider pin and its signature verification. The digest appears three
-  times in one file and always moves together.
+- `platform/provider/` — the provider pin and its signature verification. The digest appears twice
+  in the provider manifest, with a third copy in the managed-kind map; all move together.
 - `examples/catalog/*` — one lane may own several directories; they do not interact.
 - `deploy/` — installation and GitOps integration.
 - `docs/` — one subject per page, following the `docs.toml` navigation. Lanes own their subject
@@ -186,3 +186,4 @@ run learned that no single task captures. Nothing durable may live only there.
 - untouched work is self-evidently still `To Do`.
 
 Writing the report is the last unit of work, not a reply to a request.
+
