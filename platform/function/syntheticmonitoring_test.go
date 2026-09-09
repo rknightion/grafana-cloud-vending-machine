@@ -565,4 +565,14 @@ func TestSyntheticMonitoringExistingCheckCanOmitAlerts(t *testing.T) {
 	if _, err := syntheticMonitoringAlerts(map[string]any{"alerts": []any{}}, "invalid"); err == nil {
 		t.Fatal("explicit empty alert set admitted")
 	}
+	minimal, err := syntheticMonitoringAlerts(map[string]any{"alerts": []any{map[string]any{"name": "ProbeFailedExecutionsTooHigh", "threshold": float64(1)}}}, "minimal")
+	if err != nil {
+		t.Fatal(err)
+	}
+	entry := minimal[0].(map[string]any)
+	for _, optional := range []string{"period", "runbookUrl"} {
+		if _, found := entry[optional]; found {
+			t.Fatalf("minimal alert emitted omitted optional field %q", optional)
+		}
+	}
 }

@@ -1,9 +1,11 @@
 ---
 id: GCV-0058
 title: Cover the receiver-freshness paths wave 6 shipped with zero test coverage
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@codex-wave7'
 created_date: '2026-09-09 08:10'
+updated_date: '2026-09-09 10:47'
 labels: []
 dependencies: []
 ordinal: 58000
@@ -32,3 +34,15 @@ Scope is the wave 6 alerting-join and observation code. Do not retro-fit tests o
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Establish red-before controls for stale, absent, and malformed receiver observations; exercise or remove zero-coverage helpers based on call evidence; keep assertions at behavioral boundaries.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Lane E evidence: added named stale, absent, and malformed receiver-observation cases at behavioral boundaries. Each case failed when its matching freshness guard was weakened and passed after restoration. Removed observedDesiredReady after call-site search proved it unreachable. CodeRabbit reviewed the two changed function files with zero findings. Integrated just check passed with 84.3% coverage and zero skips before the lane commit.
+<!-- SECTION:NOTES:END -->

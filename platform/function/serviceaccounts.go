@@ -98,6 +98,11 @@ func renderServiceAccounts(xr map[string]any, observed map[resource.Name]resourc
 
 		serviceAccountID := observedString(observed, logicalPrefix, "status.atProvider.id")
 		if serviceAccountID == "" {
+			for _, suffix := range []string{"-token", "-permissions", "-credentials"} {
+				if _, exists := observed[resource.Name(string(logicalPrefix)+suffix)]; exists {
+					return nil, errors.Errorf("waiting for observed service account ID for %q; preserving observed service-account dependency", accountName)
+				}
+			}
 			continue
 		}
 

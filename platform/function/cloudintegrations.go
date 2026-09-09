@@ -144,6 +144,9 @@ func renderCloudIntegrations(xr map[string]any, observed map[resource.Name]resou
 		case "cloudwatch", "resourceMetadata":
 			accountID := observedString(observed, resource.Name("aws-account-"+job.account), "status.atProvider.resourceId")
 			if accountID == "" {
+				if _, exists := observed[logicalName]; exists {
+					return nil, errors.Errorf("waiting for observed cloud account ID for job %q; preserving observed cloud integration job", job.name)
+				}
 				// The account resource ID is assigned by Grafana Cloud. Jobs must
 				// wait for it rather than derive an identifier from configuration.
 				continue

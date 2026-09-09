@@ -1,9 +1,11 @@
 package main
 
 import (
+	"testing"
+
 	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/resource"
-	"testing"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestBootstrapContextRequiresIdentityAndSecret(t *testing.T) {
@@ -107,10 +109,11 @@ func TestK6DynamicWithdrawalDistinguishesRemovalFromUnavailableDependency(t *tes
 func TestK6CapTransitionPreservesChildrenAndAdvancesCap(t *testing.T) {
 	xr := map[string]any{"spec": map[string]any{"loadTests": []any{map[string]any{"name": "kept"}}}}
 	desired := map[resource.Name]*resource.DesiredComposed{
+		"project":            newDesired(k6APIVersion, "Project", "default", "project", nil, map[string]any{"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": "project-provider"}}),
 		"limits":             newDesired(k6APIVersion, "ProjectLimits", "default", "project-limits", nil, map[string]any{"forProvider": map[string]any{"vuMaxPerTest": float64(2)}}),
 		"allowed-load-zones": newDesired(k6APIVersion, "ProjectAllowedLoadZones", "default", "project-zones", nil, map[string]any{"forProvider": map[string]any{"allowedLoadZones": []any{}}}),
 	}
-	observed := map[resource.Name]resource.ObservedComposed{"load-test-kept": observedComposed(`{"apiVersion":"k6.grafana.m.crossplane.io/v1alpha1","kind":"LoadTest","metadata":{"name":"project-kept","namespace":"default","annotations":{"crossplane.io/external-name":"observed-test-id"}},"spec":{"forProvider":{"script":"previous-script"}}}`)}
+	observed := map[resource.Name]resource.ObservedComposed{"load-test-kept": observedComposed(`{"apiVersion":"k6.grafana.m.crossplane.io/v1alpha1","kind":"LoadTest","metadata":{"name":"project-kept","namespace":"default","annotations":{"crossplane.io/external-name":"observed-test-id"}},"spec":{"managementPolicies":["Observe"],"forProvider":{"name":"kept","projectId":"42","script":"previous-script","providerAdded":"must-not-survive"},"providerConfigRef":{"kind":"ProviderConfig","name":"stale-provider"},"providerAdded":"must-not-survive"}}`)}
 	if err := productWithdrawalError("GrafanaK6Project", xr, desired, observed); err != nil {
 		t.Fatalf("cap transition cannot progress: %v", err)
 	}
@@ -119,6 +122,23 @@ func TestK6CapTransitionPreservesChildrenAndAdvancesCap(t *testing.T) {
 	}
 	if nestedMap(t, desired["load-test-kept"].Resource.UnstructuredContent(), "spec", "forProvider")["script"] != "previous-script" {
 		t.Fatal("existing test changed before cap reconciled")
+	}
+	preservedSpec := nestedMap(t, desired["load-test-kept"].Resource.UnstructuredContent(), "spec")
+	if diff := cmp.Diff(k6DynamicManagementPolicies, preservedSpec["managementPolicies"]); diff != "" {
+		t.Fatalf("preserved test management policies differ (-want +got):\n%s", diff)
+	}
+	if _, found := preservedSpec["providerAdded"]; found {
+		t.Fatal("preserved test retained a provider-added top-level spec field")
+	}
+	preservedParameters := nestedMap(t, desired["load-test-kept"].Resource.UnstructuredContent(), "spec", "forProvider")
+	if _, found := preservedParameters["providerAdded"]; found {
+		t.Fatal("preserved test retained a provider-added workload field")
+	}
+	if got := nestedMap(t, desired["load-test-kept"].Resource.UnstructuredContent(), "spec", "providerConfigRef")["name"]; got != "project-provider" {
+		t.Fatalf("preserved test provider config = %v, want current platform provider", got)
+	}
+	if got := nestedMap(t, desired["load-test-kept"].Resource.UnstructuredContent(), "metadata", "annotations")["crossplane.io/external-name"]; got != "observed-test-id" {
+		t.Fatalf("preserved test external name = %v, want observed provider identity", got)
 	}
 	if nestedMap(t, desired["limits"].Resource.UnstructuredContent(), "spec", "forProvider")["vuMaxPerTest"] != float64(2) {
 		t.Fatal("new cap was not emitted")

@@ -39,6 +39,8 @@ spec:
                   message: every load test load zone must be in spec.allowedLoadZones
                 - rule: "!has(self.schedules) || self.schedules.all(schedule, has(self.loadTests) && self.loadTests.exists(test, test.name == schedule.loadTest))"
                   message: every schedule must reference a declared load test
+                - rule: "!has(self.schedules) || self.schedules.all(schedule, self.schedules.filter(candidate, candidate.loadTest == schedule.loadTest).size() == 1)"
+                  message: each load test may have at most one schedule
               required:
                 - stackRef
                 - grafanaUser

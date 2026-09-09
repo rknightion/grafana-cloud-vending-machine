@@ -101,6 +101,16 @@ func TestServiceAccountsWaitForObservedProviderID(t *testing.T) {
 	}
 }
 
+func TestServiceAccountsPreserveDependantsWhileProviderIDIsUnavailable(t *testing.T) {
+	observed := map[resource.Name]resource.ObservedComposed{
+		"service-account-ci-runner-permissions": observedComposed(`{"apiVersion":"oss.grafana.m.crossplane.io/v1alpha1","kind":"ServiceAccountPermission"}`),
+	}
+	_, err := renderServiceAccounts(serviceAccountsClaim(), observed, serviceAccountsConfig("336h", "336h"))
+	if err == nil || !strings.Contains(err.Error(), "preserving observed service-account dependency") {
+		t.Fatalf("renderServiceAccounts() error = %v, want observed-dependency preservation refusal", err)
+	}
+}
+
 func TestServiceAccountsUseTheSharedTokenCeilingWithoutAParallelLimit(t *testing.T) {
 	config := serviceAccountsConfig("336h", "336h")
 	desired, err := renderServiceAccounts(serviceAccountsClaim(), map[resource.Name]resource.ObservedComposed{

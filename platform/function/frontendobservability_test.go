@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/crossplane/function-sdk-go/resource"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -139,6 +140,22 @@ func TestFrontendObservabilityWaitsForOrganizationProviderConfig(t *testing.T) {
 	_, err := renderFrontendObservability(frontendObservabilityClaim(), nil, config)
 	if err == nil || !strings.Contains(err.Error(), "trusted referenced stack context is incomplete") {
 		t.Fatalf("render with incomplete trusted context = %v, want trusted-context refusal", err)
+	}
+}
+
+func TestFrontendObservabilityRefusesToOrphanAnObservedApp(t *testing.T) {
+	config := frontendObservabilityConfig()
+	profile := config["spec"].(map[string]any)["frontendObservabilityProfiles"].([]any)[0].(map[string]any)
+	profile["apps"] = []any{map[string]any{
+		"name": "replacement", "allowedOrigins": []any{"https://example.invalid"},
+		"extraLogAttributes": map[string]any{"environment": "example"}, "settings": map[string]any{"combineLabData": "0"},
+	}}
+	observed := map[resource.Name]resource.ObservedComposed{
+		"app-browser": observedComposed(`{"apiVersion":"frontendobservability.grafana.m.crossplane.io/v1alpha1","kind":"App"}`),
+	}
+	_, err := renderFrontendObservability(frontendObservabilityClaim(), observed, config)
+	if err == nil || !strings.Contains(err.Error(), "would withdraw observed app") {
+		t.Fatalf("renderFrontendObservability() error = %v, want observed-app preservation refusal", err)
 	}
 }
 

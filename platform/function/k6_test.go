@@ -710,6 +710,18 @@ func TestK6LoadTestCapAdmissionUsesTheCompositionProfile(t *testing.T) {
 		t.Fatalf("nullable script compatibility value was refused: %v", err)
 	}
 	t.Log("API server accepted null compatibility script value")
+
+	duplicateSchedules := k6AdmissionRequest("k6-duplicate-schedules", 1)
+	duplicateSchedules.Object["spec"].(map[string]any)["schedules"] = []any{
+		map[string]any{"name": "daily", "loadTest": "smoke", "starts": "2030-01-01T00:00:00Z"},
+		map[string]any{"name": "weekly", "loadTest": "smoke", "starts": "2030-01-02T00:00:00Z"},
+	}
+	const scheduleMessage = "each load test may have at most one schedule"
+	err = applyK6AdmissionEventually(ctx, env, duplicateSchedules, false, scheduleMessage)
+	if err == nil || !strings.Contains(err.Error(), scheduleMessage) {
+		t.Fatalf("duplicate load-test schedules admission error = %v, want %q", err, scheduleMessage)
+	}
+	t.Logf("API server duplicate load-test schedules rejection output: %v", err)
 }
 
 func TestK6LoadTestCapAdmissionNegativeControlWeakensAndRestoresProfile(t *testing.T) {

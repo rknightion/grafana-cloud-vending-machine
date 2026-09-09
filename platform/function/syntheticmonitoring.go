@@ -347,9 +347,14 @@ func syntheticMonitoringAlerts(check map[string]any, checkName string) ([]any, e
 			return nil, errors.Errorf("check %q repeats alert name %q", checkName, name)
 		}
 		seen[name] = struct{}{}
-		alerts = append(alerts, map[string]any{
-			"name": name, "period": period, "runbookUrl": runbookURL, "threshold": threshold,
-		})
+		entry := map[string]any{"name": name, "threshold": threshold}
+		if period != "" {
+			entry["period"] = period
+		}
+		if runbookURL != "" {
+			entry["runbookUrl"] = runbookURL
+		}
+		alerts = append(alerts, entry)
 	}
 	return alerts, nil
 }

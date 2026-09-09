@@ -256,6 +256,25 @@ func TestOnCallReceiverStatusRefusesUnusableObservations(t *testing.T) {
 	})
 }
 
+func TestResolveAlertingReceiversWaitsForAbsentReceiverStatus(t *testing.T) {
+	claim := alertingRoutingRequest("teamdemo01")
+	spec := claim.Object["spec"].(map[string]any)
+	spec["contactPoints"] = []any{map[string]any{"name": "operations", "onCallRef": map[string]any{"name": "teamdemo01"}}}
+	receiver := map[string]any{
+		"apiVersion": "platform.example.org/v1beta1",
+		"kind":       "GrafanaOnCall",
+		"metadata":   map[string]any{"name": "teamdemo01", "namespace": claim.GetNamespace()},
+		"spec":       map[string]any{"stackRef": map[string]any{"name": "teamdemo01"}},
+	}
+	req := &fnv1.RunFunctionRequest{RequiredResources: map[string]*fnv1.Resources{
+		"oncall-receiver-teamdemo01": {Items: []*fnv1.Resource{{Resource: resource.MustStructJSON(mustJSON(receiver))}}},
+	}}
+	_, ready, err := resolveAlertingReceivers(req, &fnv1.RunFunctionResponse{}, claim.Object)
+	if err != nil || ready {
+		t.Fatalf("absent receiver status returned ready=%t error=%v, want not-ready without an error", ready, err)
+	}
+}
+
 func currentOnCallReceiverObservations(t *testing.T, desired map[resource.Name]*resource.DesiredComposed) map[resource.Name]resource.ObservedComposed {
 	t.Helper()
 	observed := make(map[resource.Name]resource.ObservedComposed, len(desired))

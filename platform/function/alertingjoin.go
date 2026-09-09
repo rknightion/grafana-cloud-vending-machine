@@ -70,7 +70,12 @@ func resolveAlertingReceivers(req *fnv1.RunFunctionRequest, rsp *fnv1.RunFunctio
 		status, _ := object["status"].(map[string]any)
 		receiver, _ := status["alertReceiver"].(map[string]any)
 		address := stringValue(receiver, "address", "")
-		if stringValue(receiver, "stackName", "") != accessStackReference(xr) {
+		receiverStack := stringValue(receiver, "stackName", "")
+		if len(receiver) == 0 || receiverStack == "" {
+			ready = false
+			continue
+		}
+		if receiverStack != accessStackReference(xr) {
 			return nil, false, fmt.Errorf("OnCall receiver status stack binding mismatch")
 		}
 		if !requiredStackReady(object) || stringValue(receiver, "integrationID", "") == "" || fmt.Sprint(receiver["observedGeneration"]) != fmt.Sprint(om["generation"]) {

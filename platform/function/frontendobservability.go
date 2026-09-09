@@ -2,6 +2,7 @@ package main
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/crossplane/function-sdk-go/errors"
 	"github.com/crossplane/function-sdk-go/resource"
@@ -15,7 +16,7 @@ const frontendObservabilityAPIVersion = "frontendobservability.grafana.m.crosspl
 // profile. The provider exposes collectorEndpoint after creation. That URL
 // contains the browser ingestion key by design, so it is intentionally neither
 // accepted from the request nor copied into a Secret.
-func renderFrontendObservability(xr map[string]any, _ map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+func renderFrontendObservability(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
 	metadata, _ := xr["metadata"].(map[string]any)
 	spec, _ := xr["spec"].(map[string]any)
 	name, _ := metadata["name"].(string)
@@ -89,6 +90,11 @@ func renderFrontendObservability(xr map[string]any, _ map[resource.Name]resource
 				"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": organizationProviderConfigName},
 			},
 		)
+	}
+	for name := range observed {
+		if strings.HasPrefix(string(name), "app-") && desired[name] == nil {
+			return nil, errors.Errorf("frontend observability profile would withdraw observed app %q; retain it until an explicit decommission", name)
+		}
 	}
 	return desired, nil
 }

@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/crossplane/function-sdk-go/resource"
 	"strings"
 
+	"github.com/crossplane/function-sdk-go/errors"
 	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/request"
+	"github.com/crossplane/function-sdk-go/resource"
 )
 
 // serviceBootstrapConfig passes only identity-bound references, never credential
@@ -163,6 +164,17 @@ func k6CapReconciliationPending(desired map[resource.Name]*resource.DesiredCompo
 
 func preserveK6DynamicDuringCapUpdate(xr map[string]any, desired map[resource.Name]*resource.DesiredComposed, observed map[resource.Name]resource.ObservedComposed) error {
 	spec, _ := xr["spec"].(map[string]any)
+	project := desired["project"]
+	if project == nil || project.Resource == nil {
+		return errors.New("current k6 project is unavailable while preserving dynamic children")
+	}
+	projectSpec, _ := project.Resource.UnstructuredContent()["spec"].(map[string]any)
+	currentProvider, _ := projectSpec["providerConfigRef"].(map[string]any)
+	providerKind := stringValue(currentProvider, "kind", "")
+	providerName := stringValue(currentProvider, "name", "")
+	if providerKind == "" || providerName == "" {
+		return errors.New("current k6 provider reference is unavailable while preserving dynamic children")
+	}
 	for _, field := range []struct{ name, prefix, kind string }{{"loadTests", "load-test-", "LoadTest"}, {"schedules", "schedule-", "Schedule"}} {
 		items, _ := spec[field.name].([]any)
 		for _, raw := range items {
@@ -178,16 +190,45 @@ func preserveK6DynamicDuringCapUpdate(xr map[string]any, desired map[resource.Na
 			object := old.Resource.UnstructuredContent()
 			meta, _ := object["metadata"].(map[string]any)
 			prior, _ := object["spec"].(map[string]any)
-			annotations, _ := meta["annotations"].(map[string]any)
 			name, namespace := stringValue(meta, "name", ""), stringValue(meta, "namespace", "")
 			if object["apiVersion"] != k6APIVersion || object["kind"] != field.kind || name == "" || namespace == "" || prior == nil {
 				return fmt.Errorf("existing k6 child %q identity or spec is incomplete", key)
 			}
+			priorParameters, _ := prior["forProvider"].(map[string]any)
+			if priorParameters == nil {
+				return fmt.Errorf("existing k6 child %q has no observed platform-owned parameters", key)
+			}
+			preservedParameters := map[string]any{}
+			allowed := []string{"loadTestId", "starts", "cron", "recurrenceRule"}
+			required := []string{"loadTestId", "starts"}
+			if field.kind == "LoadTest" {
+				allowed = []string{"name", "projectId", "script", "k6Version"}
+				required = []string{"name", "projectId", "script"}
+			}
+			for _, parameter := range allowed {
+				if value, exists := priorParameters[parameter]; exists {
+					preservedParameters[parameter] = value
+				}
+			}
+			for _, parameter := range required {
+				if stringValue(preservedParameters, parameter, "") == "" {
+					return fmt.Errorf("existing k6 child %q is missing observed platform-owned parameter %q", key, parameter)
+				}
+			}
+			var annotations map[string]any
+			if externalName := observedExternalName(observed, key); externalName != "" {
+				annotations = map[string]any{"crossplane.io/external-name": externalName}
+			}
+			preservedSpec := map[string]any{
+				"managementPolicies": k6DynamicManagementPolicies,
+				"forProvider":        preservedParameters,
+				"providerConfigRef":  map[string]any{"kind": providerKind, "name": providerName},
+			}
 			switch field.kind {
 			case "LoadTest":
-				desired[key] = newDesired(k6APIVersion, "LoadTest", namespace, name, annotations, prior)
+				desired[key] = newDesired(k6APIVersion, "LoadTest", namespace, name, annotations, preservedSpec)
 			case "Schedule":
-				desired[key] = newDesired(k6APIVersion, "Schedule", namespace, name, annotations, prior)
+				desired[key] = newDesired(k6APIVersion, "Schedule", namespace, name, annotations, preservedSpec)
 			}
 		}
 	}

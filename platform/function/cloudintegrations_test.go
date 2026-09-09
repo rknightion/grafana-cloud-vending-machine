@@ -121,6 +121,16 @@ func TestCloudIntegrationsWaitForObservedAccountID(t *testing.T) {
 	}
 }
 
+func TestCloudIntegrationsPreserveExistingJobWhileAccountIDIsUnavailable(t *testing.T) {
+	observed := map[resource.Name]resource.ObservedComposed{
+		"cloudwatch-cloudwatch-compute": observedComposed(`{"apiVersion":"cloudprovider.grafana.m.crossplane.io/v1alpha1","kind":"AwsCloudwatchScrapeJob"}`),
+	}
+	_, err := renderCloudIntegrations(cloudIntegrationClaim(), observed, cloudIntegrationConfig())
+	if err == nil || !strings.Contains(err.Error(), "preserving observed cloud integration job") {
+		t.Fatalf("renderCloudIntegrations() error = %v, want observed-job preservation refusal", err)
+	}
+}
+
 func TestCloudIntegrationsRejectBudgetAndProfileEscapes(t *testing.T) {
 	for _, tc := range []struct {
 		name   string
