@@ -282,8 +282,10 @@ the same remote key.
    those identities and effects before step 5. Separately owned dependent APIs
    can be reintroduced one at a time after their former writers are gone.
    Provider-assigned credential identities are not inferred from Kubernetes
-   names: new credentials may be minted, and retained source credentials need
-   an explicit rotation or revocation plan after consumers have moved.
+   names: new credentials may be minted, and retained source credentials must
+   be retired through the procedure in
+   [Retire the source-held credentials](#retire-the-source-held-credentials)
+   once consumers have moved.
 7. Handle the generated-credentials path explicitly. A retained source
    PushSecret document can remain in the secret store, but it is no longer a
    current writer. If the target keeps that path, start its writer only after
@@ -292,6 +294,218 @@ the same remote key.
 8. Resume promotion only after the target reports Ready and Synced, the final
    inventory matches, each consumer uses its intended path, and rollback has
    been rehearsed without deleting the external Stack.
+
+### Retire the source-held credentials
+
+Step 8 ends with the target owning the stack. It does not end with the source
+cluster holding nothing. Under `Retain`, removing a Kubernetes object is
+deliberately not a revocation: the external AccessPolicy, its rotating token
+and any delivered secret-store document all survive the cluster that vended
+them, and they survive with their original scopes. Retiring them is a separate,
+ordered step, and it is the last one in the handoff.
+
+Four classes of retained credential are in scope. The first three carry
+provider-assigned identities that are never derivable from a Kubernetes name;
+the fourth is the delivered copy of a credential rather than the credential
+itself:
+
+- the source `AccessPolicy`, keyed `region:policyID`;
+- **every** `AccessPolicyRotatingToken` that policy issued, each keyed
+  `region:tokenID`. These are the live secrets. Do not assume one token per
+  policy: inventory them from the provider side rather than from the source
+  cluster's rendered children, because a token issued out of band is invisible
+  to the cluster and is exactly the one that outlives the migration;
+- any `StackServiceAccount` the source full-stack Composition created
+  automatically, keyed `stackSlug:serviceAccountID`, together with its
+  every `StackServiceAccountRotatingToken` issued against it. The service
+  account is an identity; its tokens are the administrator credentials the
+  stack-local provider configuration authenticates with. Every rotating token
+  authenticates on its own, so each is a live secret, and retiring one covers
+  none of the others. Track each token and its own consumers separately through
+  the replacement proof and the cleanup;
+- the delivered copies: the remote secret-store document the source `PushSecret`
+  wrote, and the in-cluster connection secret it read from.
+
+Inventory the first three from the managed resource external-name annotations
+and provider status before anything is removed. The fourth is not a managed
+resource and has no external name, so record it separately from the `PushSecret`
+itself: its namespace and name, each
+`spec.data[].match.remoteRef.remoteKey` it writes, the `spec.secretStoreRefs`
+entry that key is written through together with the backend and tenant that
+store resolves to, and the namespace and name of the source Secret in
+`spec.selector.secret.name`.
+
+Record the store identity with every key, and compare on the pair. A
+`remoteKey` is only unique within its store: the same key string in two
+different stores is two different documents, so comparing keys alone will
+either spare a stale source document or delete a live target one. Removing the
+`PushSecret` is what makes all of these references unrecoverable, so record them
+first and use the recorded values in the cleanup step.
+
+**Check every source `PushSecret` for `spec.deletionPolicy: None` here, during
+the inventory, before step 4 of the transfer procedure above removes the
+output-document writers.** That is the last moment the check is possible. This
+repository renders `Delete` whenever the request has deletion armed, and
+removing a `PushSecret` under `Delete` deletes the remote document with it,
+destroying the credential delivery before any retirement check has run and
+destroying it for the target as well if the target adopted that path. Correct
+the policy, or disarm deletion, before any writer is removed.
+
+A credential you did not record here cannot be revoked from any cluster
+inventory afterwards, because no cluster names it any more. The Grafana Cloud
+organization's own listing is then the authoritative record of its identity, and
+the only place you can go to revoke it. That is separate from its *value*, which
+may still sit in remote documents, in a CI secret, or in some other out-of-band
+copy that no inventory will show you.
+
+**Prove the replacement before retiring anything.** Every one of these must
+hold. They are not all observed in the same place, and the difference matters:
+points 1 to 5 read the target cluster and the provider identities it reports,
+while point 6 can only be answered by the consumers themselves and by
+provider-side authentication records. Nothing this repository ships observes any
+of it, so treat the whole list as an operator prerequisite. A target composite
+reporting Ready and Synced says the target minted its own credential; it says
+nothing whatever about whether any consumer has adopted it.
+
+1. the target composite reports Ready and Synced;
+2. the target `AccessPolicy` reports a provider-assigned `status.atProvider`
+   policy ID that is **different** from the inventoried source policy ID. An
+   identical ID means the target adopted the source policy rather than minting
+   its own. That retires the *policy* from this procedure and nothing else: its
+   rotating tokens, any service-account tokens, and every delivered copy are
+   still source-held and still go through the rest of these checks. Skip the
+   policy revocation in the retirement steps, and record explicitly that you did
+   and why, so the next operator does not read the gap as an omission;
+3. **every** target `AccessPolicyRotatingToken` for that policy reports Ready
+   and Synced, and each of their provider-assigned token IDs differs from
+   **every** source token ID inventoried for the policy. Both sides are sets:
+   check all target tokens against all source tokens, not one against one. The
+   policy comparison in point 2 does not cover this, because a token is a
+   separate provider identity, and a match on any pair means that source token
+   is still the live credential. Proceed only when all target tokens are Ready
+   and Synced and no pair matches;
+4. the target `PushSecret` reports the ESO condition `Ready=True` with reason
+   `Synced`. That is ESO's own condition, not the Crossplane `Ready` and
+   `Synced` pair used elsewhere in this guide. Then read the remote document and
+   the source Secret directly and confirm they hold the target credential;
+   neither is a Crossplane resource and neither carries conditions to check;
+5. for every retained `StackServiceAccount`, and for **every** rotating token
+   inventoried against it, the target reports its own provider-assigned
+   service-account ID and token IDs, and each of those target IDs differs from
+   **every** inventoried source ID for that identity, not from a
+   position-matched one. Do not revoke while any target ID matches any source
+   ID. These are separate identities from the access policy and they need their
+   own comparison; a Ready target composite does not imply they were replaced;
+6. every active consumer has demonstrably **reloaded** the target credential.
+   Reading the target path is a configuration fact, not a runtime one: a process
+   that loaded the source token at start-up keeps presenting it until it
+   restarts or refreshes, and it will keep succeeding right up to the moment you
+   revoke. A successful call after the write is not enough on its own either,
+   because the call succeeds identically on the old credential. Take either an
+   explicit per-consumer reload confirmation, or provider-side evidence that the
+   successful operation authenticated as the **target** token ID. A configured
+   path, a healthy target cluster and a green request are together still not
+   this evidence.
+
+**Then retire, in this order.** The order is not cosmetic: removing the
+Kubernetes owner first is what stops the source Composition from immediately
+re-minting whatever you revoke.
+
+1. Confirm the source `PushSecret` writer is gone. Step 4 of the transfer
+   procedure above will normally have removed it already; remove it here if it
+   has not, through a reviewed GitOps change. Either way it must have carried
+   `spec.deletionPolicy: None` when it was removed, per the inventory check
+   above. Under `None` the remote document survives the removal and still holds
+   a working token, which is what the rest of this procedure assumes. If a
+   writer was removed under `Delete`, stop: the document is already gone and
+   you are recovering a delivery, not retiring a credential.
+2. Remove **every** inventoried source rotating token object for that policy,
+   then the AccessPolicy object, from the source cluster, still under
+   non-deleting policies, and wait for their finalizers to clear. Repeat step 1
+   for each token that had a writer of its own. Nothing has been revoked yet at
+   this point.
+3. Revoke at the provider: every inventoried token for that policy first, one at
+   a time, and the policy itself only once none remain. Revoking the policy
+   invalidates its tokens, so the reverse order leaves a window where the policy
+   is gone and each token's failure mode is harder to attribute. A token you
+   inventoried from the provider but never saw in the source cluster is revoked
+   here like any other; it is the one most likely to be missed.
+4. Delete the stale remote secret-store document and the in-cluster connection
+   secret, using the `remoteKey` and source Secret references recorded in the
+   inventory.
+
+    **Check ownership of each recorded `remoteKey` first, and delete only the
+    source-only ones.** Step 7 of the transfer procedure permits the target to
+    keep the source output path. Where it did, that path is now the *target's*
+    live document with the target's writer behind it, and deleting it destroys a
+    working credential delivery. Compare each recorded key against the target's
+    own `PushSecret` `remoteKey` set: delete a key only when it appears in the
+    source inventory and has no remaining live writer of any kind, matching on
+    the store identity and the key together rather than on the key alone. The
+    target's `PushSecret` set is the usual second owner but it is not the only
+    possible one: a pair still claimed by any writer stays.
+
+    The in-cluster connection Secret needs its **own, separate** check: the
+    `remoteKey` comparison says nothing about it. Before deleting it, look for
+    any remaining local owner or consumer of that namespace and name, including
+    another `PushSecret` selector and any workload mounting it. Keep the Secret
+    while anything still references it, whatever the remote comparison said.
+
+    This deletion authenticates with the configured `SecretStore`'s own workload
+    identity for the selected backend, never with the Grafana token just
+    revoked, so confirm that identity can delete the recorded key before
+    starting step 3. A revoked token left in a source-only document is an
+    operational trap: it will be found, tried, and its failure misread as a
+    target-cluster fault.
+5. Then, for **each** retained `StackServiceAccount` individually, and only
+   once point 5 of the replacement proof holds for that specific service
+   account:
+   1. remove any writer delivering its token, and confirm it is gone. The same
+      retention precondition applies: it must carry `spec.deletionPolicy: None`,
+      or removing it takes the remote document with it. Where the target adopted
+      that same remote path, the document is the target's and must survive until
+      the source-only ownership comparison in point 4 below has cleared it;
+   2. remove every inventoried `StackServiceAccountRotatingToken` for it, then
+      the `StackServiceAccount` itself, from the source cluster under
+      non-deleting policies, and wait for the finalizers to clear. Nothing is
+      revoked yet;
+   3. revoke at the provider: every one of its tokens first, one at a time, then
+      the service account once none remain;
+   4. delete each of those tokens' delivered copies, remote and in-cluster,
+      using their own recorded references and the same source-only ownership
+      comparison as step 4 above. A service-account token path the target
+      adopted is the target's document now.
+
+   Do not batch these across service accounts and do not carry the access
+   policy's replacement evidence across to any of them. Each one is a separate
+   provider identity with its own replacement to prove.
+
+**Revoking too early** takes production down with no rollback. A provider
+identity is assigned, not chosen, so a revoked policy or token cannot be
+restored, and its replacement necessarily has a different ID. Any consumer still
+holding the old value fails closed and stays failed until it is repointed by
+hand. This is why the replacement evidence above is a precondition and not a
+checklist to fill in afterwards.
+
+**Never revoking** is the more common outcome and the worse one. The credential
+outlives the cluster that vended it, the GitOps repository that described it and
+the reviewers who approved its scopes. Because the source Kubernetes objects are
+gone, it appears in no cluster inventory at all: only the Grafana Cloud
+organization still knows it exists. A handoff that stops at step 8 leaves a
+full-scope standing credential behind on every migration, permanently.
+
+**Operator prerequisites.** This repository makes no live Grafana Cloud, cluster
+or source-environment contact, so none of the following is exercised or proven
+here, and each is the operator's to carry out and verify:
+
+- confirming provider-side revocation actually took effect, rather than
+  inferring it from the Kubernetes object being gone;
+- confirming through the Grafana Cloud organization's own access-policy
+  inventory that no retained policy or token from a previous owner remains;
+- establishing that no out-of-band copy of a token was taken before revocation,
+  which no cluster can determine;
+- the rehearsal itself. Rehearse this procedure against a disposable stack
+  before running it against one carrying traffic.
 
 ### Why `GrafanaStackInventory` is not the handoff mechanism
 

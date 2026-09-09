@@ -3,7 +3,7 @@ id: doc-0002
 title: Wave operating model
 type: guide
 created_date: '2026-08-14 16:36'
-updated_date: '2026-09-09 00:55'
+updated_date: '2026-09-09 21:37'
 ---
 This document carries **only** what is specific to this repository. The campaign model itself —
 run contract and run modes, the routing contract, authority and the thread pool, child lane briefs,
@@ -41,6 +41,40 @@ path prefix case-sensitively. Anything committed here derives its paths — from
 --show-toplevel`, from `CLAUDE_PROJECT_DIR`, or relatively. Never hard-code one. The reference hook
 test that this repository's guard was copied from hard-coded them, and would have failed this
 repository's own gate unchanged.
+
+## Live behavioural proof is out of scope, permanently
+
+Every run's report ends by listing live minting, adoption, migration and reconciliation as
+unproven. That wording is accurate and it is also misleading, because it reads like a backlog item.
+It is not one. The constraint above forbids the contact that would produce that proof, so **no wave
+can close it and no wave should plan to**. Treat it as settled, not as available work.
+
+What stands in for it, and the limit of each, because a run that cannot tell these apart will
+over-claim:
+
+- **Admission against an ephemeral local API server** proves installation and CEL rejection. The
+  server is empty and nothing reconciles, so no provider behaviour is observed there.
+- **Renderer tests** prove what the function emits for a given request and observed state. They do
+  not prove the provider accepts it.
+- **Provider CRD readback** proves the emitted shapes round-trip through the pinned provider's own
+  CRDs. It does not prove a live provider assigns the identities the renderer waits for. Wave 9's
+  R17 is the standing example: synthetic fixtures round-tripped a fabricated `region/policyID`
+  annotation happily, and every gate was green, while the pinned provider actually joins with a
+  colon. A fixture you wrote cannot testify about provider behaviour.
+- **Pinned upstream source** is the strongest evidence available here, and it is still a reading
+  rather than a reconciliation. Cite the exact revision and hash-match it.
+
+The consequence for report writing: say "not exercised, and not exercisable here" rather than
+"unproven", so the next run does not spend its judgement re-deciding this.
+
+**Every cluster tooling invocation runs against an explicitly empty or ephemeral kubeconfig.** A
+bare `kubectl` inherits whatever context the machine happens to have current, and on a machine that
+administers real clusters that is a real cluster. Wave 9 crossed this: a lane ran `kubectl apply
+--dry-run=client --validate=true` with no context scoping, and `--validate=true` performs schema
+discovery, so read contact against the ambient cluster could not afterwards be ruled out. Nothing
+was mutated and nothing leaked, but the constraint was no longer provable, which is the whole value
+of having it. Scope the invocation (`KUBECONFIG=/dev/null`, or the envtest kubeconfig) or do not run
+it. A client-side dry run is **not** evidence of zero network contact.
 
 ## Grafana Cloud only, deliberately
 

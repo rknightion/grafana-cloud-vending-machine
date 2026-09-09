@@ -116,6 +116,29 @@ Every enabled request gets, by default or by opt-in field:
 | Role assignments | Whole-set or item-level bindings of a role to a team |
 | Explicit modules | Inventory, Fleet pipelines, alerting, Agent Observability, Assistant governance, datasource access, Git provisioning repositories, and product toggles have their own ownership boundaries and prerequisites |
 
+## What this reference proves, and what it does not
+
+This repository is a portable public reference. It never contacts a live Grafana Cloud stack, a
+live cluster, or any source environment, and it carries no credentials and no live requests. That
+is a deliberate boundary and not a gap waiting to be filled: the validation gate is designed so it
+cannot make that contact, and no future change to this repository will produce live behavioural
+evidence.
+
+What the gate does prove, and the limit of each:
+
+| Evidence class | What it establishes | What it does not |
+|---|---|---|
+| Admission against a real API server | Every XRD installs, every catalog example is admitted, and every fail-closed CEL rule actually rejects, with create/update and weaken/admit/restore controls | The server is ephemeral and empty. Nothing reconciles, so no provider behaviour is observed |
+| Renderer tests | What the composition function emits for a given request and observed state, including the refusals and the waits | That the provider then accepts those documents, or that Grafana Cloud accepts what the provider sends |
+| Provider CRD readback | The emitted shapes round-trip through the pinned provider's own CRDs | That a live provider assigns the identities the renderer waits for |
+| Pinned upstream source | Import identities, external-name conventions and management-policy semantics, read from the exact pinned provider and runtime revisions | Runtime behaviour. A source reading is a strong argument, not a reconciliation |
+| Signed package provenance | The published function image matches the source commit and workflow identity that built it | Anything about what that function does once installed |
+
+So credential minting, stack adoption, cross-cluster migration and drift correction are described
+and unit-proven here, and they are **not** exercised end to end. Rehearse them in an environment
+you own, against a disposable stack, before running them against one carrying traffic. Treat every
+procedure in [Migration and adoption](migration-1.0.md) as requiring that rehearsal.
+
 ## Reading further
 
 | | |
