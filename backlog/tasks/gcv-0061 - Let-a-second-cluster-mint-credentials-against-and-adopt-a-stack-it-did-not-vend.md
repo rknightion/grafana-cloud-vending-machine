@@ -7,7 +7,7 @@ status: Done
 assignee:
   - campaign-root
 created_date: '2026-09-09 11:26'
-updated_date: '2026-09-09 18:22'
+updated_date: '2026-09-09 22:09'
 labels: []
 dependencies: []
 priority: high
@@ -56,6 +56,8 @@ Wave 9: freeze provider-observed stack identity with platform-bound target autho
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 9 security review approved with historical findings and no unresolved code finding. Two CodeRabbit passes returned five minor findings: four fixed, one redundant omitted-ceiling case declined with accessor-equivalence evidence. One temporary file-ownership violation was restored byte-identically; one unscoped client dry-run has unknown schema-read contact and zero reported server mutations. Review hash-method limitations are preserved in the wave 9 report. Live behavior remains unproven.
+
+Downstream outcome, 2026-09-09: an infrastructure migration in a private source environment motivated this task, and it did NOT exercise adoption. The repository owner's decision there was to delete the existing Grafana Cloud stack from the old cluster and let the new cluster's claim vend a fresh one, which is the interim position this task's description already records. So capability 2 (adoption of an existing stack by a new claim) remains unexercised against a real provider - it is established and documented here, not proven by that migration. Capability 1 (credential minting against a stack this cluster did not vend) was likewise not needed, because the new cluster vends its own stack. Nothing here reopens the task; this note exists so a later reader does not cite that migration as live evidence for either capability.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
