@@ -321,7 +321,13 @@ func TestAdmissionEnvInstallsAllXRDsAndAdmitsCatalogExamples(t *testing.T) {
 	representedKinds := map[string]struct{}{}
 	for _, example := range examples {
 		representedKinds[example.object.GetKind()] = struct{}{}
-		example.object.SetNamespace("default")
+		if example.object.GetNamespace() == "" {
+			example.object.SetNamespace("default")
+		}
+		ns := &unstructured.Unstructured{Object: map[string]any{"apiVersion": "v1", "kind": "Namespace", "metadata": map[string]any{"name": example.object.GetNamespace()}}}
+		if err := env.Apply(context.Background(), ns); err != nil {
+			t.Fatal(err)
+		}
 		if err := env.Apply(context.Background(), &example.object); err != nil {
 			t.Errorf("Apply(valid %s/%s from %s) error = %v", example.object.GetKind(), example.object.GetName(), example.source, err)
 			continue

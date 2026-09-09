@@ -1,9 +1,11 @@
 ---
 id: GCV-0063
 title: Close the family-derivation blind spot for non-direct renderer dispatch
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - campaign-root
 created_date: '2026-09-09 16:27'
+updated_date: '2026-09-09 16:47'
 labels:
   - needs-triage
 dependencies: []
@@ -36,3 +38,9 @@ The same traversal shape is used for the dynamic-constructor path via `dynamicNe
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 9 lane E follows method and func-value renderer reachability, proves hidden-dispatch negative controls and fails closed on unresolved calls; root integrates, reviews and verifies local plus exact-SHA hosted gate.
+<!-- SECTION:PLAN:END -->

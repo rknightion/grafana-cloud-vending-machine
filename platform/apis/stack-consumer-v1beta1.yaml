@@ -1,0 +1,164 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanastackconsumers.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaStackConsumer
+    plural: grafanastackconsumers
+    singular: grafanastackconsumer
+    shortNames:
+      - gcconsumer
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-stack-consumer-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: A platform-authorized consumer credential for an existing Grafana Cloud stack. The provider observes the stack ID; requests never assert it.
+          required:
+            - spec
+          x-kubernetes-validations:
+            - rule: self.metadata.name == self.spec.profile
+              message: metadata.name must match spec.profile so one composite owns each platform consumer identity
+            - rule: self.spec.stack == oldSelf.spec.stack
+              message: stack is immutable after creation
+            - rule: self.spec.profile == oldSelf.spec.profile
+              message: profile is immutable after creation
+          properties:
+            spec:
+              type: object
+              required:
+                - stack
+                - profile
+              properties:
+                stack:
+                  type: object
+                  description: Existing Grafana Cloud stack identity asserted by the request. The renderer observes its provider-assigned ID before minting credentials.
+                  required:
+                    - slug
+                    - region
+                  properties:
+                    slug:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: Existing Grafana Cloud stack slug. A selected platform profile must authorize this exact slug and region.
+                    region:
+                      type: string
+                      minLength: 1
+                      maxLength: 63
+                      pattern: ^prod-[a-z0-9-]+-[0-9]+$
+                      description: Grafana Cloud region slug for the existing stack. A selected platform profile must authorize this exact slug and region.
+                profile:
+                  type: string
+                  minLength: 1
+                  maxLength: 63
+                  pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                  description: Selects one platform-owned consumer profile. The profile owns the organization ProviderConfig, authorized targets, scopes, consumer identity, and credential output path.
+            status:
+              type: object
+              description: Read-only status owned by Crossplane. Provider-assigned IDs and credentials are never request inputs or status fields.
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-stack-consumer-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaStackConsumer
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-stack-consumer
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          maximumTokenLifetime: 720h
+          secretStoreRef:
+            name: grafana-vending-secrets
+            kind: SecretStore
+          stackConsumerProfiles:
+            - name: example-reader
+              namespace: consumer-platform
+              providerConfigName: grafana-cloud-org-example-primary
+              targets:
+                - slug: exampleobservedstack
+                  region: prod-us-central-0
+              consumer:
+                name: example-consumer-a
+                outputSecretPath: /platform/grafana-cloud/consumers/example-consumer-a
+              scopes:
+                - metrics:read
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: grafana-stack-consumer-profile-v1beta1
+spec:
+  failurePolicy: Fail
+  paramKind:
+    apiVersion: apiextensions.crossplane.io/v1
+    kind: Composition
+  matchConstraints:
+    resourceRules:
+      - apiGroups:
+          - platform.example.org
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - grafanastackconsumers
+        scope: Namespaced
+  validations:
+    - expression: >-
+        params.spec.pipeline[0].input.spec.stackConsumerProfiles.filter(profile, profile.name == object.spec.profile).size() == 1 &&
+        params.spec.pipeline[0].input.spec.stackConsumerProfiles.exists(profile,
+        profile.name == object.spec.profile &&
+        has(profile.namespace) && type(profile.namespace) == string && size(profile.namespace) > 0 &&
+        has(profile.providerConfigName) && type(profile.providerConfigName) == string && size(profile.providerConfigName) > 0 &&
+        has(profile.targets) && size(profile.targets) > 0 &&
+        profile.targets.all(target, has(target.slug) && type(target.slug) == string && size(target.slug) > 0 && has(target.region) && type(target.region) == string && size(target.region) > 0) &&
+        has(profile.consumer) && has(profile.consumer.name) && type(profile.consumer.name) == string && size(profile.consumer.name) > 0 &&
+        has(profile.consumer.outputSecretPath) && type(profile.consumer.outputSecretPath) == string && size(profile.consumer.outputSecretPath) > 0 &&
+        params.spec.pipeline[0].input.spec.stackConsumerProfiles.filter(candidate, has(candidate.consumer) && candidate.consumer.name == profile.consumer.name).size() == 1 &&
+        params.spec.pipeline[0].input.spec.stackConsumerProfiles.filter(candidate, has(candidate.consumer) && candidate.consumer.outputSecretPath == profile.consumer.outputSecretPath).size() == 1 &&
+        has(profile.scopes) && size(profile.scopes) > 0 && profile.scopes.all(scope, type(scope) == string && size(scope) > 0))
+      message: selected stack consumer profile is not a complete platform-owned credential configuration
+    - expression: >-
+        params.spec.pipeline[0].input.spec.stackConsumerProfiles.exists(profile,
+        profile.name == object.spec.profile && has(profile.namespace) && profile.namespace == object.metadata.namespace)
+      message: selected stack consumer profile does not authorize this namespace
+    - expression: >-
+        params.spec.pipeline[0].input.spec.stackConsumerProfiles.exists(profile,
+        profile.name == object.spec.profile && has(profile.targets) &&
+        profile.targets.exists(target, target.slug == object.spec.stack.slug && target.region == object.spec.stack.region))
+      message: selected stack consumer profile does not authorize this stack slug and region
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: grafana-stack-consumer-profile-v1beta1
+spec:
+  policyName: grafana-stack-consumer-profile-v1beta1
+  validationActions:
+    - Deny
+  paramRef:
+    name: grafana-stack-consumer-v1beta1
+    parameterNotFoundAction: Deny

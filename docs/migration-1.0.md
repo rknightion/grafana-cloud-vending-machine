@@ -26,11 +26,10 @@ children. Omitted `scim` stays absent. This reconcile-time fail-closed boundary
 was accepted by the owner on 2026-09-08; it is not an unresolved schema repair
 or supported SCIM configuration.
 
-The owner kept the 1.0 hold until the documentation reconciliation in GCV-0042.
-That documentation work does not authorize a release: release-please PR #29
-stays open and unmerged, and no release or tag is created by this wave. The
-steps below describe migration to the unreleased current API, not a published
-1.0 artifact.
+The owner holds 1.0 until GCV-0061 lands. Release-please PR #32 remains the
+release candidate; feature delivery does not itself authorize merging that PR,
+creating a release, or creating a Git tag. The steps below describe migration
+to the unreleased current API.
 
 The guide uses these outcomes precisely:
 
@@ -100,7 +99,8 @@ selection.
 
 ## New request APIs
 
-These ten kinds did not exist in the baseline. They do not alter an existing
+The following APIs illustrate additions since the baseline. The complete current
+inventory is in [Request schema](reference/request-schema.md). They do not alter an existing
 0.x object and are therefore **unaffected** until an adopter deliberately
 creates one. The required shape below is the create contract; nested required
 fields apply only when their optional enclosing list or object is supplied.
@@ -151,7 +151,159 @@ rejected compatibility or creation-time-only change remains in the request.
 Keep all examples outside the live-request directory until that review is
 complete.
 
-## Adopting existing external resources
+## Existing-stack ownership and cross-cluster consumption
+
+This section has two deliberately separate operations. A
+`GrafanaStackConsumer` creates a new, profile-owned credential for a stack that
+another cluster already owns. It does **not** transfer ownership of the stack
+or reuse the source stack's credentials. Moving the `GrafanaCloudStackRequest`
+itself transfers ownership and must have no overlapping full-stack writers.
+
+### Existing-slug result
+
+**Design position from pinned source: adopt and reconcile; do not duplicate.**
+A newly reconciled `GrafanaCloudStackRequest` renders a managed `Stack` with
+`crossplane.io/external-name` set to its slug. The pinned Terraform provider
+reads that identity through `GetInstance`, so Crossplane can observe an active
+existing stack before it considers its Create branch. A found stack therefore
+is adopted into reconciliation; if its desired fields differ, the normal
+management policy permits an update. The Terraform resource's direct Create
+path also rejects an already-taken slug, so a Create branch that is reached
+fails as a conflict rather than making a second stack.
+
+This is a source-derived design position and is **unproven against live
+behaviour**. Do not use a production stack to turn it into a test. Validate the
+provider version, provider configuration, and rendered external name in a
+disposable environment before a production handoff.
+
+The conclusion depends on the pinned provider version and its enabled
+management-policy support:
+
+- Provider v2.14.0 pins Crossplane Runtime v2.1.0, Upjet v2.2.0, and Terraform
+  Provider Grafana v4.45.1 in its [module definition](https://github.com/grafana/crossplane-provider-grafana/blob/v2.14.0/go.mod#L5-L18).
+- Its namespaced Stack controller wires management policies into both the
+  connector and reconciler when the feature is enabled
+  ([controller](https://github.com/grafana/crossplane-provider-grafana/blob/v2.14.0/internal/controller/namespaced/cloud/stack/zz_controller.go#L44-L64)).
+  Provider v2.14.0 defaults `--enable-management-policies` to `true` and also
+  accepts `ENABLE_MANAGEMENT_POLICIES`; keep that setting enabled
+  ([provider entry point](https://github.com/grafana/crossplane-provider-grafana/blob/v2.14.0/cmd/provider/main.go#L50-L58), [feature activation](https://github.com/grafana/crossplane-provider-grafana/blob/v2.14.0/cmd/provider/main.go#L107-L134)).
+- With the feature disabled, Runtime v2.1.0 rejects a non-default policy. With
+  it enabled, `Observe` alone has no Create action
+  ([validation](https://github.com/crossplane/crossplane-runtime/blob/v2.1.0/pkg/reconciler/managed/policies.go#L148-L170), [action resolution](https://github.com/crossplane/crossplane-runtime/blob/v2.1.0/pkg/reconciler/managed/policies.go#L183-L221)).
+- Runtime observes before it reaches Create. In Observe-only mode a missing
+  external resource is reported as an error, while Create is entered only when
+  `ShouldCreate` is true
+  ([observe and missing-resource path](https://github.com/crossplane/crossplane-runtime/blob/v2.1.0/pkg/reconciler/managed/reconciler.go#L1118-L1145), [Create gate](https://github.com/crossplane/crossplane-runtime/blob/v2.1.0/pkg/reconciler/managed/reconciler.go#L1289-L1312)).
+  A normal managed Stack updates observed drift when Update is allowed
+  ([update gate](https://github.com/crossplane/crossplane-runtime/blob/v2.1.0/pkg/reconciler/managed/reconciler.go#L1451-L1511)).
+- The provider explicitly defaults Cloud Stack import identity to the slug,
+  uses `ExternalNameAsID`, and disables the name initializer
+  ([Cloud configuration](https://github.com/grafana/crossplane-provider-grafana/blob/v2.14.0/config/grafana/cloud.go#L62-L80)).
+  Upjet puts that external identity into Terraform parameters, reconstructs a
+  missing state with that ID, and refreshes it before reporting ResourceExists
+  ([ID parameters](https://github.com/crossplane/upjet/blob/v2.2.0/pkg/controller/external_tfpluginsdk.go#L126-L153),
+  [initial state](https://github.com/crossplane/upjet/blob/v2.2.0/pkg/controller/external_tfpluginsdk.go#L242-L306),
+  [refresh](https://github.com/crossplane/upjet/blob/v2.2.0/pkg/controller/external_tfpluginsdk.go#L473-L493)).
+- The Terraform Stack resource defines the provider-assigned ID and importer
+  ([resource schema](https://github.com/grafana/terraform-provider-grafana/blob/v4.45.1/internal/resources/cloud/resource_cloud_stack.go#L67-L92)), reads a stack through its identity
+  ([read path](https://github.com/grafana/terraform-provider-grafana/blob/v4.45.1/internal/resources/cloud/resource_cloud_stack.go#L559-L577)), and rejects a taken active slug on Create
+  ([Create path](https://github.com/grafana/terraform-provider-grafana/blob/v4.45.1/internal/resources/cloud/resource_cloud_stack.go#L349-L430)).
+
+### Consume a stack without transferring it
+
+Use `GrafanaStackConsumer` only after the platform has approved a profile whose
+`providerConfigName`, target slug and region, scopes, consumer name, and output
+secret path are all fixed. The request supplies the target slug, region, and
+profile; it never supplies a stack ID, provider configuration, scopes, consumer
+identity, or output path. Its namespace must equal the profile namespace and its
+name must equal the profile name. The stack and profile are immutable.
+
+The consumer first renders the namespaced mutating `Stack` with
+`managementPolicies: ["Observe"]` and an external name equal to the slug. It
+must emit no AccessPolicy, rotating token, or PushSecret until
+`status.atProvider.id` is present. That ID is provider-observed input to an
+AccessPolicy realm of type `stack`; an organization realm is not an equivalent
+fallback.
+
+1. Confirm the target profile authorizes the exact slug and region and that its
+   organization `ProviderConfig` is healthy. Confirm the provider's
+   management-policy feature remains enabled.
+2. Apply the consumer request and wait for the observer to report a positive
+   `status.atProvider.id`. A missing stack is a reconciliation error, not
+   permission to create one.
+3. Verify that the rendered AccessPolicy realm uses that observed ID, then wait
+   for the rotating-token child and its PushSecret to become Ready and Synced.
+4. Consume the **new profile-owned output path** only after its document has
+   been verified. The consumer profile's name and output path must be unique in
+   every cluster targeting that organization and must not be the source stack
+   credential path. Admission enforces uniqueness within the local profile list;
+   the platform owner must enforce the cross-cluster boundary.
+
+This operation leaves the source `GrafanaCloudStackRequest`, its external
+Stack, and its credential documents in place. It is appropriate when a second
+cluster needs a separate credential, not when that cluster will own the stack.
+
+### Transfer full stack ownership between clusters
+
+This is a controlled ownership handoff, not a consumer rollout. A source and
+target full-stack Composition must never concurrently reconcile the same slug,
+and two `PushSecret` resources using `Replace` must never concurrently write
+the same remote key.
+
+1. Freeze source and target promotion. Inventory the source request, all
+   composed-resource external names, non-secret provider IDs, dependent
+   requests, and every remote credential document path. Render the target
+   request and compare its proposed ownership and output paths before either
+   cluster reconciles it.
+2. On the source request, confirm `spec.lifecycle.externalResources: Retain`
+   and that deletion is not armed. `Retain` is the default, but an earlier
+   approved Delete path must be disarmed before continuing. Record the source
+   stack's Ready and Synced conditions and the evidence that the external stack
+   exists.
+3. If a target cluster needs credentials during the handoff, use the consumer
+   procedure above with a distinct profile-owned consumer name and output path.
+   Move that consumer to its new document and verify it. Do not point it at, or
+   let it replace, the source stack credential document.
+4. Remove the source dependent requests and their writers through reviewed
+   GitOps changes first, after verifying each managed resource uses a
+   non-deleting policy. The Stack request's `Retain` field does not configure
+   independent dependent requests. Wait for their Kubernetes objects and
+   finalizers to disappear, including whole-set and output-document writers.
+   Then remove the source full-stack request, wait for its composite and
+   composed-resource finalizers to disappear, and prove the external Stack
+   still exists. Do not continue while any source writer remains active.
+5. Only after step 4, apply the target `GrafanaCloudStackRequest` with the same
+   slug and reviewed organization, region, usage, and lifecycle values. Watch
+   the managed Stack's external name and conditions. Stop on any Create event,
+   changed identity, unexpected update, or external deletion.
+6. Check the entire rendered target graph. The full-stack Composition can
+   create core service accounts, tokens and content automatically after Stack
+   observation; it has no generic one-family-at-a-time adoption switch. Review
+   those identities and effects before step 5. Separately owned dependent APIs
+   can be reintroduced one at a time after their former writers are gone.
+   Provider-assigned credential identities are not inferred from Kubernetes
+   names: new credentials may be minted, and retained source credentials need
+   an explicit rotation or revocation plan after consumers have moved.
+7. Handle the generated-credentials path explicitly. A retained source
+   PushSecret document can remain in the secret store, but it is no longer a
+   current writer. If the target keeps that path, start its writer only after
+   the source writer is gone. If the target uses a new path, migrate every
+   consumer and verify the new document before retiring access to the old one.
+8. Resume promotion only after the target reports Ready and Synced, the final
+   inventory matches, each consumer uses its intended path, and rollback has
+   been rehearsed without deleting the external Stack.
+
+### Why `GrafanaStackInventory` is not the handoff mechanism
+
+GCV-0016's `GrafanaStackInventory` is explicitly ruled out for this operation.
+Its required `spec.stackRef.name` points to a local
+`GrafanaCloudStackRequest`, and its provider sets observe objects inside that
+stack: folders, dashboards, teams, users, library panels, probes, collectors,
+and organization users. It neither observes the Cloud Stack resource nor
+supplies its provider-assigned stack ID. Use it for in-stack drift inventory,
+not cross-cluster identity or claim-side adoption.
+
+### General existing-resource adoption
 
 Do not point this platform at existing stacks casually. Adoption is a change of controller ownership, not just a manifest deployment.
 

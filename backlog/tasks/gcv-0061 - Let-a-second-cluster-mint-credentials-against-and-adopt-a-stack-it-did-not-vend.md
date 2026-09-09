@@ -3,10 +3,11 @@ id: GCV-0061
 title: >-
   Let a second cluster mint credentials against, and adopt, a stack it did not
   vend
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - campaign-root
 created_date: '2026-09-09 11:26'
-updated_date: '2026-09-09 12:41'
+updated_date: '2026-09-09 16:47'
 labels: []
 dependencies: []
 priority: high
@@ -44,3 +45,9 @@ Interim position for a migration of this shape: de-provision the stack from the 
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 9: freeze provider-observed stack identity with platform-bound target authorization; lanes A schema, B renderer, C inert catalog, D pinned-source adoption and ordered migration; root wiring and real admission tests; lane F security review; two CodeRabbit passes; local gate, publish/signature verification/repin, exact-SHA hosted gate and final reconciliation.
+<!-- SECTION:PLAN:END -->

@@ -38,6 +38,7 @@ and the organization registry are in [Configuration](../configuration.md); worke
 | `GrafanaFrontendObservability` | `grafanafrontendobservabilities` | `gcfaro` | `grafana-frontend-observability-v1beta1` | `stackRef`, `profile` |
 | `GrafanaML` | `grafanamls` | `gcml` | `grafana-ml-v1beta1` | `stackRef`, `profile` |
 | `GrafanaAsserts` | `grafanaasserts` | `gca` | `grafana-asserts-v1beta1` | `stackRef`, `profile` |
+| `GrafanaStackConsumer` | `grafanastackconsumers` | `gcconsumer` | `grafana-stack-consumer-v1beta1` | `stack`, `profile` |
 
 The XRDs and Compositions are split by API under `platform/apis/`. Every Composition has one
 Pipeline step that calls `function-grafana-vending`; the function, rather than a separate
@@ -108,6 +109,7 @@ configuration, not a live cloud transaction or notification delivery.
 | `GrafanaServiceAccounts` | `stackRef`, `profile`, `accounts` | One request per stack; platform profiles own roles, rotating token lifetime and whole-set permissions. Static tokens and permission-item writers are excluded. |
 | `GrafanaFrontendObservability` | `stackRef`, `profile` | One request per stack; platform profiles own Faro apps and origins. The observed collector endpoint contains a browser-visible app key; request-supplied keys are refused. |
 | `GrafanaML` | `stackRef`, `profile` | One request per stack; the profile's jobs and outlier detectors must fit `maxRunningResources`. Jobs wait for Holiday IDs. A change that withdraws an observed child is refused until explicit decommission. |
+| `GrafanaStackConsumer` | `stack`, `profile` | Mints a platform-bounded credential for an existing stack without requiring a local stack claim. It first observes the provider-assigned stack ID and then creates only the profile-owned access policy, rotating token, and external secret output. |
 
 Cloud-integration, PDC, service-account and ML admission policies use the actual
 Composition as their parameter resource. Missing parameters deny admission.
@@ -135,6 +137,43 @@ unproven for Synthetic Monitoring.
 
 The [catalog](catalog.md) links each complete field example. All schemas and
 Compositions live together under `platform/apis/`.
+
+## `GrafanaStackConsumer`
+
+`GrafanaStackConsumer` lets a cluster consume a Grafana Cloud stack that it did
+not vend locally. It does not use `stackRef`: that field always means a local
+`GrafanaCloudStackRequest`. A consumer request supplies only the existing
+stack's slug and region plus a profile name. The selected Composition profile
+must authorize that exact namespace/slug/region tuple and supplies the
+organization ProviderConfig, access-policy scopes, consumer identity, and
+external credential output path.
+
+| Field | Description |
+| --- | --- |
+| `spec.stack.slug` | Required existing Grafana Cloud stack slug (3-32 lowercase alphanumeric characters). It is immutable after creation. |
+| `spec.stack.region` | Required Grafana Cloud region slug. It is immutable after creation. |
+| `spec.profile` | Required immutable platform-owned consumer profile. `metadata.name` must equal this value, so one composite owns the selected consumer identity in its namespace. |
+
+The request cannot supply a stack ID, an AccessPolicy realm type or identifier,
+a ProviderConfig, scopes, a consumer name, a credential path, or a secret-store
+destination. The renderer creates a non-creating Observe-only Cloud Stack using
+the request slug as its external name. It waits for the provider-observed
+`status.atProvider.id`, then uses that ID only as a `type: stack` AccessPolicy
+realm identifier. It emits no credential-bearing children until that observation
+is present. This forbids an organization-wide realm and prevents an untrusted
+request value from selecting a provider or credential output.
+
+The `grafana-stack-consumer-profile-v1beta1` admission policy reads the enforced
+Composition as its parameter. It denies a missing or incomplete selected profile
+with `selected stack consumer profile is not a complete platform-owned credential
+configuration`, an unauthorized namespace with `selected stack consumer profile
+does not authorize this namespace`, and an unauthorized slug/region pair with
+`selected stack consumer profile does not authorize this stack slug and region`.
+A missing Composition parameter also denies admission. Platform owners must
+allocate a distinct profile consumer identity and output path for each consuming
+cluster so two clusters never write the same AccessPolicy or credential
+destination; admission requires each selected identity and output path to occur
+only once across the platform profiles.
 
 ## `GrafanaCloudStackRequest`
 

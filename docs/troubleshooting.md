@@ -118,6 +118,45 @@ account/token, telemetry access policy/token, and administrator/telemetry creden
 Secrets Manager uses a 30-day recovery window by default for deleted `PushSecret` documents, and
 another backend must be checked for Delete support.
 
+## A stack consumer never produces a token
+
+**Cause.** A `GrafanaStackConsumer` starts with one non-creating managed
+`Stack` observer. It does not render the AccessPolicy, rotating token, or
+PushSecret until that observer reports a positive `status.atProvider.id`. This
+can fail because the selected platform profile does not authorize the exact
+slug and region, its organization ProviderConfig cannot observe the stack, the
+stack does not exist, or management policies were disabled on the provider.
+
+**Diagnosis.** Inspect the consumer and its observer, then check the provider
+runtime arguments and environment. Provider v2.14.0 defaults
+`--enable-management-policies` to true; disabling it makes an `Observe` policy
+invalid rather than safe.
+
+```bash
+kubectl get grafanastackconsumer -n <namespace> <profile> -o yaml
+kubectl get stacks.cloud.grafana.m.crossplane.io -n <namespace>
+kubectl get deployment -n crossplane-system -l pkg.crossplane.io/provider=provider-grafana -o yaml
+```
+
+**Fix.** Correct the platform-owned profile or provider configuration, then
+wait for the observer's provider-assigned ID. Do not add a request-supplied ID,
+change the realm to an organization, or create an ordinary Stack as a
+workaround. The source semantics are documented in
+[existing-stack ownership and cross-cluster consumption](migration-1.0.md#existing-stack-ownership-and-cross-cluster-consumption).
+
+## Credential documents conflict during a stack handoff
+
+**Cause.** A source and target full-stack Composition, or a source stack
+credential and a consumer credential, are writing the same remote secret path
+with `PushSecret` `Replace` behavior. They can overwrite each other's document
+even while both Kubernetes resources appear healthy.
+
+**Fix.** Freeze promotion and identify every writer and remote key. Keep
+consumer credentials on their distinct profile-owned output path. Retire the
+source writer and wait for its finalizer before starting a target writer for an
+existing path; otherwise move consumers to a new verified path first. Follow
+the ordered [full ownership transfer](migration-1.0.md#transfer-full-stack-ownership-between-clusters) procedure before resuming reconciliation.
+
 ## Running the validation gate
 
 Run the complete local gate before opening a change:

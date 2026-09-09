@@ -1,0 +1,10 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaStackConsumer
+metadata:
+  name: example-reader
+  namespace: consumer-platform
+spec:
+  profile: example-reader
+  stack:
+    slug: exampleobservedstack
+    region: prod-us-central-0

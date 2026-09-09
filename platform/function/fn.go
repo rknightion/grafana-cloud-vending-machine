@@ -40,6 +40,7 @@ const reconcileTimeConfigKey = "_reconcileTime"
 const resolvedStackProfileConfigKey = "_resolvedStackProfile"
 
 var compositeRenderers = map[string]compositeRenderer{
+	"GrafanaStackConsumer":         {render: renderStackConsumer, implemented: true},
 	"GrafanaAsserts":               {render: renderAsserts, gateOnStack: true, observedStackContext: true, implemented: assertsRendererImplemented},
 	"GrafanaAlertingRouting":       {render: renderAlertingRouting, gateOnStack: true, implemented: alertingRoutingRendererImplemented},
 	"GrafanaOnCall":                {render: renderOnCall, gateOnStack: true, implemented: onCallRendererImplemented},

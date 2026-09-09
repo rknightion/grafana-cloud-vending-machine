@@ -10,6 +10,7 @@ Everything under `catalog/` is inert reference material. The supplied Argo CD Ap
 | [comprehensive](catalog/comprehensive/) | The original stack and access API surface in one renderable base | Approved SSO and incident profiles, entitlements, identity inventory, and reviewed RBAC identifiers |
 | [access-and-rbac](catalog/access-and-rbac/) | Teams, Team Sync, direct membership, fixed/custom roles, and content ACLs | Existing users, IdP groups, fixed-role inventory, and approved role scopes |
 | [stack-inventory](catalog/stack-inventory/) | Observe-only inventory for migration, drift detection, and adoption review | An existing Ready stack and its healthy per-stack ProviderConfig |
+| [stack-consumer](catalog/stack-consumer/) | Consume an existing Grafana Cloud stack from a cluster without a local stack claim | Namespace-bound platform profile, authorized stack slug and region, and healthy organization ProviderConfig |
 | [fleet-pipelines](catalog/fleet-pipelines/) | A platform-owned Fleet Management pipeline baseline | Fleet entitlement and an approved platform profile |
 | [alerting-bundle](catalog/alerting-bundle/) | Stack-scoped alerting with an explicit UI-provenance choice | Reviewed rules, contact points, folder UID, and provenance mode |
 | [agent-observability](catalog/agent-observability/) | Separate platform guards and workload-owned evaluation resources | Plugin/permission prerequisites and reviewed workload policy |
