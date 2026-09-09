@@ -37,6 +37,7 @@ and the organization registry are in [Configuration](../configuration.md); worke
 | `GrafanaServiceAccounts` | `grafanaserviceaccounts` | `gcsa` | `grafana-service-accounts-v1beta1` | `stackRef`, `profile`, `accounts` |
 | `GrafanaFrontendObservability` | `grafanafrontendobservabilities` | `gcfaro` | `grafana-frontend-observability-v1beta1` | `stackRef`, `profile` |
 | `GrafanaML` | `grafanamls` | `gcml` | `grafana-ml-v1beta1` | `stackRef`, `profile` |
+| `GrafanaAsserts` | `grafanaasserts` | `gca` | `grafana-asserts-v1beta1` | `stackRef`, `profile` |
 
 The XRDs and Compositions are split by API under `platform/apis/`. Every Composition has one
 Pipeline step that calls `function-grafana-vending`; the function, rather than a separate
@@ -366,6 +367,31 @@ contents, matchers, labels, or attribution. The baseline enforces team, cost-cen
 labels. It creates Pipelines, never Collectors because they self-register, and publishes the minted
 Fleet credential as `fleet_management_auth` through the external secret store. Usage groups are
 UI-only and Advanced-tier, so entitlement must be verified.
+
+### `GrafanaAsserts`
+
+`GrafanaAsserts` vends the namespaced Asserts surface: CustomModelRules, LogConfig,
+NotificationAlertsConfig, ProfileConfig, PromRuleFile, Stack, SuppressedAssertionsConfig,
+Thresholds, and TraceConfig. The cluster-scoped duplicate of each kind is deliberately excluded.
+`metadata.name` must equal the immutable `spec.stackRef.name`, giving one composite ownership of
+the complete Asserts surface for a stack.
+
+The request selects only `spec.profile`. The platform profile supplies all provider configuration,
+credential Secret references, limits, and names. Named configurations use their profile `name` as
+their external name; Thresholds uses the fixed `custom_thresholds` external name; Stack uses the
+trusted provider-observed Cloud Stack ID, never a slug-derived value. The required Stack cloud
+access-policy token and its optional Grafana token are environment prerequisites held only in the
+platform profile. When Stack is included, its profile must declare at least one dataset; empty or
+omitted datasets would trigger unbounded provider auto-discovery and are refused. Dataset limits
+bound the authored configuration list, not the number of remote objects the service creates.
+
+The profile has a finite managed-child ceiling and separate ceilings for each configuration list
+and every nested provider list: custom-model rules, entities, defining and enrichment queries;
+config matchers and match values; Prometheus groups, rules, and disable groups; Stack datasets,
+vendors, filter groups, label values, filters, and filter values; and all three Threshold lists.
+The admission policy reads the selected Composition profile and refuses an over-cap selection with
+`selected asserts profile exceeds a platform-owned resource or list cap` before reconciliation.
+Profile changes remain platform-controlled and retain the same composite owner.
 
 ### `GrafanaAlertingBundle`
 

@@ -20,6 +20,7 @@ README describing its ownership boundary.
 | [fleet-pipelines](../../examples/catalog/fleet-pipelines/) | Selection of a platform-owned Fleet baseline pipeline profile | Fleet entitlement, approved profile, and stack reference |
 | [alerting-bundle](../../examples/catalog/alerting-bundle/) | Stack-scoped alert rules, contact points, mute timings, templates, and inhibitions | Folder UID, recipient, rules, and the deliberate provenance mode |
 | [agent-observability](../../examples/catalog/agent-observability/) | Separate platform guards and workload-owned evaluation resources | Plugin/permission prerequisites and reviewed workload policy |
+| [asserts](../../examples/catalog/asserts/) | Platform-owned Asserts profile for nine namespaced provider kinds | Asserts entitlement, a Ready same-namespace stack, per-stack ProviderConfig, and platform-profile Secret references |
 | [assistant-governance](../../examples/catalog/assistant-governance/) | Terms-gated Assistant rules and MCP allow-list | Accepted terms, reviewed platform profiles, endpoint, and Secret-backed headers |
 | [datasource-access](../../examples/catalog/datasource-access/) | One datasource's authoritative team Query grants and aggregated LBAC tree | Observed team UID and numeric ID, basic-auth connection Secret, entitlement, and rules |
 | [observability-products](../../examples/catalog/observability-products/) | Stack-request product activation toggles | Organization, stack identity, and product-specific configuration outside this API |

@@ -216,7 +216,6 @@ access, Git provisioning repositories, and product activation toggles. Their con
 not become stack-baseline content: workload policy, connection secrets, entitlement, plugin, and
 Git-credential prerequisites stay outside ordinary stack vending. Adaptive Metrics, Logs, Traces,
 and Profiles are deliberately out of scope; use their UI and ticket-based routes. See the
-provider-family table in the project
 [provider-family table](#complete-provider-surface-and-ownership-boundaries)
 for the complete ownership map across all 121 managed-resource kinds the provider exposes.
 
@@ -224,29 +223,31 @@ for the complete ownership map across all 121 managed-resource kinds the provide
 
 The pinned provider exposes 121 namespaced external managed-resource kinds across 17 Grafana API families, plus 50 observe-only kinds generated from Terraform data sources. Comprehensive architecture means assigning every family a sensible owner; it does not mean every new stack should automatically create an SLO, a k6 project, an incident schedule, an ML job, and organization members.
 
-The activation policy enables only kinds emitted by the current Compositions. Add a kind deliberately when adding a domain API.
+The activation policy enables the reviewed managed-kind set. The gate checks coverage of emitted kinds. Add a kind deliberately when adding a domain API.
 
-| Provider family | Treatment in this reference |
-| --- | --- |
-| agento11y | `GrafanaAgentObservability` activates the family only from explicit `guards` and `workload` sections. Guards own HookRule/RuleAction; workload owners define Collection/Evaluator/EvaluationRule. Plugin availability and credentials remain environment prerequisites. |
-| alerting | Core retains optional incident-relay ContactPoints. `GrafanaAlertingBundle` owns RuleGroup, ContactPoint, MuteTiming, MessageTemplate, and InhibitionRuleV1Beta1 with explicit provenance and per-rule routing; it never renders the destructive organization-wide NotificationPolicy/Routingtree singleton. |
-| asserts | Use a separate opt-in onboarding module because entitlement and additional metrics/Grafana credentials are required. |
-| assistant | `GrafanaAssistantGovernance` terms-gates platform-selected Rules and MCPServers. Restrictive `always_ask` is the default; headers are write-only Secret data. |
-| cloud | Core owns Stack, StackServiceAccount, StackServiceAccountRotatingToken, AccessPolicy, AccessPolicyRotatingToken, optional PluginInstallation, and the three product global singletons selected by `spec.products`. Product configuration is not part of the stack request. |
-| cloudintegrations | CloudIntegration belongs in an integration module selected after stack creation. |
-| cloudprovider | AWS scrape jobs/accounts and Azure credentials require separate cloud trust and approval. |
-| connections | Metrics endpoint scrape jobs are workload-owned connection objects. |
-| enterprise | Core optionally owns Report; access APIs own Role, RoleAssignment, and RoleAssignmentItem. `GrafanaDatasourceAccess` owns one DataSource, its whole permission set, and aggregated LBAC tree. Team Sync external-group mapping is supported. SCIM is explicitly rejected because its Team ownership conflicts with that model; Keeper remains separate. |
-| fleetmanagement | `GrafanaFleetPipelines` selects a platform-owned pipeline baseline and publishes a Fleet credential chain. Collectors self-register; usage groups remain UI-only and Advanced-tier. |
-| frontendobservability | Applications require workload identity and origin inputs unavailable at stack creation. |
-| grafana | Namespaced ProviderConfig is created per stack. ClusterProviderConfig is avoided to preserve namespace isolation. |
-| k6 | `GrafanaK6Project` owns bounded projects, limits and allowed load zones through a derived credential. Tests, schedules and private-zone provisioning remain consuming-team responsibilities. |
-| ml | Alerts, holidays, jobs, and outlier detectors depend on real queries and service ownership. |
-| oncall | Core optionally creates relay-backed OutgoingWebhook resources. Users, routes, schedules, shifts, integrations, and escalation policy belong in an incident-management module. |
-| observe-only inventory | `GrafanaStackInventory` activates only provider data sources and classifies declared, managed, and unmanaged folders, dashboards, teams, users, library panels, probes, collectors, and selected organization users. It never renders a mutating child. |
-| oss | Core owns Folder, Dashboard, OrganizationPreferences, and SsoSettings; access APIs own Team, FolderPermission, and DashboardPermission. `GrafanaProvisioningRepository` is an opt-in preview Git subtree route referencing an existing Connection. Inventory observes folders, dashboards, teams, users, and library panels; playlists, annotations, and additional service accounts remain separate. |
-| slo | Platform usage profiles vend a ratio golden SLO in handoff mode after datasource observation. Workload metrics and objectives remain explicitly supplied. |
-| sm | `GrafanaSyntheticMonitoring` exchanges a bootstrap credential, independently verifies a disabled Check, and constrains team-authored checks by platform budgets. Private probes and their tokens remain outside this API. |
+The table lists provider families reachable from each composite renderer, including delegated stack rendering by `GrafanaStackLadder` and product-specific ProviderConfigs. It describes available ownership, not resources automatically emitted for every request. The gate derives these associations from Go constructor call paths and checks each status and composite list.
+
+| Provider family | Vending status | Composite API | Treatment in this reference |
+| --- | --- | --- | --- |
+| agento11y | vended | `GrafanaAgentObservability` | Activates the family only from explicit `guards` and `workload` sections. Guards own HookRule/RuleAction; workload owners define Collection/Evaluator/EvaluationRule. Plugin availability and credentials remain environment prerequisites. |
+| alerting | vended | `GrafanaAlertingBundle`, `GrafanaAlertingRouting`, `GrafanaCloudStackRequest`, `GrafanaStackLadder` | Core retains optional incident-relay ContactPoints. `GrafanaAlertingBundle` owns RuleGroup, ContactPoint, MuteTiming, MessageTemplate, and InhibitionRuleV1Beta1 with explicit provenance and per-rule routing; it never renders the destructive organization-wide NotificationPolicy/Routingtree singleton. |
+| asserts | vended | `GrafanaAsserts` | The opt-in module vends the nine namespaced Asserts kinds; it excludes their cluster-scoped duplicates. Entitlement and additional metrics/Grafana credentials are prerequisites. |
+| assistant | vended | `GrafanaAssistantGovernance` | Terms-gates platform-selected Rules and MCPServers. Restrictive `always_ask` is the default; headers are write-only Secret data. |
+| cloud | vended | `GrafanaCloudStackRequest`, `GrafanaPDC`, `GrafanaStackLadder` | Core owns Stack, StackServiceAccount, StackServiceAccountRotatingToken, AccessPolicy, AccessPolicyRotatingToken, optional PluginInstallation, and the three product global singletons selected by `spec.products`. Product configuration is not part of the stack request. |
+| cloudintegrations | vended | `GrafanaCloudIntegrations` | Vends CloudIntegration from a platform-selected profile after stack creation. |
+| cloudprovider | vended | `GrafanaCloudIntegrations` | AWS scrape jobs/accounts and Azure credentials require separate cloud trust and approval. |
+| connections | vended | `GrafanaCloudIntegrations` | Metrics endpoint scrape jobs are workload-owned connection objects. |
+| enterprise | vended | `GrafanaCloudStackRequest`, `GrafanaCustomRoleBinding`, `GrafanaDatasourceAccess`, `GrafanaStackLadder`, `GrafanaTeamAccess` | Core optionally owns Report; access APIs own Role, RoleAssignment, and RoleAssignmentItem. `GrafanaDatasourceAccess` owns one DataSource, its whole permission set, and aggregated LBAC tree. Team Sync external-group mapping is supported. SCIM is explicitly rejected because its Team ownership conflicts with that model; Keeper remains separate. |
+| fleetmanagement | vended | `GrafanaCloudStackRequest`, `GrafanaFleetPipelines`, `GrafanaStackLadder` | Selects a platform-owned pipeline baseline and publishes a Fleet credential chain. Collectors self-register; usage groups remain UI-only and Advanced-tier. |
+| frontendobservability | vended | `GrafanaFrontendObservability` | Applications require workload identity and origin inputs unavailable at stack creation. |
+| grafana | vended | `GrafanaCloudIntegrations`, `GrafanaCloudStackRequest`, `GrafanaK6Project`, `GrafanaStackLadder`, `GrafanaSyntheticMonitoring` | Namespaced ProviderConfig is created per stack. ClusterProviderConfig is avoided to preserve namespace isolation. |
+| k6 | vended | `GrafanaK6Project` | Owns bounded projects, limits and allowed load zones through a derived credential. The module also vends declared load tests and schedules within those limits. Private-zone provisioning remains a consuming-team responsibility. |
+| ml | vended | `GrafanaML` | Vends platform-profiled holidays, jobs, and outlier detectors after stack creation; real queries and service ownership remain prerequisites. |
+| oncall | vended | `GrafanaCloudStackRequest`, `GrafanaOnCall`, `GrafanaStackLadder` | Core optionally creates relay-backed OutgoingWebhook resources. `GrafanaOnCall` vends the one-stack schedule, escalation chain, integration, and catch-all route; its responders are observed. |
+| observe-only inventory | observe-only | `GrafanaStackInventory` | Activates only provider data sources and classifies declared, managed, and unmanaged folders, dashboards, teams, users, library panels, probes, collectors, and selected organization users. It never renders a mutating child. |
+| oss | vended | `GrafanaCloudStackRequest`, `GrafanaContentAccessPolicy`, `GrafanaCustomRoleBinding`, `GrafanaDatasourceAccess`, `GrafanaPDC`, `GrafanaProvisioningRepository`, `GrafanaServiceAccounts`, `GrafanaStackLadder`, `GrafanaTeamAccess` | Core owns Folder, Dashboard, OrganizationPreferences, and SsoSettings; access APIs own Team, FolderPermission, and DashboardPermission. `GrafanaProvisioningRepository` is an opt-in preview Git subtree route referencing an existing Connection. Inventory observes folders, dashboards, teams, users, and library panels; playlists and annotations remain separate; `GrafanaServiceAccounts` vends additional service accounts. |
+| slo | vended | `GrafanaCloudStackRequest`, `GrafanaStackLadder` | Platform usage profiles vend a ratio golden SLO in handoff mode after datasource observation. Workload metrics and objectives remain explicitly supplied. |
+| sm | vended | `GrafanaSyntheticMonitoring` | Exchanges a bootstrap credential, independently verifies a disabled Check, and constrains team-authored checks by platform budgets. Private probes and their tokens remain outside this API. |
 
 This leads to a clean GitOps tree:
 
@@ -321,7 +322,7 @@ This matrix was checked resource-by-resource against the active modules in the T
 | Additional service accounts and service-account permissions | `GrafanaServiceAccounts` | Role, token audience, owner, and rotation policy differ per workload |
 | SLOs and Synthetic Monitoring | Golden SLO profiles and bounded Synthetic Monitoring API | Workload objectives, queries, probe locations and targets remain explicitly authored |
 | OnCall schedules, escalation chains, routes, and integrations | `GrafanaOnCall`, joined from `GrafanaAlertingRouting` | People, rotations, and escalation policy have an independent lifecycle |
-| Frontend Observability and ML | `GrafanaFrontendObservability` and `GrafanaML`; Asserts remains outside this wave | Each has entitlement, identity, content, and rollout inputs beyond stack creation |
+| Frontend Observability and ML | `GrafanaFrontendObservability` and `GrafanaML` | Each has entitlement, identity, content, and rollout inputs beyond stack creation |
 
 The complete provider-family table above is the extension index. New modules should reuse the namespaced
 stack ProviderConfig, keep secrets in external stores, choose whole-set versus item resources

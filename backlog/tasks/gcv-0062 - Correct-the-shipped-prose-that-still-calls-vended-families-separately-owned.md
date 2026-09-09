@@ -1,10 +1,11 @@
 ---
 id: GCV-0062
 title: Correct the shipped prose that still calls vended families separately owned
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - campaign-root
 created_date: '2026-09-09 12:48'
-updated_date: '2026-09-09 12:48'
+updated_date: '2026-09-09 14:00'
 labels: []
 dependencies: []
 ordinal: 62000
@@ -32,3 +33,9 @@ Scope is the shipped public documentation set, not the tracker.
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 8 lane D audits shipped family-ownership claims against actual renderers, corrects the three owned prose documents, and implements either path-specific drift checking via root wiring or consolidation into checked inventories with a recorded rationale. Root integrates the frozen asserts name and verifies local and exact-SHA hosted gates.
+<!-- SECTION:PLAN:END -->

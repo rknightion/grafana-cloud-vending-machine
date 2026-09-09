@@ -204,3 +204,12 @@ spec:
     - serviceaccountrotatingtokens.oss.grafana.m.crossplane.io
     - serviceaccounts.oss.grafana.m.crossplane.io
     - checkalerts.sm.grafana.m.crossplane.io
+    - custommodelrules.asserts.grafana.m.crossplane.io
+    - logconfigs.asserts.grafana.m.crossplane.io
+    - notificationalertsconfigs.asserts.grafana.m.crossplane.io
+    - profileconfigs.asserts.grafana.m.crossplane.io
+    - promrulefiles.asserts.grafana.m.crossplane.io
+    - stacks.asserts.grafana.m.crossplane.io
+    - suppressedassertionsconfigs.asserts.grafana.m.crossplane.io
+    - thresholds.asserts.grafana.m.crossplane.io
+    - traceconfigs.asserts.grafana.m.crossplane.io

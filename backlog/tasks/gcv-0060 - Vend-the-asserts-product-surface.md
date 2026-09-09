@@ -1,10 +1,11 @@
 ---
 id: GCV-0060
 title: Vend the asserts product surface
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - campaign-root
 created_date: '2026-09-09 08:10'
-updated_date: '2026-09-09 12:46'
+updated_date: '2026-09-09 14:00'
 labels: []
 dependencies: []
 ordinal: 60000
@@ -38,3 +39,9 @@ Integration surfaces this work must reach and therefore owns as the sole campaig
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 8 campaign: root derives and freezes the exact pinned asserts inventory; lane A defines the public schema, then B implements the renderer and C the inert catalog; D independently corrects family prose. Root owns shared wiring, real-API-server budget and registry negative controls, local just check, two-pass review plus schema review, publication and exact-source signature verification, synchronized repin, exact-SHA hosted validation, and final reconciliation. All nine namespaced asserts resource kinds are targeted; nine cluster-scoped duplicates are deliberately excluded. One module owns each stack surface. No live contact, release, tag, or history mutation.
+<!-- SECTION:PLAN:END -->

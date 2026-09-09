@@ -127,7 +127,7 @@ XRDs and Compositions, and the extra composition RBAC needed for ESO's `PushSecr
 needs the `SecretStore`, one organization `ExternalSecret`, and one same-named ProviderConfig per
 registry entry in every namespace that will accept requests.
 
-Five specialist XRDs - cloud integrations, k6, ML, PDC, and service accounts - also install a
+Six specialist XRDs - Asserts, cloud integrations, k6, ML, PDC, and service accounts - also install a
 cluster-scoped `ValidatingAdmissionPolicy` and binding. Each binding uses its XRD file's named
 Composition as the policy parameter. Install each XRD together with that Composition and keep the
 Composition name unchanged. If the Composition is absent or renamed, the binding's

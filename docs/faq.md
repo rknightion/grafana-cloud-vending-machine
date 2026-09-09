@@ -74,11 +74,10 @@ created and observed. See [Architecture](architecture.md).
 ## How many Grafana Cloud resource kinds does this actually manage?
 
 The pinned provider exposes 121 namespaced external managed-resource kinds across 17 families,
-plus 50 observe-only kinds. This reference activates only the subset its Compositions emit. It now
-has explicit modules for inventory, Fleet pipelines, alerting, Agent Observability, Assistant
-governance, datasource access, Git provisioning repositories, product activation, golden SLOs,
-bounded k6 and Synthetic Monitoring, and promotion ladders. Cloud integrations, OnCall schedules,
-ML and Asserts remain separately owned. See [Governance](governance.md). See [Architecture → baseline and optional resources](architecture.md#baseline-and-optional-resources).
+plus 50 observe-only kinds. This reference activates only the subset its Compositions emit. The
+[CompositeResourceDefinitions inventory](reference/request-schema.md#compositeresourcedefinitions)
+is the checked list of vended composite APIs. The [provider-family table](architecture.md#complete-provider-surface-and-ownership-boundaries)
+describes their ownership boundaries and prerequisites.
 
 ## Does this manage Adaptive Metrics or other adaptive products?
 

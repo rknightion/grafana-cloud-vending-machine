@@ -1,0 +1,232 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanaasserts.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaAsserts
+    plural: grafanaasserts
+    singular: grafanaasserts
+    shortNames:
+      - gca
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-asserts-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: Requests one platform-owned Asserts configuration surface for a referenced Grafana Cloud stack.
+          x-kubernetes-validations:
+            - rule: self.metadata.name == self.spec.stackRef.name
+              message: metadata.name must match spec.stackRef.name so one composite owns this stack surface
+            - rule: self.spec.stackRef.name == oldSelf.spec.stackRef.name
+              message: stackRef.name is immutable
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - profile
+              properties:
+                stackRef:
+                  type: object
+                  description: Ready GrafanaCloudStackRequest in this namespace. Its observed provider ID is the only Stack identity source.
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                profile:
+                  type: string
+                  minLength: 1
+                  maxLength: 63
+                  pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                  description: Selects a platform-owned Asserts profile. Requests cannot supply configurations, credential references, external names, or limits.
+            status:
+              type: object
+              description: Read-only status owned by Crossplane.
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-asserts-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaAsserts
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-asserts
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          assertsProfiles:
+            - name: baseline
+              limits:
+                maxManagedResources: 100
+                maxCustomModelRules: 5
+                maxLogConfigs: 20
+                maxNotificationAlertsConfigs: 20
+                maxProfileConfigs: 20
+                maxPromRuleFiles: 10
+                maxSuppressedAssertionsConfigs: 20
+                maxTraceConfigs: 20
+                maxRulesPerCustomModelRules: 1
+                maxEntitiesPerRule: 50
+                maxDefinedByPerEntity: 20
+                maxEnrichedByPerEntity: 20
+                maxMatchesPerConfig: 50
+                maxMatchValuesPerMatch: 50
+                maxPromGroupsPerFile: 20
+                maxPromRulesPerGroup: 50
+                maxDisableInGroupsPerRule: 20
+                maxDatasets: 20
+                maxDisabledVendorsPerDataset: 50
+                maxFilterGroupsPerDataset: 50
+                maxEnvLabelValuesPerFilterGroup: 20
+                maxFiltersPerFilterGroup: 50
+                maxFilterValuesPerFilter: 50
+                maxSiteLabelValuesPerFilterGroup: 20
+                maxHealthThresholds: 100
+                maxRequestThresholds: 100
+                maxResourceThresholds: 100
+              customModelRules:
+                - name: platform-custom-model-rules
+                  rules:
+                    - entity:
+                        - name: service
+                          type: Service
+                          definedBy:
+                            - query: up
+                          enrichedBy: []
+              logConfigs:
+                - name: platform-log-config
+                  dataSourceUid: platform-loki
+                  defaultConfig: false
+                  priority: 1
+                  match: []
+              notificationAlertsConfigs:
+                - name: platform-notification-alerts
+              profileConfigs:
+                - name: platform-profile-config
+                  dataSourceUid: platform-profiles
+                  defaultConfig: false
+                  priority: 1
+                  match: []
+              promRuleFiles:
+                - name: platform-assertions
+                  active: true
+                  group:
+                    - name: platform-baseline
+                      interval: 1m
+                      rule:
+                        - record: platform:up:count
+                          expr: count(up)
+                          disableInGroups: []
+              stack:
+                cloudAccessPolicyTokenSecretRef:
+                  name: platform-asserts-cloud-access-token
+                  key: token
+                dataset:
+                  - type: prometheus
+              suppressedAssertionsConfigs:
+                - name: platform-suppressed-assertions
+              thresholds:
+                healthThresholds:
+                  - assertionName: service-health
+                    entityType: Service
+                    expression: up == 0
+                requestThresholds:
+                  - assertionName: ErrorRatioBreach
+                    entityName: service
+                    requestContext: all
+                    requestType: inbound
+                    value: 0.05
+                resourceThresholds:
+                  - assertionName: Saturation
+                    containerName: application
+                    resourceType: container
+                    severity: warning
+                    source: metrics
+                    value: 0.8
+              traceConfigs:
+                - name: platform-trace-config
+                  dataSourceUid: platform-tempo
+                  defaultConfig: false
+                  priority: 1
+                  match: []
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: grafana-asserts-profile-cap-v1beta1
+spec:
+  failurePolicy: Fail
+  paramKind:
+    apiVersion: apiextensions.crossplane.io/v1
+    kind: Composition
+  matchConstraints:
+    resourceRules:
+      - apiGroups:
+          - platform.example.org
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - grafanaasserts
+  validations:
+    - expression: >-
+        params.spec.pipeline[0].input.spec.assertsProfiles.filter(profile, profile.name == object.spec.profile).size() == 1 &&
+        params.spec.pipeline[0].input.spec.assertsProfiles.exists(profile,
+        profile.name == object.spec.profile &&
+        has(profile.limits) &&
+        [profile.limits.maxManagedResources, profile.limits.maxCustomModelRules, profile.limits.maxLogConfigs, profile.limits.maxNotificationAlertsConfigs, profile.limits.maxProfileConfigs, profile.limits.maxPromRuleFiles, profile.limits.maxSuppressedAssertionsConfigs, profile.limits.maxTraceConfigs, profile.limits.maxRulesPerCustomModelRules, profile.limits.maxEntitiesPerRule, profile.limits.maxDefinedByPerEntity, profile.limits.maxEnrichedByPerEntity, profile.limits.maxMatchesPerConfig, profile.limits.maxMatchValuesPerMatch, profile.limits.maxPromGroupsPerFile, profile.limits.maxPromRulesPerGroup, profile.limits.maxDisableInGroupsPerRule, profile.limits.maxDatasets, profile.limits.maxDisabledVendorsPerDataset, profile.limits.maxFilterGroupsPerDataset, profile.limits.maxEnvLabelValuesPerFilterGroup, profile.limits.maxFiltersPerFilterGroup, profile.limits.maxFilterValuesPerFilter, profile.limits.maxSiteLabelValuesPerFilterGroup, profile.limits.maxHealthThresholds, profile.limits.maxRequestThresholds, profile.limits.maxResourceThresholds].all(cap, type(cap) == int && cap >= 0) &&
+        profile.limits.maxRulesPerCustomModelRules <= 1 &&
+        has(profile.customModelRules) && size(profile.customModelRules) <= profile.limits.maxCustomModelRules &&
+        has(profile.logConfigs) && size(profile.logConfigs) <= profile.limits.maxLogConfigs &&
+        has(profile.notificationAlertsConfigs) && size(profile.notificationAlertsConfigs) <= profile.limits.maxNotificationAlertsConfigs &&
+        has(profile.profileConfigs) && size(profile.profileConfigs) <= profile.limits.maxProfileConfigs &&
+        has(profile.promRuleFiles) && size(profile.promRuleFiles) <= profile.limits.maxPromRuleFiles &&
+        has(profile.suppressedAssertionsConfigs) && size(profile.suppressedAssertionsConfigs) <= profile.limits.maxSuppressedAssertionsConfigs &&
+        has(profile.traceConfigs) && size(profile.traceConfigs) <= profile.limits.maxTraceConfigs &&
+        size(profile.customModelRules) + size(profile.logConfigs) + size(profile.notificationAlertsConfigs) + size(profile.profileConfigs) + size(profile.promRuleFiles) + size(profile.suppressedAssertionsConfigs) + size(profile.traceConfigs) + (has(profile.stack) ? 1 : 0) + (has(profile.thresholds) ? 1 : 0) <= profile.limits.maxManagedResources &&
+        profile.customModelRules.all(config, (!has(config.rules) || size(config.rules) <= profile.limits.maxRulesPerCustomModelRules) && (!has(config.rules) || config.rules.all(item0, (!has(item0.entity) || size(item0.entity) <= profile.limits.maxEntitiesPerRule))) && (!has(config.rules) || config.rules.all(item0, (!has(item0.entity) || item0.entity.all(item1, (!has(item1.definedBy) || size(item1.definedBy) <= profile.limits.maxDefinedByPerEntity))))) && (!has(config.rules) || config.rules.all(item0, (!has(item0.entity) || item0.entity.all(item1, (!has(item1.enrichedBy) || size(item1.enrichedBy) <= profile.limits.maxEnrichedByPerEntity)))))) &&
+        profile.logConfigs.all(config, (!has(config.match) || size(config.match) <= profile.limits.maxMatchesPerConfig) && (!has(config.match) || config.match.all(item0, (!has(item0.values) || size(item0.values) <= profile.limits.maxMatchValuesPerMatch)))) &&
+        profile.profileConfigs.all(config, (!has(config.match) || size(config.match) <= profile.limits.maxMatchesPerConfig) && (!has(config.match) || config.match.all(item0, (!has(item0.values) || size(item0.values) <= profile.limits.maxMatchValuesPerMatch)))) &&
+        profile.traceConfigs.all(config, (!has(config.match) || size(config.match) <= profile.limits.maxMatchesPerConfig) && (!has(config.match) || config.match.all(item0, (!has(item0.values) || size(item0.values) <= profile.limits.maxMatchValuesPerMatch)))) &&
+        profile.promRuleFiles.all(config, (!has(config.group) || size(config.group) <= profile.limits.maxPromGroupsPerFile) && (!has(config.group) || config.group.all(item0, (!has(item0.rule) || size(item0.rule) <= profile.limits.maxPromRulesPerGroup))) && (!has(config.group) || config.group.all(item0, (!has(item0.rule) || item0.rule.all(item1, (!has(item1.disableInGroups) || size(item1.disableInGroups) <= profile.limits.maxDisableInGroupsPerRule)))))) &&
+        (!has(profile.stack) || (has(profile.stack.dataset) && size(profile.stack.dataset) > 0 && size(profile.stack.dataset) <= profile.limits.maxDatasets) && (!has(profile.stack.dataset) || profile.stack.dataset.all(item0, (!has(item0.disabledVendors) || size(item0.disabledVendors) <= profile.limits.maxDisabledVendorsPerDataset))) && (!has(profile.stack.dataset) || profile.stack.dataset.all(item0, (!has(item0.filterGroup) || size(item0.filterGroup) <= profile.limits.maxFilterGroupsPerDataset))) && (!has(profile.stack.dataset) || profile.stack.dataset.all(item0, (!has(item0.filterGroup) || item0.filterGroup.all(item1, (!has(item1.envLabelValues) || size(item1.envLabelValues) <= profile.limits.maxEnvLabelValuesPerFilterGroup))))) && (!has(profile.stack.dataset) || profile.stack.dataset.all(item0, (!has(item0.filterGroup) || item0.filterGroup.all(item1, (!has(item1.filter) || size(item1.filter) <= profile.limits.maxFiltersPerFilterGroup))))) && (!has(profile.stack.dataset) || profile.stack.dataset.all(item0, (!has(item0.filterGroup) || item0.filterGroup.all(item1, (!has(item1.filter) || item1.filter.all(item2, (!has(item2.values) || size(item2.values) <= profile.limits.maxFilterValuesPerFilter))))))) && (!has(profile.stack.dataset) || profile.stack.dataset.all(item0, (!has(item0.filterGroup) || item0.filterGroup.all(item1, (!has(item1.siteLabelValues) || size(item1.siteLabelValues) <= profile.limits.maxSiteLabelValuesPerFilterGroup)))))) &&
+        (!has(profile.thresholds) || (!has(profile.thresholds.healthThresholds) || size(profile.thresholds.healthThresholds) <= profile.limits.maxHealthThresholds) && (!has(profile.thresholds.requestThresholds) || size(profile.thresholds.requestThresholds) <= profile.limits.maxRequestThresholds) && (!has(profile.thresholds.resourceThresholds) || size(profile.thresholds.resourceThresholds) <= profile.limits.maxResourceThresholds)))
+      message: selected asserts profile exceeds a platform-owned resource or list cap
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: grafana-asserts-profile-cap-v1beta1
+spec:
+  policyName: grafana-asserts-profile-cap-v1beta1
+  validationActions:
+    - Deny
+  paramRef:
+    name: grafana-asserts-v1beta1
+    parameterNotFoundAction: Deny

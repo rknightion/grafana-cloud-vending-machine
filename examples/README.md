@@ -13,6 +13,7 @@ Everything under `catalog/` is inert reference material. The supplied Argo CD Ap
 | [fleet-pipelines](catalog/fleet-pipelines/) | A platform-owned Fleet Management pipeline baseline | Fleet entitlement and an approved platform profile |
 | [alerting-bundle](catalog/alerting-bundle/) | Stack-scoped alerting with an explicit UI-provenance choice | Reviewed rules, contact points, folder UID, and provenance mode |
 | [agent-observability](catalog/agent-observability/) | Separate platform guards and workload-owned evaluation resources | Plugin/permission prerequisites and reviewed workload policy |
+| [asserts](catalog/asserts/) | Platform-profiled Asserts configurations for nine namespaced provider kinds | Asserts entitlement, a Ready same-namespace stack, per-stack ProviderConfig, and platform-profile Secret references |
 | [assistant-governance](catalog/assistant-governance/) | Terms-gated Assistant rules and MCP server allow-list | Accepted terms, platform rule profile, endpoint, and Secret-backed headers |
 | [datasource-access](catalog/datasource-access/) | One datasource's Query grants and aggregated LBAC rules | Observed team UID/numeric ID, basic-auth connection, entitlement, and rules |
 | [observability-products](catalog/observability-products/) | Application, Kubernetes, and Database Observability activation toggles | Product-specific configuration in its Helm/onboarding surface |

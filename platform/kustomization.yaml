@@ -24,3 +24,4 @@ resources:
   - apis/service-accounts-v1beta1.yaml
   - apis/frontend-observability-v1beta1.yaml
   - apis/ml-v1beta1.yaml
+  - apis/asserts-v1beta1.yaml

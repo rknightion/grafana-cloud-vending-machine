@@ -60,7 +60,7 @@ func TestManagedKindActivationCoverage(t *testing.T) {
 		}
 		entries[key] = entry
 	}
-	assertSameGVKKeys(t, "emitted managed kinds", mapKeys(managed), "managed kind map", mapKeys(entries))
+	assertSameGVKKeys(t, "emitted managed kinds", mapKeys(managed), "platform/provider/managed-kind-map.json", mapKeys(entries))
 
 	for key, emittedGVK := range managed {
 		entry := entries[key]
@@ -68,7 +68,7 @@ func TestManagedKindActivationCoverage(t *testing.T) {
 			t.Fatalf("managed kind map entry %s does not match emitted GVK", key)
 		}
 		if !activated[entry.Plural+"."+groupOfAPIVersion(entry.APIVersion)] {
-			t.Fatalf("ManagedResourceActivationPolicy is missing %s for emitted %s", entry.Plural+"."+groupOfAPIVersion(entry.APIVersion), key)
+			t.Fatalf("platform/provider/provider-grafana.yaml: ManagedResourceActivationPolicy is missing %s for emitted %s", entry.Plural+"."+groupOfAPIVersion(entry.APIVersion), key)
 		}
 	}
 }

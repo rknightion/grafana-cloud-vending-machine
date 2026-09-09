@@ -1,0 +1,10 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaAsserts
+metadata:
+  name: exampleasserts01
+  namespace: grafana-vending
+spec:
+  # This must name a Ready GrafanaCloudStackRequest in the same namespace.
+  stackRef:
+    name: exampleasserts01
+  profile: baseline
