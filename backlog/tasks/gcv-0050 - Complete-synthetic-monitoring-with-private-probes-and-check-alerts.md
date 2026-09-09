@@ -1,10 +1,11 @@
 ---
 id: GCV-0050
 title: Complete synthetic monitoring with private probes and check alerts
-status: Parked
-assignee: []
+status: In Progress
+assignee:
+  - '@codex-wave7'
 created_date: '2026-09-08 22:36'
-updated_date: '2026-09-09 00:53'
+updated_date: '2026-09-09 09:52'
 labels: []
 dependencies: []
 type: feature
@@ -21,11 +22,10 @@ Private probes are what let a vended stack check something that is not publicly 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Private probes are vended per stack from platform-controlled input, with probe tokens bounded by the existing composition token expiry ceiling
-- [x] #2 No probe token value reaches status or a rendered example; only derived credentials are published, and a test proves it
-- [ ] #3 Check alerts are vended so a failing vended check reaches the vended alerting path, with the linkage proven rather than asserted
-- [ ] #4 The existing check budget still binds after the addition, and an over-budget request is still refused with its own message
-- [x] #5 Every emitted kind appears in the provider activation map and the XRD/renderer registry, and the gate fails by path if one is missing
+- [x] #1 No probe token value reaches status or a rendered example; only derived credentials are published, and a test proves it
+- [ ] #2 Check alerts are vended so a failing vended check reaches the vended alerting path, with the linkage proven rather than asserted
+- [ ] #3 The existing check budget rejects declared values outside the Composition profile with its own message; reconciliation selects that profile from the referenced stack's observed usage, and direct provider writes remain outside this managed budget
+- [x] #4 Every emitted kind appears in the provider activation map and the XRD/renderer registry, and the gate fails by path if one is missing
 <!-- AC:END -->
 
 ## Definition of Done
@@ -38,7 +38,15 @@ Private probes are what let a vended stack check something that is not publicly 
 
 <!-- SECTION:PLAN:BEGIN -->
 Wave 6: implement the commissioned surface under the frozen goal and root-owned integration; prove admission and renderer boundaries with required negative controls, then just check and exact-SHA hosted Validate before finalization.
+
+Wave 7 settlement: record private-probe refusal as owner-approved design, amend only criteria describing unavailable mechanisms, prove the CheckAlerts linkage at the machine-controlled configuration boundary, then close with integrated local and exact-SHA hosted evidence.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 7 owner settlement removed former AC1: Private probes are vended per stack from platform-controlled input, with probe tokens bounded by the existing composition token expiry ceiling. Provider evidence shows Probe has no token-lifetime field, so that mechanism does not exist; accepted decision decision-0002 records the shipped refusal and the provider-bump condition for reconsideration. Former AC4 before: The existing check budget still binds after the addition, and an over-budget request is still refused with its own message. After: The existing check budget rejects declared values outside the Composition profile with its own message; reconciliation selects that profile from the referenced stack's observed usage, and direct provider writes remain outside this managed budget. Source evidence is decision-0001, renderer budget tests, and the observed referenced-stack context. Root materiality: HIGH because both changes correct public compatibility claims before 1.0.0. AC3 proof is configuration-bound: the renderer accepts only a positive numeric provider-observed Check ID, emits CheckAlerts with that ID and the Synthetic Monitoring ProviderConfig, and the pinned provider CRD admits the exact rendered child. Rule evaluation and notification delivery remain unproven because CheckAlerts exposes no contact-point, policy, route, receiver, or label linkage.
+<!-- SECTION:NOTES:END -->
 
 ## Final Summary
 

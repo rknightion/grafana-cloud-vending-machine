@@ -24,13 +24,17 @@ This inert example installs Synthetic Monitoring for an existing stack and decla
 
 The Composition selects a budget from the referenced stack's immutable usage class. It caps API and browser check counts separately, caps probe locations per check, sets a minimum interval, and rejects a check set whose hourly execution cost exceeds the profile. Browser executions carry a separate weight of ten in the reference profile. The `checks` list is the whole set owned by this composite; removing an item withdraws that managed check.
 
+Admission compares the submitted check set with the Composition budget selected by the request's
+declared usage. It cannot read the referenced stack. Reconciliation binds that declaration to the
+stack's observed usage and refuses a mismatch before it renders checks.
+
 These limits govern checks created through this API. They are not a tenant service quota and cannot account for checks created manually or through another credential. Keep provider `Check` creation behind platform RBAC if the budget is a hard governance boundary.
 
 ## Alert criteria and private probes
 
-Each check with an explicit nonempty `alerts` list owns one `CheckAlerts` resource after the provider reports that check's assigned ID. This relationship is deliberately deferred: the provider requires a numeric check ID, so the function never derives one from a name. `CheckAlerts` configures provider-native alert criteria, but its pinned schema has no contact-point, notification-policy, routing-tree, receiver, or label field. It therefore cannot prove delivery to a vended contact point; that connection requires an alerting policy owned outside this API.
+Each check with an explicit nonempty `alerts` list owns one `CheckAlerts` resource after the provider reports that check's assigned ID. This relationship is deliberately deferred: the provider requires a numeric check ID, so the function never derives one from a name. The machine-controlled proof ends with that rendered `CheckAlerts` object admitted by the pinned provider CRD. `CheckAlerts` configures provider-native alert criteria, but its pinned schema has no contact-point, notification-policy, routing-tree, receiver, or label field. It therefore cannot prove rule evaluation or delivery to a vended contact point; that connection requires an alerting policy owned outside this API.
 
-Private probes are refused. The pinned provider's `Probe` resource has no token or token-lifetime field, so this API cannot satisfy the platform's bounded-credential requirement. It emits no `Probe`, probe token, status field, Secret, or catalog value.
+Private probes are refused. The pinned provider's `Probe` resource has no token or token-lifetime field, so this API cannot satisfy the platform's bounded-credential requirement. It emits no `Probe`, probe token, status field, Secret, or catalog value. Re-check the provider's Probe schema on every pin bump; this refusal can change only when the provider exposes an enforceable remote token lifetime that fits the existing composition ceiling.
 
 ## Readiness and credentials
 

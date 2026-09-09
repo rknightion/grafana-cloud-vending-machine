@@ -3,9 +3,11 @@ id: GCV-0056
 title: >-
   Close the synthetic monitoring surface and record the private-probe refusal as
   design
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@codex-wave7'
 created_date: '2026-09-09 08:09'
+updated_date: '2026-09-09 09:52'
 labels: []
 dependencies: []
 ordinal: 56000
@@ -35,3 +37,15 @@ Do not substitute Secret expiry for provider token expiry. That was considered a
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Apply the frozen private-probe and cross-object admission settlements, record the provider-evidenced decision, prove the existing CheckAlerts-to-alerting linkage at the configuration boundary, reconcile public documentation, and close GCV-0050.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Created accepted decision decision-0002 with provider-source evidence, the Secret-expiry rejection, and the exact provider-pin condition that could reopen private probes. Reconciled the catalog README to separate declared-profile admission, observed-stack reconciliation, rendered and provider-admitted CheckAlerts linkage, and unproven rule evaluation or delivery. Focused renderer and provider-admission tests passed; weakening the positive numeric observed Check ID guard made TestSyntheticMonitoringRendersCheckAlertsOnlyFromObservedCheckIDs fail because it rendered CheckAlerts from malformed observation. CodeRabbit was skipped because this lane changed documentation and tracker records only; no branching logic changed.
+<!-- SECTION:NOTES:END -->
