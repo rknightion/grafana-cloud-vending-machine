@@ -18,8 +18,14 @@ for the per-API fields.
 
 This reference pins versions and immutable artifacts instead of following latest tags.
 
+The cluster must run **Kubernetes 1.30 or later**. The `platform/` base installs
+`admissionregistration.k8s.io/v1` `ValidatingAdmissionPolicy` resources, which are available as a
+stable API from Kubernetes 1.30. On an older cluster, applying or syncing the platform base fails
+before requests can be admitted.
+
 | Component | Version | Source | Why |
 | --- | --- | --- | --- |
+| Kubernetes | 1.30+ | `platform/kustomization.yaml` (`apis/cloud-integrations-v1beta1.yaml`) | Minimum version for the `admissionregistration.k8s.io/v1` `ValidatingAdmissionPolicy` resources installed by the platform base |
 | Crossplane | 2.3.4 | `deploy/argocd/crossplane.yaml` (`targetRevision: 2.3.4`) | Required for namespaced composite resources, namespaced managed resources, and ManagedResourceActivationPolicy |
 | Grafana Crossplane provider | v2.14.0, immutable digest | `platform/provider/provider-grafana.yaml` (`refs/tags/v2.14.0`) | Tagged release generated from Grafana Terraform provider 4.45.1 with the complete upstream resource surface used here |
 | ESO Helm chart | 2.6.0 | `deploy/argocd/external-secrets.yaml` (`targetRevision: 2.6.0`) | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
@@ -120,6 +126,13 @@ XRDs and Compositions, and the extra composition RBAC needed for ESO's `PushSecr
 `ExternalSecret` resources. `deploy/aws` is an example for one request namespace: a real overlay
 needs the `SecretStore`, one organization `ExternalSecret`, and one same-named ProviderConfig per
 registry entry in every namespace that will accept requests.
+
+Five specialist XRDs - cloud integrations, k6, ML, PDC, and service accounts - also install a
+cluster-scoped `ValidatingAdmissionPolicy` and binding. Each binding uses its XRD file's named
+Composition as the policy parameter. Install each XRD together with that Composition and keep the
+Composition name unchanged. If the Composition is absent or renamed, the binding's
+`parameterNotFoundAction: Deny` causes requests for that surface to be rejected at admission;
+`kubectl` and Argo CD report the denial against the named policy.
 
 Wait for the provider and function to become healthy:
 

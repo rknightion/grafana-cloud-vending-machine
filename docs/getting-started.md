@@ -16,6 +16,10 @@ description: Prerequisites and the copy-edit-review-commit path to vending your 
 
 Before you begin, you need:
 
+- A cluster running **Kubernetes 1.30 or later** - required by the cluster-scoped
+  `ValidatingAdmissionPolicy` resources installed with the platform. Keep the cloud integrations,
+  k6, ML, PDC, and service-account XRDs paired with their named Compositions. A missing or renamed
+  Composition makes that surface's admission binding deny requests.
 - A Kubernetes cluster with **Crossplane pinned at 2.3.4** — required for namespaced composite
   resources, namespaced managed resources, and `ManagedResourceActivationPolicy`.
 - **Argo CD**, with `application.resourceTrackingMethod: annotation` set (see

@@ -91,6 +91,63 @@ ruby -ryaml -e '
     end
   end
 
+  # Derive the Kubernetes floor from every API object shipped by the platform
+  # base. Dependency-provided and Kustomize API versions have no independent
+  # Kubernetes floor here; every built-in object/kind pair must have an explicit
+  # floor so a newly introduced cluster API cannot silently escape this check.
+  dependency_api_versions = [
+    "apiextensions.crossplane.io/v1",
+    "apiextensions.crossplane.io/v1alpha1",
+    "apiextensions.crossplane.io/v2",
+    "meta.pkg.crossplane.io/v1",
+    "pkg.crossplane.io/v1",
+    "pkg.crossplane.io/v1beta1",
+  ]
+  non_resource_api_versions = ["kustomize.config.k8s.io/v1beta1"]
+  built_in_floors = {
+    ["admissionregistration.k8s.io/v1", "ValidatingAdmissionPolicy"] => "1.30",
+    ["admissionregistration.k8s.io/v1", "ValidatingAdmissionPolicyBinding"] => "1.30",
+    ["batch/v1", "Job"] => "1.21",
+    ["rbac.authorization.k8s.io/v1", "ClusterRole"] => "1.8",
+  }
+  discovered_api_objects = Dir.glob("platform/**/*.{yaml,yml}").sort.flat_map do |path|
+    YAML.load_stream(File.read(path)).compact.map do |document|
+      next unless document.is_a?(Hash)
+      api_version = document["apiVersion"]
+      kind = document["kind"]
+      next if api_version.nil? || kind.nil?
+      [api_version, kind, path]
+    end.compact
+  end
+  unknown_api_objects = discovered_api_objects.reject do |api_version, kind, _path|
+    dependency_api_versions.include?(api_version) ||
+      non_resource_api_versions.include?(api_version) ||
+      built_in_floors.key?([api_version, kind])
+  end
+  unless unknown_api_objects.empty?
+    details = unknown_api_objects.map { |api_version, kind, path| "#{path}: #{api_version} #{kind}" }.uniq.sort
+    abort "platform manifests use API objects with no Kubernetes-floor classification: #{details.join(", ")}"
+  end
+
+  required_floors = discovered_api_objects.map do |api_version, kind, _path|
+    built_in_floors[[api_version, kind]]
+  end.compact
+  abort "platform manifests: no built-in Kubernetes API requirement found" if required_floors.empty?
+  version_key = lambda { |version| version.split(".").map(&:to_i) }
+  required_kubernetes_floor = required_floors.max_by { |version| version_key.call(version) }
+
+  installation_path = "docs/installation.md"
+  kubernetes_rows = File.readlines(installation_path).select do |line|
+    line.match?(/^\|\s*Kubernetes\s*\|/)
+  end
+  abort "#{installation_path}: pinned-versions table must contain exactly one Kubernetes row" unless kubernetes_rows.length == 1
+  documented_floor = kubernetes_rows.fetch(0).split("|").fetch(2, "").match(/\b(\d+\.\d+)\b/)
+  abort "#{installation_path}: Kubernetes row has no major.minor floor" if documented_floor.nil?
+  documented_kubernetes_floor = documented_floor[1]
+  unless documented_kubernetes_floor == required_kubernetes_floor
+    abort "#{installation_path}: documents Kubernetes floor #{documented_kubernetes_floor}, platform manifests require #{required_kubernetes_floor}"
+  end
+
   # Installation manifests are self-contained signed-package pairs. Discover
   # every package resource and verification Job instead of maintaining the two
   # current filenames by hand, then require the exact digest to agree.

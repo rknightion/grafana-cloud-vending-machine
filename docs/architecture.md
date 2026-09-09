@@ -114,6 +114,15 @@ new renderer therefore requires the corresponding XRD, Composition, provider act
 and focused desired-resource tests to move together. Observe-only inventory kinds are enabled only
 for inventory renderers and never become mutating children.
 
+Five XRDs add cluster-scoped admission before reconciliation: cloud integrations, k6, ML, PDC, and
+service accounts. Each ships an `admissionregistration.k8s.io/v1` `ValidatingAdmissionPolicy` and
+binding whose `paramRef` names that XRD's Composition. This makes Kubernetes 1.30 the platform
+floor. The Composition carries platform limits that admission evaluates against the submitted
+object. Each binding sets `parameterNotFoundAction: Deny`, so removing or renaming the Composition
+closes that surface at admission instead of silently bypassing its policy. Operators see a denied
+request attributed to the named policy until the XRD and its original Composition are installed
+together again.
+
 ## Reconciliation and out-of-band changes
 
 Crossplane providers poll the external APIs and compare observed state with desired state. The

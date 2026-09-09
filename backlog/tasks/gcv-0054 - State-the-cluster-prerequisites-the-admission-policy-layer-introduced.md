@@ -1,9 +1,11 @@
 ---
 id: GCV-0054
 title: State the cluster prerequisites the admission-policy layer introduced
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@codex-wave7'
 created_date: '2026-09-09 08:09'
+updated_date: '2026-09-09 09:33'
 labels: []
 dependencies: []
 ordinal: 54000
@@ -28,3 +30,15 @@ Wave 6 added ValidatingAdmissionPolicy and binding documents to five XRD files (
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Derive the Kubernetes floor from all shipped platform API versions; document the admission-policy and named-Composition failure modes; after GCV-0057 lands, add a drift assertion and prove it with a weaken/reject/restore control.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Documented Kubernetes 1.30+ from the discovered platform API inventory, named all five cluster-scoped admission bindings and their missing-Composition denial behavior, and added a drift assertion. Negative control weakened the table to 1.29 and the full gate rejected docs/installation.md against the derived 1.30 floor; restored just check passed with 84.3% coverage and zero skips.
+<!-- SECTION:NOTES:END -->
