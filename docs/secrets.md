@@ -191,3 +191,11 @@ stack's composed resources, which is outside Crossplane's default RBAC surface.
   applied during bootstrap.
 
 Product bootstrap and token-use network policy are described in [Governance](governance.md).
+
+## New Cloud product clients
+
+PDC networks/tokens and Frontend Observability apps use the organization Cloud ProviderConfig, because a stack service-account token cannot authenticate those Cloud clients. Keep the organization CAP permissions limited to the selected products; the pinned PDC resource documentation requires `accesspolicies:read`, `accesspolicies:write` and `accesspolicies:delete`, and Frontend Observability requires `frontend-observability:read`, `frontend-observability:write`, `frontend-observability:delete` and `stacks:read`. No live authorization has been tested by this reference.
+
+Cloud-provider integrations and metrics endpoint scrape jobs require `integration-management:read`, `integration-management:write` and `stacks:read`. The deployment ExternalSecret exposes its organization CAP under `cloud_provider_access_token` and `connections_api_access_token` as well as `cloud_access_policy_token`. The integration composite creates a dedicated namespaced ProviderConfig using the observed organization credential reference and the stack-details Secret. It supplies `cloudProviderUrl` explicitly from the identity-bound managed Stack observation; that endpoint is absent from the pinned provider's connection Secret. The Connections client uses its provider default endpoint. Its CloudIntegration children use the ordinary stack ProviderConfig. Credential values remain in Secrets; the function passes references only.
+
+OnCall uses the stack service-account token through the pinned provider's documented auth fallback. The stack-details Secret supplies the OnCall URL. API admission and fixture observations do not prove the remote permission set or notification delivery.

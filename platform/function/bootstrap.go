@@ -86,12 +86,28 @@ func productWithdrawalError(kind string, xr map[string]any, desired map[resource
 	if kind != "GrafanaK6Project" && kind != "GrafanaSyntheticMonitoring" {
 		return nil
 	}
+	if kind == "GrafanaK6Project" && k6CapReconciliationPending(desired, observed) {
+		if err := preserveK6DynamicDuringCapUpdate(xr, desired, observed); err != nil {
+			return err
+		}
+	}
 	wantedChecks := map[string]bool{}
 	spec, _ := xr["spec"].(map[string]any)
 	checks, _ := spec["checks"].([]any)
 	for _, raw := range checks {
 		if c, ok := raw.(map[string]any); ok {
 			wantedChecks["check-"+stringValue(c, "name", "")] = true
+			if alerts, ok := c["alerts"].([]any); ok && len(alerts) > 0 {
+				wantedChecks["check-alerts-"+stringValue(c, "name", "")] = true
+			}
+		}
+	}
+	wantedK6 := map[string]bool{}
+	for _, field := range []struct{ field, prefix string }{{"loadTests", "load-test-"}, {"schedules", "schedule-"}} {
+		items, _ := spec[field.field].([]any)
+		for _, raw := range items {
+			item, _ := raw.(map[string]any)
+			wantedK6[field.prefix+stringValue(item, "name", "")] = true
 		}
 	}
 	for name := range observed {
@@ -99,6 +115,9 @@ func productWithdrawalError(kind string, xr map[string]any, desired map[resource
 			continue
 		}
 		if kind == "GrafanaSyntheticMonitoring" && (strings.HasPrefix(string(name), "synthetic-monitoring-verifier-") || (strings.HasPrefix(string(name), "check-") && !wantedChecks[string(name)])) {
+			continue
+		}
+		if kind == "GrafanaK6Project" && (strings.HasPrefix(string(name), "load-test-") || strings.HasPrefix(string(name), "schedule-")) && !wantedK6[string(name)] {
 			continue
 		}
 		return fmt.Errorf("product prerequisite unavailable for existing child %q; preserving composed resources", name)
@@ -120,4 +139,57 @@ func pruneSMDesired(rsp *fnv1.RunFunctionResponse, desired map[resource.Name]*re
 			delete(rsp.Desired.Resources, name)
 		}
 	}
+}
+
+func pruneK6Desired(rsp *fnv1.RunFunctionResponse, desired map[resource.Name]*resource.DesiredComposed) {
+	if rsp.GetDesired() == nil {
+		return
+	}
+	for name := range rsp.Desired.Resources {
+		if _, exists := desired[resource.Name(name)]; exists {
+			continue
+		}
+		if strings.HasPrefix(name, "load-test-") || strings.HasPrefix(name, "schedule-") {
+			delete(rsp.Desired.Resources, name)
+		}
+	}
+}
+
+// Cap updates must reach the provider even while existing workloads wait for
+// those updates. Keep the old workload specifications, without creating new ones.
+func k6CapReconciliationPending(desired map[resource.Name]*resource.DesiredComposed, observed map[resource.Name]resource.ObservedComposed) bool {
+	return desired["limits"] != nil && desired["allowed-load-zones"] != nil && (!observedDesiredCurrent(observed["limits"], desired["limits"]) || !observedDesiredCurrent(observed["allowed-load-zones"], desired["allowed-load-zones"]))
+}
+
+func preserveK6DynamicDuringCapUpdate(xr map[string]any, desired map[resource.Name]*resource.DesiredComposed, observed map[resource.Name]resource.ObservedComposed) error {
+	spec, _ := xr["spec"].(map[string]any)
+	for _, field := range []struct{ name, prefix, kind string }{{"loadTests", "load-test-", "LoadTest"}, {"schedules", "schedule-", "Schedule"}} {
+		items, _ := spec[field.name].([]any)
+		for _, raw := range items {
+			item, _ := raw.(map[string]any)
+			key := resource.Name(field.prefix + stringValue(item, "name", ""))
+			old, exists := observed[key]
+			if !exists {
+				continue
+			}
+			if old.Resource == nil {
+				return fmt.Errorf("existing k6 child %q has no observed specification", key)
+			}
+			object := old.Resource.UnstructuredContent()
+			meta, _ := object["metadata"].(map[string]any)
+			prior, _ := object["spec"].(map[string]any)
+			annotations, _ := meta["annotations"].(map[string]any)
+			name, namespace := stringValue(meta, "name", ""), stringValue(meta, "namespace", "")
+			if object["apiVersion"] != k6APIVersion || object["kind"] != field.kind || name == "" || namespace == "" || prior == nil {
+				return fmt.Errorf("existing k6 child %q identity or spec is incomplete", key)
+			}
+			switch field.kind {
+			case "LoadTest":
+				desired[key] = newDesired(k6APIVersion, "LoadTest", namespace, name, annotations, prior)
+			case "Schedule":
+				desired[key] = newDesired(k6APIVersion, "Schedule", namespace, name, annotations, prior)
+			}
+		}
+	}
+	return nil
 }

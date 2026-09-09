@@ -173,6 +173,10 @@ func (e *admissionEnv) Start(t testing.TB) error {
 		_ = e.Stop()
 		return fmt.Errorf("create envtest client: %w", err)
 	}
+	if err := installCompositionAdmissionPolicies(t, e, paths); err != nil {
+		_ = e.Stop()
+		return err
+	}
 	return nil
 }
 

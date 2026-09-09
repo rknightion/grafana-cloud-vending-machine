@@ -1,0 +1,49 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaAlertingRouting
+metadata:
+  # The request name must match the referenced stack name, establishing one
+  # declarative owner for that stack's complete notification policy tree.
+  name: replacewithunique02
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique02
+  contactPoints:
+    - name: operations
+      onCallRef:
+        name: replacewithunique02
+    - name: audit
+      email:
+        addresses:
+          - audit@example.invalid
+  # The default receives every alert that does not match a child route.
+  defaultContactPoint: operations
+  routes:
+    - name: audit-security
+      contactPoint: audit
+      matchers:
+        - label: category
+          match: "="
+          value: security
+      groupWait: 30s
+  ruleGroups:
+    - name: policy-health
+      # Replace with the UID of a folder managed in this stack.
+      folderUid: replace-with-alert-folder-uid
+      intervalSeconds: 60
+      rules:
+        - name: Notification policy health
+          uid: notification-policy-health
+          condition: A
+          data:
+            - refId: A
+              queryType: ""
+              datasourceUid: "-100"
+              model: '{"expression":"1","refId":"A","type":"math"}'
+              relativeTimeRange:
+                - from: 0
+                  to: 0
+          noDataState: NoData
+          execErrState: Alerting
+          labels:
+            category: security

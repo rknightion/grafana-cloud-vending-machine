@@ -2,12 +2,20 @@ apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: grafanapdcs.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   scope: Namespaced
   group: platform.example.org
   names:
     kind: GrafanaPDC
     plural: grafanapdcs
+    singular: grafanapdc
+    shortNames:
+      - gcpdc
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-pdc-v1beta1
   versions:
     - name: v1beta1
       served: true
@@ -15,10 +23,172 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
-          required: [spec]
+          description: PDC networks and the datasources exclusively attached to them for one ready stack. Network IDs and tokens are provider-observed values and never request inputs or status fields.
+          x-kubernetes-validations:
+            - rule: "!has(self.spec.datasources) || self.spec.datasources.all(datasource, self.spec.networks.exists(network, network.name == datasource.network))"
+              message: every datasource network must name a network vended by this request
+            - rule: self.spec.stackRef.name == oldSelf.spec.stackRef.name
+              message: stackRef is immutable
+            - rule: self.spec.profile == oldSelf.spec.profile
+              message: profile is immutable
+            - rule: self.spec.token == oldSelf.spec.token
+              message: token expiry is immutable because PDC token expiry is provider ForceNew
+            - rule: self.spec.networks == oldSelf.spec.networks
+              message: network identities are immutable
+          required:
+            - spec
           properties:
             spec:
               type: object
-              x-kubernetes-validations:
-                - rule: "false"
-                  message: This API is not implemented yet.
+              required:
+                - stackRef
+                - profile
+                - networks
+                - token
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: Ready GrafanaCloudStackRequest name and the per-stack ProviderConfig name in this namespace.
+                profile:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                  pattern: ^[a-z0-9-]+$
+                  description: Selects a platform-owned PDC profile. The request cannot set provider identity, a token value, or a network ID.
+                networks:
+                  type: array
+                  minItems: 1
+                  maxItems: 20
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - name
+                  description: Logical PDC networks vended for this stack. Their provider names are derived from this composite and their provider-assigned IDs are observed before dependent resources are emitted.
+                  items:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 40
+                        pattern: ^[a-z0-9]([-_a-z0-9]*[a-z0-9])?$
+                token:
+                  type: object
+                  required:
+                    - expiresAfter
+                  properties:
+                    expiresAfter:
+                      type: string
+                      pattern: ^[0-9]+(s|m|h)$
+                      description: Requested PDC token lifetime. The Composition-owned maximumTokenLifetime admission parameter refuses a value over the platform ceiling.
+                datasources:
+                  type: array
+                  maxItems: 50
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - name
+                  description: Datasources owned exclusively by this PDC request. Each must attach to one logical network declared in networks; use GrafanaDatasourceAccess only for datasources it owns itself.
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - type
+                      - network
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 190
+                      type:
+                        type: string
+                        minLength: 1
+                        maxLength: 190
+                        pattern: ^[a-zA-Z0-9._-]+$
+                      network:
+                        type: string
+                        minLength: 1
+                        maxLength: 40
+                        pattern: ^[a-z0-9]([-_a-z0-9]*[a-z0-9])?$
+                      url:
+                        type: string
+                        minLength: 1
+                        maxLength: 2048
+                        description: Environment-owned endpoint. Catalog examples use a reserved invalid hostname; credentials must be supplied by a separate Secret reference outside this public request.
+            status:
+              type: object
+              description: Read-only status owned by Crossplane. Token values and provider-assigned PDC network IDs are deliberately absent.
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-pdc-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaPDC
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-pdc
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          maximumTokenLifetime: 720h
+          organizations:
+            - name: example-primary
+              providerConfigName: grafana-cloud-org-example-primary
+              allowedRegions: [prod-us-central-0, prod-eu-west-0]
+              allowedUsages: [development, production]
+          pdcProfiles:
+            - name: standard
+              region: prod-us-central-0
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: grafana-pdc-token-lifetime
+spec:
+  failurePolicy: Fail
+  paramKind:
+    apiVersion: apiextensions.crossplane.io/v1
+    kind: Composition
+  matchConstraints:
+    resourceRules:
+      - apiGroups:
+          - platform.example.org
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - grafanapdcs
+        scope: Namespaced
+  validations:
+    - expression: duration(object.spec.token.expiresAfter) <= duration(params.spec.pipeline[0].input.spec.maximumTokenLifetime)
+      message: PDC token expiresAfter exceeds the Composition maximumTokenLifetime
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: grafana-pdc-token-lifetime
+spec:
+  policyName: grafana-pdc-token-lifetime
+  paramRef:
+    name: grafana-pdc-v1beta1
+    parameterNotFoundAction: Deny
+  validationActions:
+    - Deny

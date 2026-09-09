@@ -24,11 +24,21 @@ spec:
         openAPIV3Schema:
           type: object
           description: A bounded k6 project for one referenced Grafana Cloud stack. The platform selects all usage limits and the permitted private load zones.
+          x-kubernetes-validations:
+            - rule: "!has(self.spec.loadTests) || size(self.spec.loadTests) == 0 || has(self.spec.usage)"
+              message: spec.usage is required when loadTests are requested
           required:
             - spec
           properties:
             spec:
               type: object
+              x-kubernetes-validations:
+                - rule: "!has(oldSelf.usage) || self.usage == oldSelf.usage"
+                  message: spec.usage is immutable once declared
+                - rule: "!has(self.loadTests) || self.loadTests.all(test, test.loadZones.all(zone, zone in self.allowedLoadZones))"
+                  message: every load test load zone must be in spec.allowedLoadZones
+                - rule: "!has(self.schedules) || self.schedules.all(schedule, has(self.loadTests) && self.loadTests.exists(test, test.name == schedule.loadTest))"
+                  message: every schedule must reference a declared load test
               required:
                 - stackRef
                 - grafanaUser
@@ -50,6 +60,12 @@ spec:
                   minLength: 3
                   maxLength: 254
                   description: Grafana user identity used only by the provider's k6 installation exchange.
+                usage:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                  pattern: ^[a-z0-9-]+$
+                  description: Optional declaration of the referenced stack usage, required when load tests or schedules are requested and checked against trusted observed stack context.
                 allowedLoadZones:
                   type: array
                   maxItems: 100
@@ -59,6 +75,162 @@ spec:
                     type: string
                     minLength: 1
                     maxLength: 190
+                loadTests:
+                  type: array
+                  maxItems: 100
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - name
+                  description: Team-authored k6 tests. The platform profile caps virtual users, duration, and private load zones before a test is emitted.
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - workload
+                      - vus
+                      - durationSeconds
+                      - loadZones
+                    x-kubernetes-validations:
+                      - rule: self.vus > 0
+                        message: each load test must request at least one regular VU
+                      - rule: "!has(self.browserVus) || self.browserVus == 0"
+                        message: browserVus is unsupported; generated HTTP workloads use regular VUs
+                      - rule: "!has(self.script)"
+                        message: script is unsupported; use workload.httpGet.url
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                        description: Stable load test name and composed-resource identity within this project.
+                      script:
+                        type: string
+                        maxLength: 65536
+                        nullable: true
+                        description: Unsupported compatibility field. Raw JavaScript is rejected; use workload.httpGet.url so the platform can generate the bounded script.
+                      workload:
+                        type: object
+                        required:
+                          - httpGet
+                        description: Structured workload from which the platform generates a bounded k6 HTTP GET script.
+                        properties:
+                          httpGet:
+                            type: object
+                            required:
+                              - url
+                            properties:
+                              url:
+                                type: string
+                                minLength: 8
+                                maxLength: 2048
+                                pattern: '^https://[^/@\s?#]+(?:[/?#][^@\s]*)?$'
+                                description: HTTPS URL fetched with a generated GET request. URL userinfo and credentials are not permitted.
+                      k6Version:
+                        type: string
+                        minLength: 1
+                        maxLength: 16
+                        pattern: ^[0-9]+$
+                        description: Optional k6 major version passed to the provider.
+                      vus:
+                        type: integer
+                        minimum: 0
+                        maximum: 1000000
+                        description: Requested regular virtual users. The platform profile supplies the lower effective maximum.
+                      browserVus:
+                        type: integer
+                        minimum: 0
+                        maximum: 1000000
+                        default: 0
+                        description: Requested browser virtual users. The platform profile supplies the lower effective maximum.
+                      durationSeconds:
+                        type: integer
+                        minimum: 1
+                        maximum: 31536000
+                        description: Declared maximum test duration in seconds, used for the platform cap.
+                      loadZones:
+                        type: array
+                        maxItems: 100
+                        x-kubernetes-list-type: set
+                        description: Private load zones used by the script. Every entry must be in the project's explicit allow-list.
+                        items:
+                          type: string
+                          minLength: 1
+                          maxLength: 190
+                schedules:
+                  type: array
+                  maxItems: 100
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - name
+                  description: At most one schedule per load test. Schedules are deleted with this project and never outlive its composed load test.
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - loadTest
+                      - starts
+                    x-kubernetes-validations:
+                      - rule: "!(has(self.cron) && has(self.recurrenceRule))"
+                        message: a schedule cannot set both cron and recurrenceRule
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                        description: Stable schedule name and composed-resource identity within this project.
+                      loadTest:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                        description: Name of the declared load test to run.
+                      starts:
+                        type: string
+                        format: date-time
+                        description: RFC3339 start time for the first execution.
+                      cron:
+                        type: object
+                        required:
+                          - schedule
+                          - timezone
+                        properties:
+                          schedule:
+                            type: string
+                            minLength: 1
+                          timezone:
+                            type: string
+                            minLength: 1
+                      recurrenceRule:
+                        type: object
+                        required:
+                          - frequency
+                        properties:
+                          frequency:
+                            type: string
+                            enum:
+                              - HOURLY
+                              - DAILY
+                              - WEEKLY
+                              - MONTHLY
+                              - YEARLY
+                          interval:
+                            type: integer
+                            minimum: 1
+                          count:
+                            type: integer
+                            minimum: 1
+                          until:
+                            type: string
+                            format: date-time
+                          byday:
+                            type: array
+                            maxItems: 7
+                            x-kubernetes-list-type: set
+                            items:
+                              type: string
+                              pattern: ^(MO|TU|WE|TH|FR|SA|SU)$
             status:
               type: object
               description: Read-only status owned by Crossplane.
@@ -99,3 +271,47 @@ spec:
               allowedLoadZones:
                 - private-zone-example-a
                 - private-zone-example-b
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: grafana-k6-project-platform-limits
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups:
+          - platform.example.org
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - grafanak6projects
+  paramKind:
+    apiVersion: apiextensions.crossplane.io/v1
+    kind: Composition
+  validations:
+    - expression: "!has(object.spec.loadTests) || size(object.spec.loadTests) == 0 || (has(object.spec.usage) && params.spec.pipeline[0].input.spec.k6LimitProfiles.exists(profile, profile.usage == object.spec.usage))"
+      message: loadTests require a platform k6 limit profile for spec.usage
+    - expression: "!has(object.spec.loadTests) || object.spec.loadTests.all(test, params.spec.pipeline[0].input.spec.k6LimitProfiles.all(profile, profile.usage != object.spec.usage || test.vus <= profile.vuMaxPerTest))"
+      message: load test regular VUs exceed the platform ProjectLimits cap
+    - expression: "!has(object.spec.loadTests) || object.spec.loadTests.all(test, params.spec.pipeline[0].input.spec.k6LimitProfiles.all(profile, profile.usage != object.spec.usage || test.browserVus <= profile.vuBrowserMaxPerTest))"
+      message: load test browser VUs exceed the platform ProjectLimits cap
+    - expression: "!has(object.spec.loadTests) || object.spec.loadTests.all(test, params.spec.pipeline[0].input.spec.k6LimitProfiles.all(profile, profile.usage != object.spec.usage || test.durationSeconds <= profile.durationMaxPerTest))"
+      message: load test duration exceeds the platform ProjectLimits cap
+    - expression: "!has(object.spec.loadTests) || object.spec.loadTests.all(test, test.loadZones.all(zone, params.spec.pipeline[0].input.spec.k6LimitProfiles.all(profile, profile.usage != object.spec.usage || profile.allowedLoadZones.exists(permitted, permitted == zone))))"
+      message: load test uses a private load zone outside the platform ProjectAllowedLoadZones cap
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: grafana-k6-project-platform-limits
+spec:
+  policyName: grafana-k6-project-platform-limits
+  paramRef:
+    name: grafana-k6-project-v1beta1
+    parameterNotFoundAction: Deny
+  validationActions:
+    - Deny

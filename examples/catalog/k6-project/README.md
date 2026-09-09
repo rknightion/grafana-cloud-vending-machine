@@ -2,12 +2,13 @@
 
 This inert example creates one k6 project for an already-vended Grafana Cloud
 stack. The platform installs k6 through the referenced stack's observed
-service-account token, then creates the project, its usage-class limit set, and
-the selected private-load-zone allow-list.
+service-account token, then creates the project, its usage-class limit set, the
+selected private-load-zone allow-list, one bounded smoke load test, and one
+seven-run daily schedule.
 
 ## Files
 
-- `k6-project.yaml` requests the project and a subset of approved private load zones.
+- `k6-project.yaml` requests the project, a subset of approved private load zones, one load test, and one schedule.
 - `kustomization.yaml` makes the directory directly renderable with Kustomize.
 
 ## Prerequisites
@@ -15,11 +16,13 @@ the selected private-load-zone allow-list.
 - The referenced stack is Ready and its rotating service-account token has been observed.
 - The Composition input contains a reviewed k6 limit profile for the stack's usage class.
 - The requested load-zone identifiers appear in that profile. The provider can allow-list private zones, but cannot provision them.
+- The declared `usage` matches the referenced stack's observed usage. It is required when load tests or schedules are requested.
 
 ## Values to replace
 
 - Replace `platform.example.org` with your API group, the stack reference, and the Grafana user identity.
 - Replace each example load-zone identifier only with one allowed by the platform profile for the referenced stack's observed usage.
+- Replace the example HTTPS URL, test name, and schedule only with workload-owner-approved values that stay within the platform profile.
 
 ## Limits and credentials
 
@@ -36,8 +39,19 @@ containing only `k6_access_token`, and a dedicated namespaced ProviderConfig use
 it for the Project, ProjectLimits, and ProjectAllowedLoadZones resources. The
 organization ProviderConfig is used only for the installation exchange.
 
-This API deliberately vends no k6 load tests or schedules. Test scripts,
-targets, execution cadence, and load shape require workload-owner decisions and
-are outside a stack request.
+Load tests are capped by the platform profile's regular VUs, browser VUs, and
+duration. The request supplies a structured HTTPS GET workload; the function
+generates the bounded k6 script and sets its VUs, duration, and load-zone
+distribution from the admitted fields.
+Schedules wait for the provider-assigned LoadTest ID and are delete-managed
+with the project, so a removed request cannot leave a recurring schedule
+behind.
 
 `allowedLoadZones` must be explicit: an empty array means no private load zones. Omission is rejected rather than clearing a prior set or leaving the policy unmanaged.
+
+Admission checks the declared VUs, duration and zones against the selected
+Composition profile. The renderer also checks the declared usage against the
+observed stack and waits for its ProjectLimits and allowed-zone resources to
+be Ready before creating dynamic children. The generated script is inert in
+this repository: live test execution and remote schedule deletion are not
+exercised by the API-server harness.

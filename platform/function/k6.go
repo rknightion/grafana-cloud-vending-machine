@@ -1,6 +1,15 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"math"
+	"net/url"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/crossplane/function-sdk-go/errors"
 	"github.com/crossplane/function-sdk-go/resource"
 )
@@ -10,6 +19,13 @@ const k6RendererImplemented = true
 const resolvedK6StackConfigKey = "_resolvedK6Stack"
 
 const k6APIVersion = "k6.grafana.m.crossplane.io/v1alpha1"
+
+// k6DynamicManagementPolicies deliberately include Delete. Unlike the
+// project and its policy resources, a load test or schedule is owned only by
+// this composite. It must be removed from the provider when the request is
+// removed, otherwise a schedule could continue to run against an orphaned
+// project.
+var k6DynamicManagementPolicies = []any{"Create", "Observe", "Update", "Delete", "LateInitialize"}
 
 // renderK6Project creates the bounded k6 project surface. It deliberately
 // waits for trusted stack context because the bootstrap token belongs to the
@@ -50,6 +66,23 @@ func renderK6Project(xr map[string]any, observed map[resource.Name]resource.Obse
 	allowedLoadZones, err := requestedK6LoadZones(spec, limits.allowedLoadZones)
 	if err != nil {
 		return nil, err
+	}
+	loadTests, err := configuredK6LoadTests(spec, limits, allowedLoadZones)
+	if err != nil {
+		return nil, err
+	}
+	schedules, err := configuredK6Schedules(spec, loadTests)
+	if err != nil {
+		return nil, err
+	}
+	if len(loadTests) > 0 || len(schedules) > 0 {
+		declaredUsage, _ := spec["usage"].(string)
+		if declaredUsage == "" {
+			return nil, errors.New("spec.usage is required when loadTests or schedules are requested")
+		}
+		if declaredUsage != usage {
+			return nil, errors.Errorf("spec.usage %q does not match trusted referenced stack usage %q", declaredUsage, usage)
+		}
 	}
 
 	desired := map[resource.Name]*resource.DesiredComposed{}
@@ -197,7 +230,477 @@ func renderK6Project(xr map[string]any, observed map[resource.Name]resource.Obse
 		},
 	)
 
+	// ProjectLimits and ProjectAllowedLoadZones are the enforcement boundary for
+	// the dynamic children. Do not let either child be created in the same
+	// reconciliation that first creates the cap: the provider might otherwise
+	// accept a test before the cap has reached Grafana Cloud.
+	if len(loadTests) > 0 || len(schedules) > 0 {
+		if !observedDesiredCurrent(observed["limits"], desired["limits"]) || !observedDesiredCurrent(observed["allowed-load-zones"], desired["allowed-load-zones"]) {
+			return desired, nil
+		}
+	}
+
+	loadTestIDs := map[string]string{}
+	for _, test := range loadTests {
+		logicalName := resource.Name("load-test-" + test.name)
+		parameters := map[string]any{
+			"projectId": projectID,
+			"name":      test.name,
+			"script":    test.script,
+		}
+		if test.k6Version != "" {
+			parameters["k6Version"] = test.k6Version
+		}
+		desired[logicalName] = newDesired(
+			k6APIVersion,
+			"LoadTest",
+			namespace,
+			name+"-load-test-"+test.name,
+			k6ObservedExternalName(observed, logicalName),
+			map[string]any{
+				"managementPolicies": k6DynamicManagementPolicies,
+				"forProvider":        parameters,
+				"providerConfigRef":  k6ProviderConfigReference(providerConfigName),
+			},
+		)
+		if id := observedString(observed, logicalName, "status.atProvider.id"); id != "" {
+			loadTestIDs[test.name] = id
+		}
+	}
+
+	for _, schedule := range schedules {
+		logicalName := resource.Name("schedule-" + schedule.name)
+		loadTestID := loadTestIDs[schedule.loadTest]
+		if loadTestID == "" {
+			// LoadTest IDs are assigned by Grafana Cloud. A schedule without the
+			// observed ID would either fail provider validation or target an
+			// unrelated test, so hold it until the ID is real.
+			continue
+		}
+		parameters := map[string]any{
+			"loadTestId": loadTestID,
+			"starts":     schedule.starts,
+		}
+		if schedule.cron != nil {
+			parameters["cron"] = schedule.cron
+		}
+		if schedule.recurrenceRule != nil {
+			parameters["recurrenceRule"] = schedule.recurrenceRule
+		}
+		desired[logicalName] = newDesired(
+			k6APIVersion,
+			"Schedule",
+			namespace,
+			name+"-schedule-"+schedule.name,
+			k6ObservedExternalName(observed, logicalName),
+			map[string]any{
+				"managementPolicies": k6DynamicManagementPolicies,
+				"forProvider":        parameters,
+				"providerConfigRef":  k6ProviderConfigReference(providerConfigName),
+			},
+		)
+	}
+
 	return desired, nil
+}
+
+type k6LoadTest struct {
+	name            string
+	script          string
+	workloadURL     string
+	k6Version       string
+	vus             float64
+	browserVUs      float64
+	durationSeconds float64
+	loadZones       []string
+}
+
+type k6Schedule struct {
+	name           string
+	loadTest       string
+	starts         string
+	cron           map[string]any
+	recurrenceRule map[string]any
+}
+
+func configuredK6WorkloadURL(item map[string]any, index int) (string, error) {
+	rawWorkload, ok := item["workload"]
+	if !ok || rawWorkload == nil {
+		return "", errors.Errorf("loadTests[%d].workload must be supplied", index)
+	}
+	workload, ok := rawWorkload.(map[string]any)
+	if !ok {
+		return "", errors.Errorf("loadTests[%d].workload must be an object", index)
+	}
+	rawHTTPGet, ok := workload["httpGet"]
+	if !ok || rawHTTPGet == nil {
+		return "", errors.Errorf("loadTests[%d].workload.httpGet must be supplied", index)
+	}
+	httpGet, ok := rawHTTPGet.(map[string]any)
+	if !ok {
+		return "", errors.Errorf("loadTests[%d].workload.httpGet must be an object", index)
+	}
+	rawURL, ok := httpGet["url"]
+	if !ok {
+		return "", errors.Errorf("loadTests[%d].workload.httpGet.url must be supplied", index)
+	}
+	workloadURL, ok := rawURL.(string)
+	if !ok || workloadURL == "" || workloadURL != strings.TrimSpace(workloadURL) {
+		return "", errors.Errorf("loadTests[%d].workload.httpGet.url must be a non-empty HTTPS URL without credentials", index)
+	}
+	parsed, err := url.Parse(workloadURL)
+	if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.Hostname() == "" || parsed.Opaque != "" || parsed.User != nil || strings.ContainsAny(workloadURL, "\r\n\t") {
+		return "", errors.Errorf("loadTests[%d].workload.httpGet.url must be a non-empty HTTPS URL without credentials", index)
+	}
+	return workloadURL, nil
+}
+
+func generatedK6Script(test k6LoadTest) string {
+	var script strings.Builder
+	script.WriteString("import http from \"k6/http\";\n\n")
+	script.WriteString("export const options = {\n")
+	script.WriteString("  scenarios: {\n    default: {\n      executor: \"constant-vus\",\n")
+	fmt.Fprintf(&script, "      vus: %s,\n", strconv.FormatInt(int64(test.vus), 10))
+	fmt.Fprintf(&script, "      duration: %s,\n", k6JSONString(strconv.FormatInt(int64(test.durationSeconds), 10)+"s"))
+	script.WriteString("      gracefulStop: \"0s\",\n    },\n  },\n")
+	if len(test.loadZones) > 0 {
+		script.WriteString("  cloud: {\n    distribution: {\n")
+		for index, zone := range test.loadZones {
+			percent := k6DistributionPercent(len(test.loadZones), index)
+			quotedZone := k6JSONString(zone)
+			fmt.Fprintf(&script, "      %s: { loadZone: %s, percent: %d },\n", quotedZone, quotedZone, percent)
+		}
+		script.WriteString("    },\n  },\n")
+	}
+	script.WriteString("};\n\n")
+	script.WriteString("export default function () {\n")
+	fmt.Fprintf(&script, "  http.get(%s);\n", k6JSONString(test.workloadURL))
+	script.WriteString("}\n")
+	return script.String()
+}
+
+func k6JSONString(value string) string {
+	encoded, _ := json.Marshal(value)
+	return string(encoded)
+}
+
+func k6DistributionPercent(zoneCount, index int) int {
+	base := 100 / zoneCount
+	if index < 100%zoneCount {
+		return base + 1
+	}
+	return base
+}
+
+func k6WholeNumber(value float64) bool {
+	return !math.IsNaN(value) && !math.IsInf(value, 0) && math.Trunc(value) == value
+}
+
+func configuredK6LoadTests(spec map[string]any, limits k6LimitProfile, allowedLoadZones []any) ([]k6LoadTest, error) {
+	rawTests, exists := spec["loadTests"]
+	if !exists {
+		return nil, nil
+	}
+	rawItems, ok := rawTests.([]any)
+	if !ok {
+		return nil, errors.New("loadTests must be an array")
+	}
+	allowed := make(map[string]struct{}, len(allowedLoadZones))
+	for _, value := range allowedLoadZones {
+		zone, _ := value.(string)
+		allowed[zone] = struct{}{}
+	}
+	seen := map[string]struct{}{}
+	result := make([]k6LoadTest, 0, len(rawItems))
+	for index, raw := range rawItems {
+		item, ok := raw.(map[string]any)
+		if !ok {
+			return nil, errors.Errorf("loadTests[%d] must be an object", index)
+		}
+		name, _ := item["name"].(string)
+		if !validK6ChildName(name) {
+			return nil, errors.Errorf("loadTests[%d].name must be a DNS-compatible non-empty name", index)
+		}
+		if _, exists := seen[name]; exists {
+			return nil, errors.Errorf("loadTests contains duplicate name %q", name)
+		}
+		seen[name] = struct{}{}
+		if rawScript, exists := item["script"]; exists && rawScript != nil {
+			return nil, errors.Errorf("loadTests[%d].script is unsupported; use workload.httpGet.url", index)
+		}
+		workloadURL, err := configuredK6WorkloadURL(item, index)
+		if err != nil {
+			return nil, err
+		}
+		vus, err := requiredK6PositiveNumber(item, "vus", index)
+		if err != nil {
+			return nil, err
+		}
+		if !k6WholeNumber(vus) {
+			return nil, errors.Errorf("loadTests[%d].vus must be an integer", index)
+		}
+		browserVUs, err := optionalK6NonNegativeNumber(item, "browserVus", index)
+		if err != nil {
+			return nil, err
+		}
+		if !k6WholeNumber(browserVUs) {
+			return nil, errors.Errorf("loadTests[%d].browserVus must be an integer", index)
+		}
+		if browserVUs > 0 {
+			return nil, errors.Errorf("loadTests[%d].browserVus is unsupported; generated browser workloads are not available", index)
+		}
+		duration, err := requiredK6PositiveNumber(item, "durationSeconds", index)
+		if err != nil {
+			return nil, err
+		}
+		if !k6WholeNumber(duration) {
+			return nil, errors.Errorf("loadTests[%d].durationSeconds must be an integer", index)
+		}
+		if vus > limits.vuMaxPerTest {
+			return nil, errors.Errorf("load test %q requests %.0f VUs; platform maximum is %.0f", name, vus, limits.vuMaxPerTest)
+		}
+		if browserVUs > limits.vuBrowserMaxPerTest {
+			return nil, errors.Errorf("load test %q requests %.0f browser VUs; platform maximum is %.0f", name, browserVUs, limits.vuBrowserMaxPerTest)
+		}
+		if duration > limits.durationMaxPerTest {
+			return nil, errors.Errorf("load test %q requests %.0f seconds; platform maximum is %.0f", name, duration, limits.durationMaxPerTest)
+		}
+		rawZones, ok := item["loadZones"]
+		if !ok || rawZones == nil {
+			return nil, errors.Errorf("loadTests[%d].loadZones must be explicitly supplied as an array", index)
+		}
+		zones, ok := rawZones.([]any)
+		if !ok {
+			return nil, errors.Errorf("loadTests[%d].loadZones must be an array", index)
+		}
+		seenZones := map[string]struct{}{}
+		cleanZones := make([]string, 0, len(zones))
+		for zoneIndex, rawZone := range zones {
+			zone, ok := rawZone.(string)
+			if !ok || strings.TrimSpace(zone) == "" {
+				return nil, errors.Errorf("loadTests[%d].loadZones[%d] must be a non-empty string", index, zoneIndex)
+			}
+			if _, exists := seenZones[zone]; exists {
+				return nil, errors.Errorf("load test %q repeats load zone %q", name, zone)
+			}
+			if _, exists := allowed[zone]; !exists {
+				return nil, errors.Errorf("load test %q uses load zone %q outside the project's allowed load zones", name, zone)
+			}
+			seenZones[zone] = struct{}{}
+			cleanZones = append(cleanZones, zone)
+		}
+		sort.Strings(cleanZones)
+		k6Version, _ := item["k6Version"].(string)
+		if k6Version != "" && strings.TrimSpace(k6Version) == "" {
+			return nil, errors.Errorf("loadTests[%d].k6Version must be a non-empty string when supplied", index)
+		}
+		if k6Version != strings.TrimSpace(k6Version) {
+			return nil, errors.Errorf("loadTests[%d].k6Version must not contain leading or trailing whitespace", index)
+		}
+		test := k6LoadTest{
+			name:            name,
+			k6Version:       k6Version,
+			vus:             vus,
+			browserVUs:      browserVUs,
+			durationSeconds: duration,
+			workloadURL:     workloadURL,
+			loadZones:       cleanZones,
+		}
+		test.script = generatedK6Script(test)
+		result = append(result, test)
+	}
+	return result, nil
+}
+
+func configuredK6Schedules(spec map[string]any, tests []k6LoadTest) ([]k6Schedule, error) {
+	rawSchedules, exists := spec["schedules"]
+	if !exists {
+		return nil, nil
+	}
+	rawItems, ok := rawSchedules.([]any)
+	if !ok {
+		return nil, errors.New("schedules must be an array")
+	}
+	testNames := make(map[string]struct{}, len(tests))
+	for _, test := range tests {
+		testNames[test.name] = struct{}{}
+	}
+	seenNames := map[string]struct{}{}
+	seenTests := map[string]struct{}{}
+	result := make([]k6Schedule, 0, len(rawItems))
+	for index, raw := range rawItems {
+		item, ok := raw.(map[string]any)
+		if !ok {
+			return nil, errors.Errorf("schedules[%d] must be an object", index)
+		}
+		name, _ := item["name"].(string)
+		if !validK6ChildName(name) {
+			return nil, errors.Errorf("schedules[%d].name must be a DNS-compatible non-empty name", index)
+		}
+		if _, exists := seenNames[name]; exists {
+			return nil, errors.Errorf("schedules contains duplicate name %q", name)
+		}
+		seenNames[name] = struct{}{}
+		loadTest, _ := item["loadTest"].(string)
+		if _, exists := testNames[loadTest]; !exists {
+			return nil, errors.Errorf("schedule %q references undeclared load test %q", name, loadTest)
+		}
+		if _, exists := seenTests[loadTest]; exists {
+			return nil, errors.Errorf("schedules target load test %q more than once", loadTest)
+		}
+		seenTests[loadTest] = struct{}{}
+		starts, _ := item["starts"].(string)
+		if _, err := time.Parse(time.RFC3339, starts); err != nil {
+			return nil, errors.Errorf("schedule %q starts must be RFC3339: %v", name, err)
+		}
+		schedule := k6Schedule{name: name, loadTest: loadTest, starts: starts}
+		if rawCron, present := item["cron"]; present {
+			if rawCron == nil {
+				return nil, errors.Errorf("schedule %q cron cannot be null", name)
+			}
+			cron, err := k6ScheduleObject(rawCron, "cron", name)
+			if err != nil {
+				return nil, err
+			}
+			cronSchedule, _ := cron["schedule"].(string)
+			timezone, _ := cron["timezone"].(string)
+			if strings.TrimSpace(cronSchedule) == "" || strings.TrimSpace(timezone) == "" {
+				return nil, errors.Errorf("schedule %q cron must set schedule and timezone", name)
+			}
+			schedule.cron = cron
+		}
+		if rawRule, present := item["recurrenceRule"]; present {
+			if schedule.cron != nil {
+				return nil, errors.Errorf("schedule %q cannot set both cron and recurrenceRule", name)
+			}
+			if rawRule == nil {
+				return nil, errors.Errorf("schedule %q recurrenceRule cannot be null", name)
+			}
+			rule, err := k6ScheduleObject(rawRule, "recurrenceRule", name)
+			if err != nil {
+				return nil, err
+			}
+			frequency, _ := rule["frequency"].(string)
+			if !oneOf(frequency, "HOURLY", "DAILY", "WEEKLY", "MONTHLY", "YEARLY") {
+				return nil, errors.Errorf("schedule %q recurrenceRule.frequency must be HOURLY, DAILY, WEEKLY, MONTHLY, or YEARLY", name)
+			}
+			if interval, present := rule["interval"]; present {
+				value, valid := k6Number(interval)
+				if !valid || value <= 0 {
+					return nil, errors.Errorf("schedule %q recurrenceRule.interval must be positive", name)
+				}
+			}
+			if count, present := rule["count"]; present {
+				value, valid := k6Number(count)
+				if !valid || value <= 0 {
+					return nil, errors.Errorf("schedule %q recurrenceRule.count must be positive", name)
+				}
+			}
+			if until, present := rule["until"]; present {
+				untilTime, valid := until.(string)
+				if !valid {
+					return nil, errors.Errorf("schedule %q recurrenceRule.until must be RFC3339", name)
+				}
+				if _, err := time.Parse(time.RFC3339, untilTime); err != nil {
+					return nil, errors.Errorf("schedule %q recurrenceRule.until must be RFC3339: %v", name, err)
+				}
+			}
+			schedule.recurrenceRule = rule
+		}
+		result = append(result, schedule)
+	}
+	return result, nil
+}
+
+func k6ScheduleObject(value any, field, name string) (map[string]any, error) {
+	object, ok := value.(map[string]any)
+	if !ok {
+		return nil, errors.Errorf("schedule %q %s must be an object", name, field)
+	}
+	copy := make(map[string]any, len(object))
+	for key, item := range object {
+		copy[key] = item
+	}
+	return copy, nil
+}
+
+func requiredK6PositiveNumber(values map[string]any, key string, index int) (float64, error) {
+	value, present := values[key]
+	if !present {
+		return 0, errors.Errorf("loadTests[%d].%s must be supplied", index, key)
+	}
+	result, ok := k6Number(value)
+	if !ok || result <= 0 {
+		return 0, errors.Errorf("loadTests[%d].%s must be a positive number", index, key)
+	}
+	return result, nil
+}
+
+func optionalK6NonNegativeNumber(values map[string]any, key string, index int) (float64, error) {
+	value, present := values[key]
+	if !present {
+		return 0, nil
+	}
+	result, ok := k6Number(value)
+	if !ok || result < 0 {
+		return 0, errors.Errorf("loadTests[%d].%s must be a non-negative number", index, key)
+	}
+	return result, nil
+}
+
+func k6Number(value any) (float64, bool) {
+	switch number := value.(type) {
+	case float64:
+		return number, k6FiniteNumber(number)
+	case float32:
+		converted := float64(number)
+		return converted, k6FiniteNumber(converted)
+	case int:
+		return float64(number), true
+	case int32:
+		return float64(number), true
+	case int64:
+		return float64(number), true
+	case uint:
+		return float64(number), true
+	case uint32:
+		return float64(number), true
+	case uint64:
+		return float64(number), true
+	default:
+		return 0, false
+	}
+}
+
+func k6FiniteNumber(value float64) bool {
+	return !math.IsNaN(value) && !math.IsInf(value, 0)
+}
+
+func validK6ChildName(value string) bool {
+	if len(value) == 0 || len(value) > 63 {
+		return false
+	}
+	for index, character := range []byte(value) {
+		if (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9') {
+			continue
+		}
+		if character == '-' && index > 0 && index < len(value)-1 {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+func k6ObservedExternalName(observed map[resource.Name]resource.ObservedComposed, name resource.Name) map[string]any {
+	// The provider assigns numeric IDs for both resources. Carry an annotation
+	// forward only after it has been observed; a friendly request name is not a
+	// valid external ID and must never be guessed here.
+	id := observedString(observed, name, "status.atProvider.id")
+	if id == "" {
+		return nil
+	}
+	return map[string]any{"crossplane.io/external-name": id}
 }
 
 type k6LimitProfile struct {

@@ -1,0 +1,17 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaOnCall
+metadata:
+  name: replacewithoncall01
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithoncall01
+  responders:
+    - username: replace-with-oncall-user
+  shiftStart: "2020-01-06T00:00:00"
+  escalation:
+    finalStep: schedule
+    scheduleRef:
+      name: vended
+  route:
+    match: all

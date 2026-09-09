@@ -18,6 +18,7 @@ const syntheticMonitoringRendererImplemented = true
 const (
 	syntheticMonitoringInstallationName = "synthetic-monitoring-installation"
 	syntheticMonitoringVerifierPrefix   = "synthetic-monitoring-verifier-"
+	privateProbeUnsupportedMessage      = "privateProbes are not supported because the pinned provider cannot bound probe token lifetime"
 )
 
 type syntheticMonitoringBudget struct {
@@ -37,6 +38,7 @@ type syntheticMonitoringCheck struct {
 	frequencySeconds int
 	probeNames       []any
 	settings         map[string]any
+	alerts           []any
 }
 
 func renderSyntheticMonitoring(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
@@ -51,6 +53,9 @@ func renderSyntheticMonitoring(xr map[string]any, observed map[resource.Name]res
 	}
 	if name != stackName {
 		return nil, errors.New("metadata.name must match spec.stackRef.name so one composite owns the stack check set")
+	}
+	if _, requested := spec["privateProbes"]; requested {
+		return nil, errors.New(privateProbeUnsupportedMessage)
 	}
 
 	stack, available, err := syntheticMonitoringStackContext(config, stackName, namespace)
@@ -173,12 +178,29 @@ func renderSyntheticMonitoring(xr map[string]any, observed map[resource.Name]res
 			"job": check.name, "target": check.target, "probeNames": check.probeNames,
 			"settings": []any{check.settings},
 		}
-		desired[resource.Name("check-"+check.name)] = newDesired(
+		checkResourceName := resource.Name("check-" + check.name)
+		desired[checkResourceName] = newDesired(
 			"sm.grafana.m.crossplane.io/v1alpha1", "Check", namespace, stackName+"-"+check.name, nil,
 			map[string]any{
 				"managementPolicies": []any{"*"},
 				"forProvider":        parameters,
 				"providerConfigRef":  map[string]any{"kind": "ProviderConfig", "name": stackName + "-synthetic-monitoring"},
+			},
+		)
+		checkID, present := syntheticMonitoringObservedCheckID(observed, checkResourceName)
+		if !present || len(check.alerts) == 0 {
+			continue
+		}
+		desired[resource.Name("check-alerts-"+check.name)] = newDesired(
+			"sm.grafana.m.crossplane.io/v1alpha1", "CheckAlerts", namespace, stackName+"-"+check.name+"-alerts",
+			map[string]any{"crossplane.io/external-name": strconv.FormatFloat(checkID, 'f', -1, 64)},
+			map[string]any{
+				"managementPolicies": []any{"*"},
+				"forProvider": map[string]any{
+					"checkId": checkID,
+					"alerts":  check.alerts,
+				},
+				"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": stackName + "-synthetic-monitoring"},
 			},
 		)
 	}
@@ -252,6 +274,11 @@ func syntheticMonitoringChecks(spec map[string]any, budget syntheticMonitoringBu
 			}
 		}
 
+		alerts, err := syntheticMonitoringAlerts(value, name)
+		if err != nil {
+			return nil, 0, err
+		}
+
 		settings := map[string]any{}
 		weight := 1
 		switch kind {
@@ -279,7 +306,7 @@ func syntheticMonitoringChecks(spec map[string]any, budget syntheticMonitoringBu
 		weighted += executionsPerHour * len(probeNames) * weight
 		checks = append(checks, syntheticMonitoringCheck{
 			name: name, kind: kind, target: target, frequencySeconds: frequency,
-			probeNames: probeNames, settings: settings,
+			probeNames: probeNames, settings: settings, alerts: alerts,
 		})
 	}
 	if apiCount > budget.maxAPI {
@@ -292,6 +319,51 @@ func syntheticMonitoringChecks(spec map[string]any, budget syntheticMonitoringBu
 		return nil, 0, errors.Errorf("weighted executions per hour %d exceeds platform maximum %d", weighted, budget.maxWeightedExecutionsHour)
 	}
 	return checks, weighted, nil
+}
+
+func syntheticMonitoringAlerts(check map[string]any, checkName string) ([]any, error) {
+	if _, supplied := check["alerts"]; !supplied {
+		return nil, nil
+	}
+	items, ok := check["alerts"].([]any)
+	if !ok || len(items) == 0 {
+		return nil, errors.Errorf("check %q must set at least one alert", checkName)
+	}
+	alerts := make([]any, 0, len(items))
+	seen := map[string]struct{}{}
+	for index, item := range items {
+		alert, ok := item.(map[string]any)
+		if !ok {
+			return nil, errors.Errorf("check %q alerts[%d] must be an object", checkName, index)
+		}
+		name, _ := alert["name"].(string)
+		period, _ := alert["period"].(string)
+		runbookURL, _ := alert["runbookURL"].(string)
+		threshold, ok := syntheticMonitoringNumber(alert["threshold"])
+		if name == "" || !ok || threshold < 0 {
+			return nil, errors.Errorf("check %q alerts[%d] must set name and a non-negative threshold", checkName, index)
+		}
+		if _, exists := seen[name]; exists {
+			return nil, errors.Errorf("check %q repeats alert name %q", checkName, name)
+		}
+		seen[name] = struct{}{}
+		alerts = append(alerts, map[string]any{
+			"name": name, "period": period, "runbookUrl": runbookURL, "threshold": threshold,
+		})
+	}
+	return alerts, nil
+}
+
+func syntheticMonitoringObservedCheckID(observed map[resource.Name]resource.ObservedComposed, resourceName resource.Name) (float64, bool) {
+	id := observedString(observed, resourceName, "status.atProvider.id")
+	if id == "" {
+		return 0, false
+	}
+	parsed, err := strconv.ParseUint(id, 10, 53)
+	if err != nil || parsed == 0 {
+		return 0, false
+	}
+	return float64(parsed), true
 }
 
 func syntheticMonitoringInstallationVerified(observed map[resource.Name]resource.ObservedComposed, stackID string) bool {
@@ -407,5 +479,18 @@ func syntheticMonitoringInteger(value any) int {
 		return int(value)
 	default:
 		return 0
+	}
+}
+
+func syntheticMonitoringNumber(value any) (float64, bool) {
+	switch value := value.(type) {
+	case int:
+		return float64(value), true
+	case int64:
+		return float64(value), true
+	case float64:
+		return value, true
+	default:
+		return 0, false
 	}
 }

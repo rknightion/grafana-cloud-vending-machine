@@ -19,7 +19,7 @@ until a user copies an inert catalog example, edits it, reviews the render, and 
 
 ## Quickstart
 
-The 1.0 candidate is held pending the [documented admission repairs](docs/migration-1.0.md).
+The 1.0 candidate remains held by owner decision. The admission repairs are proven; see the [current release boundary](docs/migration-1.0.md).
 
 Read [Getting started](docs/getting-started.md) for prerequisites and the copy-edit-review-commit
 path to a first request. Use [Installation](docs/installation.md) first when the controllers,

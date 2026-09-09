@@ -305,14 +305,14 @@ This matrix was checked resource-by-resource against the active modules in the T
 
 | Use case | Reference position | Why it is not automatic |
 | --- | --- | --- |
-| Alert rules, mute timings, templates, and inhibitions | `GrafanaAlertingBundle` | Per-rule routing avoids owning the organization-wide notification-policy singleton |
+| Alert rules, mute timings, templates, and inhibitions | `GrafanaAlertingBundle` | Per-rule routing remains direct; optional `GrafanaAlertingRouting` separately owns the singleton and ordinary policy-routed rules |
 | Data sources and data-source permissions | `GrafanaDatasourceAccess` | One composite owns a whole permission/LBAC set; connection settings remain Secret-backed and workload-specific |
-| Private data-source connect | Separate approved network module | Creates network trust and tokens outside ordinary stack vending |
-| Cloud integrations and scrape jobs | Separate cloud-integration module | Requires cloud-account permissions and approval |
-| Additional service accounts and service-account permissions | Separate automation identity bundle | Role, token audience, owner, and rotation policy differ per workload |
+| Private data-source connect | `GrafanaPDC` | Creates network trust and tokens outside ordinary stack vending |
+| Cloud integrations and scrape jobs | `GrafanaCloudIntegrations` | Requires cloud-account permissions and approval |
+| Additional service accounts and service-account permissions | `GrafanaServiceAccounts` | Role, token audience, owner, and rotation policy differ per workload |
 | SLOs and Synthetic Monitoring | Golden SLO profiles and bounded Synthetic Monitoring API | Workload objectives, queries, probe locations and targets remain explicitly authored |
-| OnCall schedules, escalation chains, routes, and integrations | Incident-management bundle | People, rotations, and escalation policy have an independent lifecycle |
-| Frontend Observability, ML, Asserts | Separate domain modules | Each has entitlement, identity, content, and rollout inputs beyond stack creation |
+| OnCall schedules, escalation chains, routes, and integrations | `GrafanaOnCall`, joined from `GrafanaAlertingRouting` | People, rotations, and escalation policy have an independent lifecycle |
+| Frontend Observability and ML | `GrafanaFrontendObservability` and `GrafanaML`; Asserts remains outside this wave | Each has entitlement, identity, content, and rollout inputs beyond stack creation |
 
 The complete provider-family table above is the extension index. New modules should reuse the namespaced
 stack ProviderConfig, keep secrets in external stores, choose whole-set versus item resources

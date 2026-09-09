@@ -178,3 +178,29 @@ spec:
     - projectallowedloadzones.k6.grafana.m.crossplane.io
     - installations.sm.grafana.m.crossplane.io
     - checks.sm.grafana.m.crossplane.io
+    - notificationpolicies.alerting.grafana.m.crossplane.io
+    - privatedatasourceconnectnetworks.cloud.grafana.m.crossplane.io
+    - privatedatasourceconnectnetworktokens.cloud.grafana.m.crossplane.io
+    - cloudintegrations.cloudintegrations.grafana.m.crossplane.io
+    - awsaccounts.cloudprovider.grafana.m.crossplane.io
+    - awscloudwatchscrapejobs.cloudprovider.grafana.m.crossplane.io
+    - awsresourcemetadatascrapejobs.cloudprovider.grafana.m.crossplane.io
+    - azurecredentials.cloudprovider.grafana.m.crossplane.io
+    - metricsendpointscrapejobs.connections.grafana.m.crossplane.io
+    - apps.frontendobservability.grafana.m.crossplane.io
+    - loadtests.k6.grafana.m.crossplane.io
+    - schedules.k6.grafana.m.crossplane.io
+    - holidays.ml.grafana.m.crossplane.io
+    - jobs.ml.grafana.m.crossplane.io
+    - outlierdetectors.ml.grafana.m.crossplane.io
+    - escalationchains.oncall.grafana.m.crossplane.io
+    - escalations.oncall.grafana.m.crossplane.io
+    - integrations.oncall.grafana.m.crossplane.io
+    - oncallshifts.oncall.grafana.m.crossplane.io
+    - routes.oncall.grafana.m.crossplane.io
+    - schedules.oncall.grafana.m.crossplane.io
+    - users.oncall.grafana.o.crossplane.io
+    - serviceaccountpermissions.oss.grafana.m.crossplane.io
+    - serviceaccountrotatingtokens.oss.grafana.m.crossplane.io
+    - serviceaccounts.oss.grafana.m.crossplane.io
+    - checkalerts.sm.grafana.m.crossplane.io

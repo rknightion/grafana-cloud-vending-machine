@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/crossplane/function-sdk-go/resource"
 	"github.com/crossplane/function-sdk-go/resource/composed"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 func TestSyntheticMonitoringWaitsForTrustedBootstrapContext(t *testing.T) {
@@ -183,6 +186,33 @@ func TestSyntheticMonitoringBudgetRejectsExpensiveCheckSets(t *testing.T) {
 	}
 }
 
+func TestSyntheticMonitoringBudgetRemainsBoundedWithCheckAlerts(t *testing.T) {
+	claim := syntheticMonitoringClaim()
+	checks := claim["spec"].(map[string]any)["checks"].([]any)
+	claim["spec"].(map[string]any)["checks"] = append(checks, syntheticMonitoringHTTPCheck("second-api", 60, "public-one"))
+
+	config := syntheticMonitoringPlatformConfig(true)
+	_, err := renderSyntheticMonitoring(claim, nil, config)
+	if err == nil || !strings.Contains(err.Error(), "API check count 2 exceeds platform maximum 1") {
+		t.Fatalf("baseline renderer budget error = %v, want API check cap refusal", err)
+	}
+	t.Logf("renderer-only baseline budget control: %v", err)
+
+	profile := config["spec"].(map[string]any)["syntheticMonitoringBudgets"].([]any)[0].(map[string]any)
+	profile["maxApiChecks"] = 2
+	if _, err := renderSyntheticMonitoring(claim, nil, config); err != nil {
+		t.Fatalf("weakened renderer budget error = %v, want admission", err)
+	}
+	t.Log("renderer-only weakened budget control: admitted")
+
+	profile["maxApiChecks"] = 1
+	_, err = renderSyntheticMonitoring(claim, nil, config)
+	if err == nil || !strings.Contains(err.Error(), "API check count 2 exceeds platform maximum 1") {
+		t.Fatalf("restored renderer budget error = %v, want API check cap refusal", err)
+	}
+	t.Logf("renderer-only restored budget control: %v", err)
+}
+
 func TestSyntheticMonitoringRejectsDuplicateChecksAndUnsupportedSettings(t *testing.T) {
 	duplicate := syntheticMonitoringClaim()
 	checks := duplicate["spec"].(map[string]any)["checks"].([]any)
@@ -233,10 +263,140 @@ func TestSyntheticMonitoringWithholdsTeamChecksUntilIdentityVerification(t *test
 			t.Errorf("verified render did not admit %q", name)
 		}
 	}
+	for _, name := range []resource.Name{"check-alerts-api-home", "check-alerts-browser-home"} {
+		if _, exists := verified[name]; exists {
+			t.Errorf("rendered %q before the provider reported a check ID", name)
+		}
+	}
 	for name, child := range verified {
 		if child.Resource.GetKind() == "Probe" {
 			t.Fatalf("rendered private Probe %q; private probes and their tokens are outside this API", name)
 		}
+	}
+}
+
+func TestSyntheticMonitoringRendersCheckAlertsOnlyFromObservedCheckIDs(t *testing.T) {
+	observed := syntheticMonitoringVerifiedObserved("67890")
+	observed["check-api-home"] = syntheticMonitoringObserved(`{"status":{"atProvider":{"id":"2468"}}}`)
+	observed["check-browser-home"] = syntheticMonitoringObserved(`{"status":{"atProvider":{"id":"not-a-number"}}}`)
+	desired, err := renderSyntheticMonitoring(syntheticMonitoringClaim(), observed, syntheticMonitoringPlatformConfig(true))
+	if err != nil {
+		t.Fatalf("renderSyntheticMonitoring returned an error: %v", err)
+	}
+	alerts := syntheticMonitoringObject(t, desired, "check-alerts-api-home")
+	if got, want := alerts["apiVersion"], "sm.grafana.m.crossplane.io/v1alpha1"; got != want {
+		t.Fatalf("CheckAlerts apiVersion = %v, want %s", got, want)
+	}
+	if got, want := alerts["kind"], "CheckAlerts"; got != want {
+		t.Fatalf("rendered kind = %v, want %s", got, want)
+	}
+	metadata := syntheticMonitoringNestedMap(t, alerts, "metadata")
+	annotations := syntheticMonitoringNestedMap(t, metadata, "annotations")
+	if got, want := annotations["crossplane.io/external-name"], "2468"; got != want {
+		t.Fatalf("CheckAlerts external name = %v, want observed ID %s", got, want)
+	}
+	parameters := syntheticMonitoringNestedMap(t, alerts, "spec", "forProvider")
+	if got, want := parameters["checkId"], float64(2468); got != want {
+		t.Fatalf("CheckAlerts checkId = %v, want %v", got, want)
+	}
+	wantAlerts := []any{map[string]any{"name": "ProbeFailedExecutionsTooHigh", "period": "15m", "runbookUrl": "https://runbooks.example.invalid/synthetic-monitoring", "threshold": float64(1)}}
+	if got, want := parameters["alerts"], wantAlerts; !syntheticMonitoringEqual(got, want) {
+		t.Fatalf("CheckAlerts alerts = %#v, want %#v", got, want)
+	}
+	if _, exists := desired["check-alerts-browser-home"]; exists {
+		t.Fatal("CheckAlerts rendered from an invalid provider-assigned check ID")
+	}
+}
+
+func TestSyntheticMonitoringRejectsPrivateProbesWithoutRenderingTokens(t *testing.T) {
+	claim := syntheticMonitoringClaim()
+	claim["spec"].(map[string]any)["privateProbes"] = []any{map[string]any{"name": "private-one"}}
+	desired, err := renderSyntheticMonitoring(claim, syntheticMonitoringVerifiedObserved("67890"), syntheticMonitoringPlatformConfig(true))
+	if err == nil || !strings.Contains(err.Error(), privateProbeUnsupportedMessage) {
+		t.Fatalf("private probe error = %v, want %q", err, privateProbeUnsupportedMessage)
+	}
+	if desired != nil {
+		t.Fatalf("private probe request rendered %d resources", len(desired))
+	}
+}
+
+func TestSyntheticMonitoringAdmissionRejectsPrivateProbesOnCreateAndUpdate(t *testing.T) {
+	env := &admissionEnv{paths: []string{"../apis/synthetic-monitoring-v1beta1.yaml"}}
+	if err := env.Start(t); err != nil {
+		t.Fatalf("start synthetic monitoring admission environment: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := env.Stop(); err != nil {
+			t.Errorf("stop synthetic monitoring admission environment: %v", err)
+		}
+	})
+	ctx := context.Background()
+	allowed := syntheticMonitoringAdmissionRequest("smadmission")
+	if err := env.Apply(ctx, allowed); err != nil {
+		t.Fatalf("allowed private-probe control create was refused: %v", err)
+	}
+
+	for _, tc := range []struct {
+		name string
+		obj  *unstructured.Unstructured
+	}{
+		{name: "create", obj: syntheticMonitoringAdmissionRequest("smprivatecreate")},
+		{name: "update", obj: allowed.DeepCopy()},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if err := unstructured.SetNestedSlice(tc.obj.Object, []any{map[string]any{"name": "private-one"}}, "spec", "privateProbes"); err != nil {
+				t.Fatal(err)
+			}
+			err := env.Apply(ctx, tc.obj)
+			if err == nil || !strings.Contains(err.Error(), privateProbeUnsupportedMessage) {
+				t.Fatalf("private-probe %s error = %v, want %q", tc.name, err, privateProbeUnsupportedMessage)
+			}
+			t.Logf("private-probe %s refused: %v", tc.name, err)
+		})
+	}
+}
+
+func TestSyntheticMonitoringNeverPublishesProbeTokens(t *testing.T) {
+	const probeToken = "probe-token-value-that-must-not-publish"
+	privateProbeRequest := syntheticMonitoringClaim()
+	privateProbeRequest["spec"].(map[string]any)["privateProbes"] = []any{map[string]any{"name": "private-one", "token": probeToken}}
+	observed := syntheticMonitoringVerifiedObserved("67890")
+	observed["check-api-home"] = syntheticMonitoringObserved(`{"status":{"atProvider":{"id":"2468"}}}`)
+	desired, err := renderSyntheticMonitoring(privateProbeRequest, observed, syntheticMonitoringPlatformConfig(true))
+	if err == nil || !strings.Contains(err.Error(), privateProbeUnsupportedMessage) {
+		t.Fatalf("private probe token request error = %v, want %q", err, privateProbeUnsupportedMessage)
+	}
+	if desired != nil {
+		t.Fatalf("private probe token request rendered %d resources", len(desired))
+	}
+
+	desired, err = renderSyntheticMonitoring(syntheticMonitoringClaim(), observed, syntheticMonitoringPlatformConfig(true))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, child := range desired {
+		encoded, err := json.Marshal(child.Resource.UnstructuredContent())
+		if err != nil {
+			t.Fatalf("encode %s: %v", name, err)
+		}
+		if strings.Contains(string(encoded), probeToken) {
+			t.Fatalf("rendered %s publishes a probe token: %s", name, encoded)
+		}
+	}
+	status := desiredSyntheticMonitoringStatus(privateProbeRequest, observed, syntheticMonitoringPlatformConfig(true)).Resource.UnstructuredContent()
+	encoded, err := json.Marshal(status)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), probeToken) {
+		t.Fatalf("status publishes a probe token: %s", encoded)
+	}
+	example, err := os.ReadFile("../../examples/catalog/synthetic-monitoring/synthetic-monitoring.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(example), probeToken) || strings.Contains(strings.ToLower(string(example)), "privateprobes") {
+		t.Fatalf("catalog example publishes a private probe token request: %s", example)
 	}
 }
 
@@ -278,11 +438,23 @@ func syntheticMonitoringClaim() map[string]any {
 	}
 }
 
+func syntheticMonitoringAdmissionRequest(name string) *unstructured.Unstructured {
+	return requestObject("GrafanaSyntheticMonitoring", name, map[string]any{
+		"stackRef": map[string]any{"name": name},
+		"checks": []any{map[string]any{
+			"name": "api-home", "type": "http", "target": "https://service.example.invalid/health",
+			"frequencySeconds": float64(300), "probeNames": []any{"public-one"}, "alerts": syntheticMonitoringAlertsClaim(),
+			"http": map[string]any{"method": "GET"},
+		}},
+	})
+}
+
 func syntheticMonitoringHTTPCheck(name string, frequency int, probes ...string) map[string]any {
 	return map[string]any{
 		"name": name, "type": "http", "target": "https://service.example.com/health",
 		"frequencySeconds": frequency, "probeNames": syntheticMonitoringStrings(probes),
-		"http": map[string]any{"method": "GET"},
+		"alerts": syntheticMonitoringAlertsClaim(),
+		"http":   map[string]any{"method": "GET"},
 	}
 }
 
@@ -290,8 +462,22 @@ func syntheticMonitoringBrowserCheck(name string, frequency int, probes ...strin
 	return map[string]any{
 		"name": name, "type": "browser", "target": "https://service.example.com",
 		"frequencySeconds": frequency, "probeNames": syntheticMonitoringStrings(probes),
+		"alerts":  syntheticMonitoringAlertsClaim(),
 		"browser": map[string]any{"script": "export default function () {}"},
 	}
+}
+
+func syntheticMonitoringAlertsClaim() []any {
+	return []any{map[string]any{
+		"name": "ProbeFailedExecutionsTooHigh", "period": "15m", "threshold": float64(1),
+		"runbookURL": "https://runbooks.example.invalid/synthetic-monitoring",
+	}}
+}
+
+func syntheticMonitoringEqual(got, want any) bool {
+	gotJSON, gotErr := json.Marshal(got)
+	wantJSON, wantErr := json.Marshal(want)
+	return gotErr == nil && wantErr == nil && string(gotJSON) == string(wantJSON)
 }
 
 func syntheticMonitoringStrings(values []string) []any {
@@ -369,4 +555,14 @@ func syntheticMonitoringNestedMap(t *testing.T, object map[string]any, fields ..
 		current = next
 	}
 	return current
+}
+
+func TestSyntheticMonitoringExistingCheckCanOmitAlerts(t *testing.T) {
+	alerts, err := syntheticMonitoringAlerts(map[string]any{"name": "legacy"}, "legacy")
+	if err != nil || alerts != nil {
+		t.Fatalf("legacy check changed: alerts=%v error=%v", alerts, err)
+	}
+	if _, err := syntheticMonitoringAlerts(map[string]any{"alerts": []any{}}, "invalid"); err == nil {
+		t.Fatal("explicit empty alert set admitted")
+	}
 }

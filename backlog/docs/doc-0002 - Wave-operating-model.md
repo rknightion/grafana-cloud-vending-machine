@@ -3,7 +3,7 @@ id: doc-0002
 title: Wave operating model
 type: guide
 created_date: '2026-08-14 16:36'
-updated_date: '2026-09-08 18:33'
+updated_date: '2026-09-09 00:17'
 ---
 This document carries **only** what is specific to this repository. The campaign model itself —
 run contract and run modes, the routing contract, authority and the thread pool, child lane briefs,
@@ -65,8 +65,10 @@ coverage, `go vet`, a YAML parse of every tracked YAML document, platform and en
 renders plus every discovered catalog base, recursive platform-manifest coverage, XRD/renderer
 registry agreement, emitted-kind activation coverage against the pinned provider CRD map, discovered
 signed-package/verifier digest agreement, and the exact ApplicationSet watch-path assertion. The
-admission harness remains parked: its pre-pass placeholder is skipped, so this gate is not proof of
-complete API-server admission. `definition_of_done` in `backlog/config.yml` carries it plus
+admission harness installs every XRD at the pinned real API server, admits catalog examples, and
+proves fail-closed rules with create/update and weaken/admit/restore controls. Explicit SCIM null
+is admitted and persisted with its key present, then refused by the renderer with zero children;
+that reconcile-time boundary was accepted by the owner on 2026-09-08. `definition_of_done` in `backlog/config.yml` carries it plus
 the hosted run, so every task inherits both.
 
 Discover the task surface rather than guessing it: `just --list`, `just --dump --dump-format json`,
@@ -163,8 +165,8 @@ anything that depends on it.** The sequence is fixed: land the code change, let 
 build and sign a multi-platform OCI index, verify the signature against the exact main-branch
 publish workflow identity, then pin the resulting immutable digest in `platform/function/install.yaml`
 in a follow-up commit. The digest appears **twice** in that file — the Cosign verification Job's
-args and the `Function` package reference — plus once in the Job's name suffix. All three move
-together.
+args and the `Function` package reference. Both move together. The verification Job uses a stable
+PreSync-hook name with BeforeHookCreation; it has no digest suffix to update.
 
 Consequences worth stating because they have bitten: the digest cannot be known before the workflow
 runs, so a wave cannot pre-write it; the intermediate commit legitimately carries the *previous*

@@ -8,8 +8,26 @@ spec:
   stackRef:
     name: replacewithunique01
   grafanaUser: operator@example.invalid
+  usage: development
   # Each identifier must be in the platform profile selected by the referenced
   # stack's observed usage. These inert example values are allowed by the
   # accompanying Composition input.
   allowedLoadZones:
     - private-zone-example-a
+  loadTests:
+    - name: smoke
+      workload:
+        httpGet:
+          url: https://service.example.invalid/health
+      vus: 1
+      durationSeconds: 60
+      loadZones:
+        - private-zone-example-a
+  schedules:
+    - name: nightly
+      loadTest: smoke
+      starts: "2030-01-01T00:00:00Z"
+      recurrenceRule:
+        frequency: DAILY
+        interval: 1
+        count: 7

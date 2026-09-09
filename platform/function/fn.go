@@ -29,9 +29,10 @@ type Function struct {
 }
 
 type compositeRenderer struct {
-	render      func(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error)
-	gateOnStack bool
-	implemented bool
+	render               func(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error)
+	gateOnStack          bool
+	observedStackContext bool
+	implemented          bool
 }
 
 const reconcileTimeConfigKey = "_reconcileTime"
@@ -41,11 +42,11 @@ const resolvedStackProfileConfigKey = "_resolvedStackProfile"
 var compositeRenderers = map[string]compositeRenderer{
 	"GrafanaAlertingRouting":       {render: renderAlertingRouting, gateOnStack: true, implemented: alertingRoutingRendererImplemented},
 	"GrafanaOnCall":                {render: renderOnCall, gateOnStack: true, implemented: onCallRendererImplemented},
-	"GrafanaCloudIntegrations":     {render: renderCloudIntegrations, gateOnStack: true, implemented: cloudIntegrationsRendererImplemented},
-	"GrafanaPDC":                   {render: renderPDC, gateOnStack: true, implemented: pdcRendererImplemented},
-	"GrafanaServiceAccounts":       {render: renderServiceAccounts, gateOnStack: true, implemented: serviceAccountsRendererImplemented},
-	"GrafanaFrontendObservability": {render: renderFrontendObservability, gateOnStack: true, implemented: frontendObservabilityRendererImplemented},
-	"GrafanaML":                    {render: renderML, gateOnStack: true, implemented: mlRendererImplemented},
+	"GrafanaCloudIntegrations":     {render: renderCloudIntegrations, gateOnStack: true, observedStackContext: true, implemented: cloudIntegrationsRendererImplemented},
+	"GrafanaPDC":                   {render: renderPDC, gateOnStack: true, observedStackContext: true, implemented: pdcRendererImplemented},
+	"GrafanaServiceAccounts":       {render: renderServiceAccounts, gateOnStack: true, observedStackContext: true, implemented: serviceAccountsRendererImplemented},
+	"GrafanaFrontendObservability": {render: renderFrontendObservability, gateOnStack: true, observedStackContext: true, implemented: frontendObservabilityRendererImplemented},
+	"GrafanaML":                    {render: renderML, gateOnStack: true, observedStackContext: true, implemented: mlRendererImplemented},
 	"GrafanaK6Project":             {render: renderK6Project, gateOnStack: true, implemented: k6RendererImplemented},
 	"GrafanaSyntheticMonitoring":   {render: renderSyntheticMonitoring, gateOnStack: true, implemented: syntheticMonitoringRendererImplemented},
 	"GrafanaStackLadder":           {render: renderStackLadder, gateOnStack: false, implemented: ladderRendererImplemented},
@@ -118,6 +119,21 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 	}
 	resolvedConfig := serviceBootstrapConfig(req, rsp, content, rendererConfig(req, content, config))
 	productContextReady := true
+	if renderer.observedStackContext {
+		resolvedConfig, productContextReady, err = observedSurfaceStackConfig(req, rsp, content, resolvedConfig)
+		if err != nil {
+			response.Fatal(rsp, err)
+			return rsp, nil
+		}
+		if !productContextReady {
+			if len(observed) > 0 {
+				response.Fatal(rsp, errors.New("waiting for observed stack identity; preserving existing composed resources"))
+			} else if err := setAccessCompositeReadiness(rsp, false); err != nil {
+				response.Fatal(rsp, err)
+			}
+			return rsp, nil
+		}
+	}
 	if kind == "GrafanaK6Project" {
 		_, productContextReady = resolvedConfig["_resolvedK6Stack"]
 	}
@@ -128,15 +144,35 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		response.Fatal(rsp, errors.New("waiting for trusted product bootstrap context; preserving existing composed resources"))
 		return rsp, nil
 	}
+	if kind == "GrafanaAlertingRouting" {
+		content, productContextReady, err = resolveAlertingReceivers(req, rsp, content)
+		if err != nil {
+			response.Fatal(rsp, err)
+			return rsp, nil
+		}
+		if !productContextReady {
+			if len(observed) > 0 {
+				response.Fatal(rsp, errors.New("waiting for observed OnCall receiver; preserving existing composed resources"))
+			} else if err := setAccessCompositeReadiness(rsp, false); err != nil {
+				response.Fatal(rsp, err)
+			}
+			return rsp, nil
+		}
+	}
 	desired, err := renderer.render(content, observed, resolvedConfig)
 	if err == nil {
 		err = productWithdrawalError(kind, content, desired, observed)
+	}
+	if kind == "GrafanaK6Project" && k6CapReconciliationPending(desired, observed) {
+		productContextReady = false
 	}
 	if err == nil {
 		var status *resource.Composite
 		switch kind {
 		case "GrafanaCloudStackRequest":
 			status = desiredStackStatus(content, observed, config)
+		case "GrafanaOnCall":
+			status, productContextReady = onCallReceiverStatus(content, observed, desired)
 		case "GrafanaStackInventory":
 			status = desiredStackInventoryStatus(content, observed)
 		case "GrafanaStackLadder":
@@ -169,6 +205,9 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 			response.Fatal(rsp, errors.Wrap(err, "cannot set access composite readiness"))
 			return rsp, nil
 		}
+	}
+	if kind == "GrafanaK6Project" {
+		pruneK6Desired(rsp, desired)
 	}
 	if kind == "GrafanaSyntheticMonitoring" {
 		pruneSMDesired(rsp, desired)

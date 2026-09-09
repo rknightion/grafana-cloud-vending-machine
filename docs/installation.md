@@ -5,7 +5,7 @@ description: Bootstrapping Crossplane, External Secrets Operator, and the platfo
 
 # Installation
 
-The 1.0 candidate is held pending the [admission repairs described in the migration guide](migration-1.0.md). The steps below are for use after that validation succeeds.
+The 1.0 candidate remains held by owner decision. The admission repairs and real API-server gate are implemented; the [migration guide](migration-1.0.md) distinguishes the repaired defects from the continuing release hold. These instructions describe the unreleased reference.
 
 This page covers bootstrapping the platform itself. Once it is installed and healthy, vending a
 stack is the copy-edit-review-commit path in [Getting started](getting-started.md).

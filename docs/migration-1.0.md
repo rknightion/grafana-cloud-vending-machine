@@ -13,13 +13,24 @@ breaking commit already contains the multi-organization schema seam, so this
 comparison deliberately includes it rather than treating that seam as a
 compatible starting point.
 
-The candidate is held and is not admission-ready. Real API-server checks found
-two unresolved schema defects: the agent-observability CRD's `collectionRefs`
-set-list items lack the required atomic map declaration, and an explicit
-`spec.scim: null` is admitted because CEL treats null as absent. The migration
-steps below describe the intended adoption sequence after those defects are
-resolved and the complete admission gate passes. Do not apply this candidate
-as a validated release.
+The 1.0 candidate remains held by owner decision. The original admission defects
+are historical: the agent-observability `collectionRefs` set-list items now
+have the required atomic map declaration, and every XRD installs into the pinned
+real API-server harness.
+
+The explicit-null boundary is measured separately. Under the shipped
+`nullable: true` schema, Kubernetes persists `spec.scim: null` with the key
+present. CEL `has()` does not see that null-valued field, so admission accepts
+it. The renderer sees the persisted key, refuses the request and emits no
+children. Omitted `scim` stays absent. This reconcile-time fail-closed boundary
+was accepted by the owner on 2026-09-08; it is not an unresolved schema repair
+or supported SCIM configuration.
+
+The owner kept the 1.0 hold until the documentation reconciliation in GCV-0042.
+That documentation work does not authorize a release: release-please PR #29
+stays open and unmerged, and no release or tag is created by this wave. The
+steps below describe migration to the unreleased current API, not a published
+1.0 artifact.
 
 The guide uses these outcomes precisely:
 
@@ -77,7 +88,7 @@ their existing requests are **unaffected**.
 | Organization | `spec` required `displayName`, `slug`, `region`, and `usage`. | `spec.organization` is additionally required, is 1-63 lowercase DNS-label characters, and is immutable. Add a permitted registry key before the next reconciliation; changing that key later requires a replacement request. | **Rejected** while absent: the current schema requires it and the renderer also refuses a stack claim without it. |
 | Output identity consequence | Output identity was based on `{prefix}/{region}/{usage}/{slug}`. | The organization requirement makes the output identity `{prefix}/{organization}/{usage}/{slug}`. Review external-secret access and consumers after migration. | **Unaffected** until the reviewed organization migration is applied; that deliberate update then selects a different output location. |
 | Product switches | No `products` object. | Optional `spec.products.applicationObservability`, `kubernetesObservability`, and `databaseObservability`, each defaulting to `false`. Set only the switches the platform has approved. | **Unaffected** when omitted; all three default to disabled. |
-| SCIM compatibility input | No declared `spec.scim`; an unknown field was pruned by the structural schema. | `spec.scim` is preserved for the intended presence rejection, `!has(self.scim)`. It is not supported configuration. Remove it and use external-group mappings. | The old attempted input was **silently changed** by pruning. Non-null input is **rejected**. Explicit null is currently admitted: this is an unresolved admission defect, not supported behavior. |
+| SCIM compatibility input | No declared `spec.scim`; an unknown field was pruned by the structural schema. | `spec.scim` is preserved for the intended presence rejection, `!has(self.scim)`. It is not supported configuration. Remove it and use external-group mappings. | The old attempted input was **silently changed** by pruning. Non-null input is **rejected**. Explicit null is admitted and persisted with its key present, then **rejected at reconcile** with zero children. This is the accepted fail-closed boundary, not supported SCIM configuration. |
 | Retention | No retention selection. | Optional `spec.retention`, but if selected it requires `class`. Its presence cannot be added or removed after creation and the value is immutable. Choose it only for a newly created replacement request. | **Unaffected** when omitted. An existing request cannot be updated to add it; that update is **rejected**. |
 | Expiry | No expiry selection. | Optional `spec.expiry`, but if selected it requires RFC3339 `expiresAt`. Presence is creation-time-only; `expiresAt` is immutable. `extensions` defaults to `[]`, requires `extendedTo`, `reason`, `requestedBy`, and `recordedAt` per entry, and is append-only. Create a replacement request if an existing stack needs expiry. | **Unaffected** when omitted. Adding or removing it, changing the original deadline, or removing/changing an extension is **rejected**. |
 

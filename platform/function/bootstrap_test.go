@@ -86,3 +86,41 @@ func TestSMDesiredSetRemovesWithdrawnChecks(t *testing.T) {
 		t.Fatal("removed unrelated desired resource")
 	}
 }
+
+func TestK6DynamicWithdrawalDistinguishesRemovalFromUnavailableDependency(t *testing.T) {
+	xr := map[string]any{"spec": map[string]any{"loadTests": []any{map[string]any{"name": "kept"}}, "schedules": []any{map[string]any{"name": "nightly"}}}}
+	for _, name := range []resource.Name{"load-test-kept", "schedule-nightly"} {
+		if err := productWithdrawalError("GrafanaK6Project", xr, nil, map[resource.Name]resource.ObservedComposed{name: {}}); err == nil {
+			t.Fatalf("withdrew configured %s on prerequisite loss", name)
+		}
+	}
+	if err := productWithdrawalError("GrafanaK6Project", xr, nil, map[resource.Name]resource.ObservedComposed{"load-test-removed": {}, "schedule-removed": {}}); err != nil {
+		t.Fatal("blocked deliberate removal", err)
+	}
+	rsp := &fnv1.RunFunctionResponse{Desired: &fnv1.State{Resources: map[string]*fnv1.Resource{"load-test-removed": {}, "schedule-removed": {}, "unrelated": {}}}}
+	pruneK6Desired(rsp, nil)
+	if len(rsp.Desired.Resources) != 1 || rsp.Desired.Resources["unrelated"] == nil {
+		t.Fatal("pruning removed unrelated state or retained obsolete dynamic children")
+	}
+}
+
+func TestK6CapTransitionPreservesChildrenAndAdvancesCap(t *testing.T) {
+	xr := map[string]any{"spec": map[string]any{"loadTests": []any{map[string]any{"name": "kept"}}}}
+	desired := map[resource.Name]*resource.DesiredComposed{
+		"limits":             newDesired(k6APIVersion, "ProjectLimits", "default", "project-limits", nil, map[string]any{"forProvider": map[string]any{"vuMaxPerTest": float64(2)}}),
+		"allowed-load-zones": newDesired(k6APIVersion, "ProjectAllowedLoadZones", "default", "project-zones", nil, map[string]any{"forProvider": map[string]any{"allowedLoadZones": []any{}}}),
+	}
+	observed := map[resource.Name]resource.ObservedComposed{"load-test-kept": observedComposed(`{"apiVersion":"k6.grafana.m.crossplane.io/v1alpha1","kind":"LoadTest","metadata":{"name":"project-kept","namespace":"default","annotations":{"crossplane.io/external-name":"observed-test-id"}},"spec":{"forProvider":{"script":"previous-script"}}}`)}
+	if err := productWithdrawalError("GrafanaK6Project", xr, desired, observed); err != nil {
+		t.Fatalf("cap transition cannot progress: %v", err)
+	}
+	if desired["load-test-kept"] == nil {
+		t.Fatal("existing test withdrawn")
+	}
+	if nestedMap(t, desired["load-test-kept"].Resource.UnstructuredContent(), "spec", "forProvider")["script"] != "previous-script" {
+		t.Fatal("existing test changed before cap reconciled")
+	}
+	if nestedMap(t, desired["limits"].Resource.UnstructuredContent(), "spec", "forProvider")["vuMaxPerTest"] != float64(2) {
+		t.Fatal("new cap was not emitted")
+	}
+}

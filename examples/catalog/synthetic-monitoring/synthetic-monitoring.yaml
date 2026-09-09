@@ -13,6 +13,11 @@ spec:
       frequencySeconds: 300
       probeNames:
         - replace-with-approved-public-probe
+      alerts:
+        - name: ProbeFailedExecutionsTooHigh
+          period: 15m
+          threshold: 1
+          runbookURL: https://runbooks.example.invalid/synthetic-monitoring
       http:
         method: GET
     - name: browser-home
@@ -21,6 +26,11 @@ spec:
       frequencySeconds: 900
       probeNames:
         - replace-with-approved-browser-probe
+      alerts:
+        - name: ProbeFailedExecutionsTooHigh
+          period: 15m
+          threshold: 1
+          runbookURL: https://runbooks.example.invalid/synthetic-monitoring
       browser:
         script: |
           import { browser } from 'k6/browser';

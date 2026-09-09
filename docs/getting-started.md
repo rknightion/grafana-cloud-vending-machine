@@ -36,7 +36,7 @@ Before you begin, you need:
 
 ## Pinned versions
 
-Use the [installation version table and signature requirements](installation.md#status-and-pinned-versions). The 1.0 candidate is held pending the [documented admission repairs](migration-1.0.md).
+Use the [installation version table and signature requirements](installation.md#status-and-pinned-versions). The admission gate is implemented, but the 1.0 candidate remains held by owner decision; see the [release boundary](migration-1.0.md).
 
 ## The copy-edit-review-commit path
 

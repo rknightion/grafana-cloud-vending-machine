@@ -2,12 +2,20 @@ apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: grafanafrontendobservabilities.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   scope: Namespaced
   group: platform.example.org
   names:
     kind: GrafanaFrontendObservability
     plural: grafanafrontendobservabilities
+    singular: grafanafrontendobservability
+    shortNames:
+      - gcfaro
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-frontend-observability-v1beta1
   versions:
     - name: v1beta1
       served: true
@@ -15,10 +23,74 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
+          x-kubernetes-validations:
+            - rule: self.metadata.name == self.spec.stackRef.name
+              message: metadata.name must match spec.stackRef.name so one composite owns this stack surface
+            - rule: self.spec.stackRef == oldSelf.spec.stackRef
+              message: stackRef is immutable after creation
           required: [spec]
           properties:
             spec:
               type: object
+              required:
+                - stackRef
+                - profile
               x-kubernetes-validations:
-                - rule: "false"
-                  message: This API is not implemented yet.
+                - rule: "!has(self.appKey)"
+                  message: Faro app keys are browser-visible collector endpoint material and must not be supplied in this request.
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: GrafanaCloudStackRequest name for this Frontend Observability surface.
+                profile:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                  pattern: ^[a-z0-9-]+$
+                  description: Selects a platform-owned Frontend Observability app profile. Requests cannot supply app settings, CORS origins, or credentials.
+                appKey:
+                  type: string
+                  description: Rejected compatibility input. The provider publishes the browser-visible key only as part of the observed collector endpoint.
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-frontend-observability-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaFrontendObservability
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-frontend-observability
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          organizations:
+            - name: example-primary
+              providerConfigName: grafana-cloud-org-example-primary
+              allowedRegions: [prod-us-central-0, prod-eu-west-0]
+              allowedUsages: [development, production]
+          frontendObservabilityProfiles:
+            - name: standard
+              apps:
+                - name: browser
+                  allowedOrigins:
+                    - https://example.invalid
+                  extraLogAttributes:
+                    environment: example
+                  settings:
+                    combineLabData: "0"

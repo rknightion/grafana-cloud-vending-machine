@@ -1,0 +1,28 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCloudIntegrations
+metadata:
+  name: replacewithunique09
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique09
+  profile: development-standard
+  scrapeJobs:
+    - name: cloudwatch-compute
+      type: cloudwatch
+      account: example-account
+      scrapeIntervalSeconds: 300
+      services:
+        - name: AWS/EC2
+          metrics:
+            - name: CPUUtilization
+              statistics: [Average]
+    - name: endpoint-metrics
+      type: metricsEndpoint
+      scrapeIntervalSeconds: 120
+      url: https://metrics.example.invalid/metrics
+      authentication:
+        method: bearer
+        secretRef:
+          name: replace-with-approved-endpoint-credential
+          key: token

@@ -2,12 +2,19 @@ apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: grafanacloudintegrations.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   scope: Namespaced
   group: platform.example.org
   names:
     kind: GrafanaCloudIntegrations
     plural: grafanacloudintegrations
+    singular: grafanacloudintegration
+    shortNames: [gcci]
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-cloud-integrations-v1beta1
   versions:
     - name: v1beta1
       served: true
@@ -15,10 +22,219 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
+          description: Requests platform-approved cloud telemetry integrations for one ready Grafana Cloud stack.
+          x-kubernetes-validations:
+            - rule: self.metadata.name == self.spec.stackRef.name
+              message: metadata.name must match spec.stackRef.name so one composite owns the stack integration set
+            - rule: self.spec.stackRef.name == oldSelf.spec.stackRef.name
+              message: stackRef.name is immutable
+            - rule: "self.spec.scrapeJobs.all(job, job.type == 'cloudwatch' ? has(job.account) && has(job.services) && !has(job.url) && !has(job.authentication) : job.type == 'resourceMetadata' ? has(job.account) && has(job.services) && !has(job.url) && !has(job.authentication) : !has(job.account) && !has(job.services) && has(job.url) && has(job.authentication))"
+              message: cloudwatch and resourceMetadata jobs set account and services only; metricsEndpoint jobs set url and authentication only
+            - rule: "self.spec.scrapeJobs.all(job, job.type != 'metricsEndpoint' || !has(job.authentication) || job.authentication.method != 'basic' || has(job.authentication.username))"
+              message: metricsEndpoint jobs using basic authentication must set authentication.username
           required: [spec]
           properties:
             spec:
               type: object
-              x-kubernetes-validations:
-                - rule: "false"
-                  message: This API is not implemented yet.
+              required: [stackRef, profile, scrapeJobs]
+              properties:
+                stackRef:
+                  type: object
+                  required: [name]
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                profile:
+                  type: string
+                  minLength: 1
+                  maxLength: 63
+                  pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                  description: Named platform-owned cloud integration profile. The profile supplies accounts and credential references.
+                scrapeJobs:
+                  type: array
+                  maxItems: 20
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys: [name]
+                  description: Complete requested scrape-job set. Platform policy selects the permitted count and minimum interval for the named profile.
+                  items:
+                    type: object
+                    required: [name, type, scrapeIntervalSeconds]
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                      type:
+                        type: string
+                        enum: [cloudwatch, resourceMetadata, metricsEndpoint]
+                      scrapeIntervalSeconds:
+                        type: integer
+                        minimum: 1
+                        maximum: 3600
+                      account:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                      services:
+                        type: array
+                        minItems: 1
+                        maxItems: 20
+                        x-kubernetes-list-type: map
+                        x-kubernetes-list-map-keys: [name]
+                        items:
+                          type: object
+                          required: [name]
+                          properties:
+                            name:
+                              type: string
+                              minLength: 1
+                              maxLength: 255
+                            metrics:
+                              type: array
+                              maxItems: 50
+                              x-kubernetes-list-type: map
+                              x-kubernetes-list-map-keys: [name]
+                              items:
+                                type: object
+                                required: [name, statistics]
+                                properties:
+                                  name:
+                                    type: string
+                                    minLength: 1
+                                    maxLength: 255
+                                  statistics:
+                                    type: array
+                                    minItems: 1
+                                    maxItems: 10
+                                    x-kubernetes-list-type: set
+                                    items:
+                                      type: string
+                                      minLength: 1
+                                      maxLength: 64
+                            resourceDiscoveryTagFilter:
+                              type: array
+                              maxItems: 20
+                              x-kubernetes-list-type: map
+                              x-kubernetes-list-map-keys: [key]
+                              items:
+                                type: object
+                                required: [key, value]
+                                properties:
+                                  key: {type: string, minLength: 1, maxLength: 255}
+                                  value: {type: string, minLength: 1, maxLength: 255}
+                      url:
+                        type: string
+                        minLength: 8
+                        maxLength: 2048
+                        pattern: ^https://
+                      authentication:
+                        type: object
+                        required: [method, secretRef]
+                        properties:
+                          method:
+                            type: string
+                            enum: [basic, bearer]
+                          username:
+                            type: string
+                            minLength: 1
+                            maxLength: 255
+                          secretRef:
+                            type: object
+                            required: [name, key]
+                            properties:
+                              name:
+                                type: string
+                                minLength: 1
+                                maxLength: 253
+                              key:
+                                type: string
+                                minLength: 1
+                                maxLength: 253
+            status:
+              type: object
+              properties:
+                budget:
+                  type: object
+                  properties:
+                    requestedJobs: {type: integer}
+                    maxJobs: {type: integer}
+                    minScrapeIntervalSeconds: {type: integer}
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-cloud-integrations-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaCloudIntegrations
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-cloud-integrations
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          organizations:
+            - name: example-primary
+              providerConfigName: grafana-cloud-org-example-primary
+              allowedRegions: [prod-us-central-0, prod-eu-west-0]
+              allowedUsages: [development, production]
+          cloudIntegrationProfiles:
+            - name: development-standard
+              usage: development
+              maxScrapeJobs: 10
+              minScrapeIntervalSeconds: 60
+              awsAccounts:
+                - name: example-account
+                  roleArn: replace-with-platform-role-arn
+                  regions: [us-east-1]
+              azureCredentials:
+                - name: example-azure
+                  clientId: replace-with-platform-client-id
+                  tenantId: replace-with-platform-tenant-id
+                  clientSecretSecretRef:
+                    name: replace-with-platform-secret
+                    key: client-secret
+              integrations:
+                - slug: linux-node
+                  alertsEnabled: false
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: grafana-cloud-integrations-scrape-budget
+spec:
+  failurePolicy: Fail
+  paramKind:
+    apiVersion: apiextensions.crossplane.io/v1
+    kind: Composition
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [platform.example.org]
+        apiVersions: [v1beta1]
+        operations: [CREATE, UPDATE]
+        resources: [grafanacloudintegrations]
+  validations:
+    - expression: "params.spec.pipeline[0].input.spec.cloudIntegrationProfiles.exists(profile, profile.name == object.spec.profile && object.spec.scrapeJobs.size() <= profile.maxScrapeJobs && object.spec.scrapeJobs.all(job, job.scrapeIntervalSeconds >= profile.minScrapeIntervalSeconds))"
+      message: cloud integration request exceeds the selected platform scrape budget
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: grafana-cloud-integrations-scrape-budget
+spec:
+  policyName: grafana-cloud-integrations-scrape-budget
+  validationActions: [Deny]
+  paramRef:
+    name: grafana-cloud-integrations-v1beta1
+    parameterNotFoundAction: Deny

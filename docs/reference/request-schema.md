@@ -30,6 +30,13 @@ and the organization registry are in [Configuration](../configuration.md); worke
 | `GrafanaK6Project` | `grafanak6projects` | `gck6` | `grafana-k6-project-v1beta1` | `stackRef`, `grafanaUser`, `allowedLoadZones` |
 | `GrafanaSyntheticMonitoring` | `grafanasyntheticmonitorings` | `gcsm` | `grafana-synthetic-monitoring-v1beta1` | `stackRef` |
 | `GrafanaStackLadder` | `grafanastackladders` | None | `grafana-stack-ladder-v1beta1` | `organization`, `region`, `promotionDirection`, `rungs`, `repository` |
+| `GrafanaAlertingRouting` | `grafanaalertingroutings` | `gcarouting` | `grafana-alerting-routing-v1beta1` | `stackRef`, `contactPoints`, `defaultContactPoint` |
+| `GrafanaOnCall` | `grafanaoncalls` | `gconcall` | `grafana-oncall-v1beta1` | `stackRef`, `responders`, `shiftStart`, `escalation`, `route` |
+| `GrafanaCloudIntegrations` | `grafanacloudintegrations` | `gcci` | `grafana-cloud-integrations-v1beta1` | `stackRef`, `profile`, `scrapeJobs` |
+| `GrafanaPDC` | `grafanapdcs` | `gcpdc` | `grafana-pdc-v1beta1` | `stackRef`, `profile`, `networks`, `token` |
+| `GrafanaServiceAccounts` | `grafanaserviceaccounts` | `gcsa` | `grafana-service-accounts-v1beta1` | `stackRef`, `profile`, `accounts` |
+| `GrafanaFrontendObservability` | `grafanafrontendobservabilities` | `gcfaro` | `grafana-frontend-observability-v1beta1` | `stackRef`, `profile` |
+| `GrafanaML` | `grafanamls` | `gcml` | `grafana-ml-v1beta1` | `stackRef`, `profile` |
 
 The XRDs and Compositions are split by API under `platform/apis/`. Every Composition has one
 Pipeline step that calls `function-grafana-vending`; the function, rather than a separate
@@ -83,6 +90,50 @@ same namespace and uses its selected per-stack ProviderConfig:
 | GrafanaProvisioningRepository | Preview Git-provisioned folder subtree | References an existing credential-managed Grafana Connection; classic Dashboards remain the default |
 
 The XRD uses `defaultCompositionUpdatePolicy: Automatic` and an enforced Composition reference. Existing requests therefore move to the latest Composition revision automatically after a platform update. Treat an XRD or function change like a production API release: render it, inspect the desired-resource diff, and roll it through a non-production request first.
+
+## Additional specialist APIs
+
+These APIs are separate opt-in requests. Admission validates local references and
+selected Composition policy; reconciliation waits for identity-checked stack
+context and provider-assigned IDs. Provider readback tests prove the rendered
+configuration, not a live cloud transaction or notification delivery.
+
+| API | Request fields | Policy and ownership |
+| --- | --- | --- |
+| `GrafanaAlertingRouting` | `stackRef`, `contactPoints`, `defaultContactPoint`, optional `routes` and `ruleGroups` | One request named after its stack owns the complete notification-policy tree. Every receiver is reachable. Each contact point selects literal `email` or a same-stack `onCallRef`. Ordinary rules omit direct notification settings and use this tree. |
+| `GrafanaOnCall` | `stackRef`, UTC `shiftStart`, `responders`, `escalation`, `route` | One request per stack; individual responders rotate in weekly groups from the explicit anchor. Users and dependent identities are observed. Only the vended schedule and catch-all route are accepted. |
+| `GrafanaCloudIntegrations` | `stackRef`, `profile`, `scrapeJobs` | One request per stack. Platform profiles own accounts, credential references, scrape count and interval budgets. A profile usage mismatch with the observed stack fails reconciliation. |
+| `GrafanaPDC` | `stackRef`, `profile`, `networks`, `token.expiresAfter`, optional `datasources` | Datasources may reference only this request's networks. Tokens wait for observed network IDs and use the existing Composition lifetime ceiling. |
+| `GrafanaServiceAccounts` | `stackRef`, `profile`, `accounts` | One request per stack; platform profiles own roles, rotating token lifetime and whole-set permissions. Static tokens and permission-item writers are excluded. |
+| `GrafanaFrontendObservability` | `stackRef`, `profile` | One request per stack; platform profiles own Faro apps and origins. The observed collector endpoint contains a browser-visible app key; request-supplied keys are refused. |
+| `GrafanaML` | `stackRef`, `profile` | One request per stack; the profile's jobs and outlier detectors must fit `maxRunningResources`. Jobs wait for Holiday IDs. A change that withdraws an observed child is refused until explicit decommission. |
+
+Cloud-integration, PDC, service-account and ML admission policies use the actual
+Composition as their parameter resource. Missing parameters deny admission.
+Keep Composition and admission-policy writes platform-only. A budget bounds the
+vended request set; it is not an inventory of unmanaged resources or proof of a
+live account's total spend.
+
+`GrafanaK6Project` additionally accepts `loadTests` and `schedules`. A request
+with tests declares `usage`; reconciliation must bind it to the observed stack
+usage. Admission checks structured HTTP workload limits against the declared
+Composition profile; the function generates the executable script and execution
+options. Arbitrary JavaScript and browser workloads are excluded from this new
+subset. A false usage declaration can still pass admission and is refused at
+reconciliation; cross-object budget admission remains unfinished. The existing
+project limits remain the runtime enforcement boundary.
+Schedules reference only vended tests and are Delete-managed.
+
+`GrafanaSyntheticMonitoring.spec.checks[].alerts` optionally adds provider-native
+CheckAlerts after the Check ID is observed. Existing checks may omit it. Private
+probes remain refused because the pinned provider has no token-expiry control.
+The existing usage-specific weighted check budget is enforced at reconciliation;
+there is no cross-resource admission claim for that budget. CheckAlerts does not
+select a receiver, and delivery through a vended notification policy remains
+unproven for Synthetic Monitoring.
+
+The [catalog](catalog.md) links each complete field example. All schemas and
+Compositions live together under `platform/apis/`.
 
 ## `GrafanaCloudStackRequest`
 
@@ -407,6 +458,6 @@ inventory/adoption review.
 
 ## Governance additions
 
-`spec.retention.class` selects an immutable creation-time durable fan-out profile, not a retention period. `spec.expiry` declares an initial RFC3339 timestamp and append-only extension records (`extendedTo`, `reason`, `requestedBy`, `recordedAt`); declared requester/time fields require Kubernetes audit-log correlation for authenticated provenance. The function rejects SCIM input. The schema rejects non-null input but currently admits explicit null; see the [admission gap in the held candidate](../migration-1.0.md).
+`spec.retention.class` selects an immutable creation-time durable fan-out profile, not a retention period. `spec.expiry` declares an initial RFC3339 timestamp and append-only extension records (`extendedTo`, `reason`, `requestedBy`, `recordedAt`); declared requester/time fields require Kubernetes audit-log correlation for authenticated provenance. The function rejects SCIM input. The schema rejects non-null input. Explicit null is admitted and persisted, then refused by the renderer because the key remains present; see the [accepted reconcile-time boundary](../migration-1.0.md).
 
 `GrafanaK6Project`, `GrafanaSyntheticMonitoring` and `GrafanaStackLadder` have separate XRDs. Their platform policy and evidence boundaries are in [Governance](../governance.md).

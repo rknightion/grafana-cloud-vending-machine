@@ -2,12 +2,20 @@ apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: grafanaoncalls.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   scope: Namespaced
   group: platform.example.org
   names:
     kind: GrafanaOnCall
     plural: grafanaoncalls
+    singular: grafanaoncall
+    shortNames:
+      - gconcall
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-oncall-v1beta1
   versions:
     - name: v1beta1
       served: true
@@ -15,10 +23,115 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
+          description: Vends the single, exhaustive alert route and weekly on-call rotation for one Grafana Cloud stack.
+          x-kubernetes-validations:
+            - rule: self.spec.stackRef.name == oldSelf.spec.stackRef.name
+              message: stackRef.name is immutable
+            - rule: self.metadata.name == self.spec.stackRef.name
+              message: metadata.name must match spec.stackRef.name so one composite owns the stack on-call route
           required: [spec]
           properties:
             spec:
               type: object
+              required:
+                - stackRef
+                - responders
+                - shiftStart
+                - escalation
+                - route
               x-kubernetes-validations:
-                - rule: "false"
-                  message: This API is not implemented yet.
+                - rule: "size(self.responders) > 0"
+                  message: on-call schedule must have at least one reachable responder
+                - rule: "self.escalation.finalStep == 'schedule'"
+                  message: escalation chain final step must reach the vended schedule
+                - rule: "self.escalation.scheduleRef.name == 'vended'"
+                  message: escalation chain must reference the vended schedule
+                - rule: "self.route.match == 'all'"
+                  message: on-call route must match every vended alert
+              properties:
+                stackRef:
+                  type: object
+                  required: [name]
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                responders:
+                  type: array
+                  maxItems: 20
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys: [username]
+                  items:
+                    type: object
+                    required: [username]
+                    properties:
+                      username:
+                        type: string
+                        minLength: 1
+                        maxLength: 254
+                shiftStart:
+                  x-kubernetes-validations:
+                    - rule: timestamp(self + "Z") == timestamp(self + "Z")
+                      message: shiftStart must be a valid UTC date and time
+                  type: string
+                  minLength: 19
+                  maxLength: 19
+                  pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$'
+                  description: Start time for the weekly rotation in UTC. It follows the pinned provider format YYYY-MM-DDTHH:MM:SS without a zone suffix.
+                escalation:
+                  type: object
+                  required: [finalStep, scheduleRef]
+                  properties:
+                    finalStep:
+                      type: string
+                    scheduleRef:
+                      type: object
+                      required: [name]
+                      properties:
+                        name:
+                          type: string
+                          minLength: 1
+                          maxLength: 63
+                route:
+                  type: object
+                  required: [match]
+                  properties:
+                    match:
+                      type: string
+                      minLength: 1
+                      maxLength: 63
+            status:
+              type: object
+              description: Read-only status owned by Crossplane.
+              properties:
+                alertReceiver:
+                  type: object
+                  description: Provider-observed inbound-email receiver for consumers of this stack's catch-all alert route.
+                  properties:
+                    address:
+                      type: string
+                    integrationID:
+                      type: string
+                    stackName:
+                      type: string
+                    observedGeneration:
+                      type: integer
+                      format: int64
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-oncall-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaOnCall
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-oncall
+      functionRef:
+        name: function-grafana-vending

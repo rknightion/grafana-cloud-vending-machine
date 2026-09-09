@@ -28,6 +28,16 @@ README describing its ownership boundary.
 | [sso-azuread](../../examples/catalog/sso-azuread/) | Enforced Azure AD OAuth with group role mapping | Tenant/application values, group claims, role expression, and client-secret path |
 | [sso-saml](../../examples/catalog/sso-saml/) | Enforced SAML metadata and role mapping | Metadata, attributes, signing requirements, and a tested administrator login path |
 
+| [alerting-routing](../../examples/catalog/alerting-routing/) | Complete notification-policy tree, ordinary rules, and observed OnCall receiver reference | Whole-tree ownership, folder UID and same-stack OnCall request |
+| [oncall](../../examples/catalog/oncall/) | Rotating schedule, escalation chain, inbound-email integration and catch-all route | Existing responder usernames, explicit UTC anchor, one request per stack |
+| [cloud-integrations](../../examples/catalog/cloud-integrations/) | Budgeted AWS, Azure and endpoint telemetry configuration | Platform account/credential profiles and organization ProviderConfig registry |
+| [pdc](../../examples/catalog/pdc/) | PDC networks, bounded tokens and attached datasources | Approved region, lifetime ceiling and external credential store |
+| [service-accounts](../../examples/catalog/service-accounts/) | Rotating in-stack identities and authoritative permission sets | Approved role/profile and observed permission-target IDs |
+| [frontend-observability](../../examples/catalog/frontend-observability/) | Platform-profiled Faro browser app | Approved origins and browser-visible endpoint handling |
+| [ml](../../examples/catalog/ml/) | Capped forecasting jobs, outlier detectors and holidays | Datasource UIDs, queries and allowed running-resource count |
+| [k6-project](../../examples/catalog/k6-project/) | Bounded k6 project | Approved limits and load zones; review the directory's exact test/schedule contract |
+| [synthetic-monitoring](../../examples/catalog/synthetic-monitoring/) | Budgeted checks and optional provider-native alert criteria | Targets, probes and alert criteria; private probes remain excluded |
+
 Each directory's own `README.md` explains what its manifests own, the expected reconciliation
 behaviour, and every value that must be replaced.
 

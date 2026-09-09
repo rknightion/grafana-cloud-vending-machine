@@ -2,12 +2,20 @@ apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: grafanaalertingroutings.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   scope: Namespaced
   group: platform.example.org
   names:
     kind: GrafanaAlertingRouting
     plural: grafanaalertingroutings
+    singular: grafanaalertingrouting
+    shortNames:
+      - gcarouting
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-alerting-routing-v1beta1
   versions:
     - name: v1beta1
       served: true
@@ -15,10 +23,245 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
-          required: [spec]
+          description: The authoritative Grafana notification policy tree, its owned email contact points, and ordinary alert rules for one stack. The platform replaces policy nodes omitted from this request; existing direct rule-level routes remain outside this tree.
+          x-kubernetes-validations:
+            - rule: self.metadata.name == self.spec.stackRef.name
+              message: metadata.name must match spec.stackRef.name so one composite owns the stack notification policy tree
+            - rule: self.spec.stackRef.name == oldSelf.spec.stackRef.name
+              message: stackRef.name is immutable
+            - rule: self.spec.contactPoints.exists(contactPoint, contactPoint.name == self.spec.defaultContactPoint) && self.spec.contactPoints.all(contactPoint, contactPoint.name == self.spec.defaultContactPoint || self.spec.routes.exists(route, route.contactPoint == contactPoint.name))
+              message: defaultContactPoint must be vended and every vended contact point must be the default route or referenced by a policy route
+            - rule: self.spec.routes.all(route, self.spec.contactPoints.exists(contactPoint, contactPoint.name == route.contactPoint))
+              message: every policy route must reference a vended contact point
+          required:
+            - spec
           properties:
             spec:
               type: object
-              x-kubernetes-validations:
-                - rule: "false"
-                  message: This API is not implemented yet.
+              required:
+                - stackRef
+                - contactPoints
+                - defaultContactPoint
+              properties:
+                stackRef:
+                  type: object
+                  required: [name]
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: Ready GrafanaCloudStackRequest name and per-stack ProviderConfig name in this namespace.
+                contactPoints:
+                  type: array
+                  minItems: 1
+                  maxItems: 20
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys: [name]
+                  description: Complete platform-owned email contact point set. A removed entry is no longer owned or reachable through this tree.
+                  items:
+                    type: object
+                    required: [name]
+                    x-kubernetes-validations:
+                      - rule: has(self.email) != has(self.onCallRef)
+                        message: contact point must select exactly one of email or onCallRef
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                        description: Stable contact point identity within this routing request.
+                      onCallRef:
+                        type: object
+                        required: [name]
+                        description: Same-namespace GrafanaOnCall for this stack. Its observed integration email becomes this contact point destination.
+                        properties:
+                          name:
+                            type: string
+                            minLength: 3
+                            maxLength: 32
+                            pattern: ^[a-z0-9]+$
+                      email:
+                        type: object
+                        required: [addresses]
+                        properties:
+                          addresses:
+                            type: array
+                            minItems: 1
+                            maxItems: 20
+                            x-kubernetes-list-type: set
+                            items:
+                              type: string
+                              format: email
+                              maxLength: 254
+                          subject:
+                            type: string
+                            maxLength: 4096
+                          message:
+                            type: string
+                            maxLength: 16384
+                          singleEmail:
+                            type: boolean
+                          disableResolveMessage:
+                            type: boolean
+                defaultContactPoint:
+                  type: string
+                  minLength: 1
+                  maxLength: 63
+                  pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                  description: Vended contact point that receives every alert not selected by a child policy.
+                routes:
+                  type: array
+                  default: []
+                  maxItems: 100
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys: [name]
+                  description: Complete first-level policy node set. Omitted nodes are removed from the provider-managed policy tree.
+                  items:
+                    type: object
+                    required: [name, contactPoint, matchers]
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                        description: Stable route identity within this complete policy set.
+                      contactPoint:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                        description: A contact point declared in spec.contactPoints.
+                      matchers:
+                        type: array
+                        minItems: 1
+                        maxItems: 20
+                        x-kubernetes-list-type: map
+                        x-kubernetes-list-map-keys: [label, match, value]
+                        items:
+                          type: object
+                          required: [label, match, value]
+                          properties:
+                            label:
+                              type: string
+                              minLength: 1
+                              maxLength: 190
+                            match:
+                              type: string
+                              enum: ["=", "!=", "=~", "!~"]
+                            value:
+                              type: string
+                              maxLength: 1024
+                      continue:
+                        type: boolean
+                      groupBy:
+                        type: array
+                        maxItems: 20
+                        x-kubernetes-list-type: set
+                        items:
+                          type: string
+                          minLength: 1
+                          maxLength: 190
+                      groupWait:
+                        type: string
+                        maxLength: 64
+                      groupInterval:
+                        type: string
+                        maxLength: 64
+                      repeatInterval:
+                        type: string
+                        maxLength: 64
+                ruleGroups:
+                  type: array
+                  default: []
+                  maxItems: 20
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys: [name]
+                  description: Ordinary alert rule groups owned by this routing request. Rules use this request's NotificationPolicy and cannot bypass it with per-rule notification settings.
+                  items:
+                    type: object
+                    required: [name, folderUid, intervalSeconds, rules]
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 63
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                      folderUid:
+                        type: string
+                        minLength: 1
+                        maxLength: 190
+                      intervalSeconds:
+                        type: integer
+                        minimum: 1
+                        maximum: 86400
+                      rules:
+                        type: array
+                        minItems: 1
+                        maxItems: 100
+                        items:
+                          type: object
+                          required: [name, condition, data]
+                          x-kubernetes-validations:
+                            - rule: self.data.exists(query, query.refId == self.condition)
+                              message: alert condition must reference a query vended by this rule
+                          properties:
+                            name:
+                              type: string
+                              minLength: 1
+                              maxLength: 190
+                            uid:
+                              type: string
+                              maxLength: 190
+                            condition:
+                              type: string
+                              minLength: 1
+                              maxLength: 64
+                            data:
+                              type: array
+                              minItems: 1
+                              maxItems: 10
+                              items:
+                                type: object
+                                x-kubernetes-preserve-unknown-fields: true
+                                required: [refId]
+                                properties:
+                                  refId:
+                                    type: string
+                                    minLength: 1
+                                    maxLength: 64
+                            annotations:
+                              type: object
+                              additionalProperties:
+                                type: string
+                            labels:
+                              type: object
+                              additionalProperties:
+                                type: string
+                            noDataState:
+                              type: string
+                            execErrState:
+                              type: string
+                            for:
+                              type: string
+                            isPaused:
+                              type: boolean
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-alerting-routing-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaAlertingRouting
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-alerting-routing
+      functionRef:
+        name: function-grafana-vending

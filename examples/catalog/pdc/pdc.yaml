@@ -1,0 +1,18 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaPDC
+metadata:
+  name: example-pdc
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique01
+  profile: standard
+  networks:
+    - name: primary
+  token:
+    expiresAfter: 168h
+  datasources:
+    - name: Private metrics
+      type: prometheus
+      network: primary
+      url: https://datasource.example.invalid
