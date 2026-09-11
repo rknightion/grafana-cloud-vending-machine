@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-10 20:15'
+updated_date: '2026-09-11 09:06'
 labels:
   - bug
 dependencies: []
@@ -17,7 +18,7 @@ ordinal: 68000
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Every newly vended GrafanaCloudStackRequest reports Ready=False with "Unready resources: provider-config" indefinitely, even though the stack and every managed resource under it are Synced=True Ready=True and the credentials are delivered. It clears only when something is provisioned INSIDE that stack, which for many consumers is never.
 
-Found in m7kni/portina-iac (PTI-0020) on 2026-09-10 against the composition at v1.0.0, comparing two claims in the same namespace on the same composition:
+Found in portina-iac (PTI-0020) on 2026-09-10 against the composition at v1.0.0, comparing two claims in the same namespace on the same composition:
 
   portina           Ready=True  Available
   portinapushtests  Ready=False Creating   "Unready resources: provider-config"

@@ -117,31 +117,116 @@ scan_fixed_allowing() {
   fi
 }
 
-# These strings are split so the safety control does not reproduce source
-# environment identifiers in a repository intended for publication.
-scan_fixed "source customer identifier" "ro""che"
-# The organisation name is also the public documentation hub this repository
-# publishes into, so hub references pass and environment identity still fails.
+# Source-environment identity comes from an ERE passed IN BY ENVIRONMENT, never
+# from this file.
+#
+# This used to be a list of split string literals. Splitting stops the control
+# matching itself, which is why it looked reasonable, but it does NOT hide the
+# terms: it defeats grep, not a reader, and this repository is public. The
+# literals sat here readable from 2026-08-04 until they were rewritten out.
+#
+# Accepted, in order of precedence, matching grafana-cloud-org-insights'
+# bin/check-customer-identifiers so one export serves both repositories:
+#   --patterns-file <path>
+#   GCVM_IDENTIFIER_PATTERN                 this repository's override
+#   CUSTOMER_IDENTIFIER_PATTERN             the shared set; what CI provides
+#   GCINSIGHT_CUSTOMER_IDENTIFIER_PATTERN   the existing local export
+#
+# Absent all four this exits 2 rather than passing, because a scan that silently
+# skips its identity half is worse than no scan. Extend the pattern set when a
+# new engagement starts: a missing identifier means the gate quietly passes.
+identity_pattern=""
+patterns_file=""
+allow_missing="${GCVM_SCAN_ALLOW_MISSING_PATTERNS:-0}"
+
+while (($# > 0)); do
+  case $1 in
+    --patterns-file)
+      patterns_file=${2:?--patterns-file needs a path}
+      shift 2
+      ;;
+    --allow-missing-patterns)
+      allow_missing=1
+      shift
+      ;;
+    *)
+      echo "public-release scan: unknown argument $1" >&2
+      exit 2
+      ;;
+  esac
+done
+
+if [[ -n $patterns_file ]]; then
+  if [[ ! -r $patterns_file ]]; then
+    echo "public-release scan: --patterns-file $patterns_file is not readable" >&2
+    exit 2
+  fi
+  identity_pattern=$(tr -d '\n' <"$patterns_file")
+else
+  identity_pattern="${GCVM_IDENTIFIER_PATTERN:-${CUSTOMER_IDENTIFIER_PATTERN:-${GCINSIGHT_CUSTOMER_IDENTIFIER_PATTERN:-}}}"
+fi
+
+if [[ -z $identity_pattern ]]; then
+  if [[ $allow_missing == 1 ]]; then
+    echo "public-release scan: WARNING - no identity pattern set, so the identity half" >&2
+    echo "of this scan did not run. Only the credential and structural checks did." >&2
+    echo "Acceptable only where secrets are genuinely unavailable, such as a pull" >&2
+    echo "request from a fork. Never a basis for publishing anything." >&2
+  else
+    echo "public-release scan: no identity pattern available." >&2
+    echo >&2
+    echo "Set one of GCVM_IDENTIFIER_PATTERN, CUSTOMER_IDENTIFIER_PATTERN or" >&2
+    echo "GCINSIGHT_CUSTOMER_IDENTIFIER_PATTERN, or pass --patterns-file <path>." >&2
+    echo >&2
+    echo "Exiting 2 rather than passing: a scan that skips its identity half while" >&2
+    echo "reporting success is worse than no scan at all." >&2
+    exit 2
+  fi
+else
+  scan_regex "source-environment identity" "$identity_pattern"
+fi
+
+# The organisation and account names stay hardcoded deliberately. Neither is in
+# the customer pattern set, and a bare org or account name discloses far less
+# than a customer does. What they still catch is an environment-shaped reference
+# creeping into a generic product.
 #
 # The allowed forms are ENUMERATED, never a bare `<org>/`. That distinction is
 # the whole control: a wildcard would pass any repository under the org and the
-# rule would stop meaning anything. Each entry below is a named repository or
-# domain that is already public, or a phrase that names the org without naming
-# an environment.
+# rule would stop meaning anything.
+#
+# NOTE, corrected 2026-09-11: an earlier version of this comment said each
+# allowed entry is "already public". That is false - all four of the named
+# repositories are private. The real bar is that Rob has judged the NAME safe to
+# disclose, which is a weaker and more honest claim. Do not extend the list on
+# the assumption that a repository being public is the test; ask.
 #
 # Longest forms first -- the alternation is tried left to right and each hit has
 # its allowed substrings removed before being re-tested, so a shorter prefix
 # matching first would leave the remainder behind and fail the line.
 #
-# Added 2026-08-29: the backlog task in this repo (GCV-0031, one of a fleet-wide
-# set) names the shared CI tooling and Renovate config repositories and the
-# self-hosted runner pool. Rob confirmed those four forms are publishable.
-org_identifier="m7""kni"
+# `<org>/portina-iac` added 2026-09-11, and NOT because the name was judged
+# publishable on its own. GCV-0068's description named it, which reached three
+# commits, and this scan reads history - so the only alternatives were a
+# 166-commit rewrite of a public repository or a permanently red gate. The
+# rewrite was declined as disproportionate: the reference is an internal
+# repository name, not customer identity, and nothing in the customer pattern
+# set appears anywhere in this repository's history.
+#
+# The description itself was reworded to drop the qualifier, so the phrase does
+# not recur. This entry exists only to cover the history that cannot be changed.
+org_identifier="m7kni"
 scan_fixed_allowing "source API/domain identifier" "$org_identifier" \
-  "$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs|$org_identifier/ci-tools|$org_identifier/renovate-config|$org_identifier self-hosted|rknightion/$org_identifier"
-scan_fixed "source account identifier" "rob""knight"
-scan_fixed "source proof-of-concept identifier" "crossplane""avm"
-scan_fixed "source architecture acronym" "a""vm"
+  "$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs|$org_identifier/ci-tools|$org_identifier/renovate-config|$org_identifier/portina-iac|$org_identifier self-hosted|rknightion/$org_identifier"
+scan_fixed "source account identifier" "robknight"
+
+# Architecture and proof-of-concept vocabulary from the originating engagement.
+# Not customer names and not in the pattern set, so hardcoded. Splitting them
+# was never needed to stop the control matching itself either - every scan
+# function already excludes this file by path.
+scan_fixed "source proof-of-concept identifier" "crossplaneavm"
+scan_fixed "source architecture acronym" "avm"
+
 scan_fixed "Grafana Cloud token prefix" "gl""c_"
 scan_fixed "Grafana service-account token prefix" "gl""sa_"
 scan_fixed "private Tailscale hostname" ".ts"".net"

@@ -77,6 +77,18 @@ jobs:
 
       - name: Validate
         run: just check
+        env:
+          # The publication scan's identity half takes its pattern set by
+          # environment, because that set names specific customers and must
+          # never be committed to this public repository. Without it the scan
+          # exits 2 rather than passing, so a missing secret fails the gate
+          # loudly instead of quietly skipping half the check.
+          #
+          # A pull request from a fork gets no secrets and so cannot run this
+          # half. That is deliberate: such a PR needs a maintainer to re-run the
+          # scan locally before merge.
+          CUSTOMER_IDENTIFIER_PATTERN: ${{ secrets.CUSTOMER_IDENTIFIER_PATTERN }}
+          GCVM_SCAN_ALLOW_MISSING_PATTERNS: ${{ github.event.pull_request.head.repo.fork && '1' || '0' }}
 
   # Single aggregator the branch ruleset gates. Keeping the ruleset pinned to one
   # check means the job list above can change without touching branch protection.
