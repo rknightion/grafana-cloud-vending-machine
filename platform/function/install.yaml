@@ -36,7 +36,7 @@ spec:
             - verify
             - --certificate-oidc-issuer=https://token.actions.githubusercontent.com
             - --certificate-identity=https://github.com/rknightion/grafana-cloud-vending-machine/.github/workflows/publish-function.yml@refs/heads/main
-            - ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending@sha256:f4acdd026bed01b82e94e54e05411aabdba78258e7bac87a22fe7980aa817f8d
+            - ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending@sha256:50168c25dc02e98da3c16603919959f4a025f00aca685baa58e9616c566a29a8
           env:
             - name: HOME
               value: /tmp
@@ -112,7 +112,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
-  package: ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending@sha256:f4acdd026bed01b82e94e54e05411aabdba78258e7bac87a22fe7980aa817f8d
+  package: ghcr.io/rknightion/grafana-cloud-vending-machine/function-grafana-vending@sha256:50168c25dc02e98da3c16603919959f4a025f00aca685baa58e9616c566a29a8
   packagePullPolicy: IfNotPresent
   revisionActivationPolicy: Automatic
   revisionHistoryLimit: 1

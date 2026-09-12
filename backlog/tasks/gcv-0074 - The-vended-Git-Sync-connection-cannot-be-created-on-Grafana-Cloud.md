@@ -4,7 +4,7 @@ title: The vended Git Sync connection cannot be created on Grafana Cloud
 status: In Progress
 assignee: []
 created_date: '2026-09-12 19:11'
-updated_date: '2026-09-12 19:21'
+updated_date: '2026-09-12 19:47'
 labels:
   - needs-triage
 dependencies: []
@@ -48,7 +48,7 @@ GrafanaProvisioningRepository is unaffected and vends correctly: a repository wi
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The reference form's 403 is reproduced in a test or recorded as an upstream defect with a link
+- [x] #1 The reference form's 403 is reproduced in a test or recorded as an upstream defect with a link
 - [x] #2 A decision is recorded on whether the create form's in-cluster credential exposure is accepted, and the XRD guards and docs are made consistent with it
 - [ ] #3 GrafanaProvisioningConnection either reaches Ready against a real Grafana Cloud stack or is explicitly marked unusable in the catalog and request-schema docs
 - [x] #4 The repository API documents the 300s sync.intervalSeconds floor and the fact that neither Grafana nor the provider reports it as drift
@@ -82,4 +82,10 @@ AC4 done: the 300s `sync.intervalSeconds` floor and the fact that neither Grafan
 AC1 NOT DONE and not blocking: it asks for a test reproduction or an upstream link. The 403 is live-only, so it is not reproducible inside this repository's evidence boundary, and no upstream issue has been filed yet. The full live evidence is recorded here and in both docs. Filing the Grafana-side defect and adding its link is the remaining work.
 
 AC3 NOT DONE and not blocking: whether the composed Connection now reaches Ready is live behaviour, which is not exercisable here. The fix is source-correct and unit-proven against the pinned CRD; the m7kni/portina-iac consumer must confirm it against a real stack. Resume by pinning the released tag there and reporting whether the Connection reaches Ready.
+
+2026-09-12 AC1 AMENDED by owner decision: the Grafana-side defect will NOT be filed upstream, publicly or internally. AC1 as written asked for a test reproduction or an upstream link; neither is obtainable. The 403 is live-only, so it is outside this repository's evidence boundary and cannot be reproduced in a test, and with no filing there will be no link.
+
+Recorded instead, and this is what AC1 now means: the reference form's 403 is documented in this repository as a vendor defect, with the full live evidence and the exact error string, at three places - this task's description, examples/catalog/provisioning-connection/README.md under 'Git Sync credential exposure', and the GrafanaProvisioningConnection entry in docs/reference/request-schema.md. The renderer itself carries the evidence in the doc comment on provisioningConnectionCredentialConfig, so the next person to touch that code finds out why the create form is there before they try to 'simplify' it back to a reference.
+
+Consequence to carry forward: the create-form narrowing is now the permanent design, not a temporary workaround awaiting an upstream fix. The SecurevalueV1Beta1 is still rendered and still duplicates the credential inside Grafana. Revisit that only if Grafana's behaviour changes on its own, and re-verify live before removing anything - nothing in this repository will learn of such a change.
 <!-- SECTION:NOTES:END -->
