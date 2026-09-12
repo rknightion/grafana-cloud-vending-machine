@@ -3,11 +3,11 @@ id: GCV-0068
 title: >-
   A newly vended stack's claim stays Ready=False forever, because its per-stack
   ProviderConfig is never used
-status: In Progress
+status: Done
 assignee:
   - '@codex'
 created_date: '2026-09-10 20:15'
-updated_date: '2026-09-12 17:56'
+updated_date: '2026-09-12 18:20'
 labels:
   - bug
 dependencies: []
@@ -55,15 +55,15 @@ Option 1 is probably right: the per-stack ProviderConfig genuinely IS ready in t
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A stack vended with no in-stack resources reaches Ready=True
-- [ ] #2 The chosen approach is recorded, including why the per-stack ProviderConfig readiness is or is not part of the roll-up
-- [ ] #3 An existing vended stack that is currently stuck unready reaches Ready without being recreated
+- [x] #1 A stack vended with no in-stack resources reaches Ready=True
+- [x] #2 The chosen approach is recorded, including why the per-stack ProviderConfig readiness is or is not part of the roll-up
+- [x] #3 An existing vended stack that is currently stuck unready reaches Ready without being recreated
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -92,4 +92,6 @@ Final CodeRabbit disposition: its duplicated minor suggestion to require Securev
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+
+Wave 11 marks only the observed per-stack provider-config child ready on existence, leaving an absent ProviderConfig unspecified and every other child gated on observed Ready=True. Source proves an already-stuck claim recovers on its next normal reconcile without recreation; live behavior was not exercised and is not exercisable here. Source SHA cbfdb737a81dcc61dc6acf5c79f703f107f0810d passed hosted Validate run 34709762755. Pin SHA 46abc2f816d9cf3bf6c1c8f90f9fca4e5be0a538 passed local just check at 85.0% coverage and hosted Validate run 34710556018.
 <!-- SECTION:FINAL_SUMMARY:END -->

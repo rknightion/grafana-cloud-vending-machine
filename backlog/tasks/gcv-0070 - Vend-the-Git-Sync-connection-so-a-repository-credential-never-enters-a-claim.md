@@ -1,11 +1,11 @@
 ---
 id: GCV-0070
 title: Vend the Git Sync connection so a repository credential never enters a claim
-status: In Progress
+status: Done
 assignee:
   - '@codex'
 created_date: '2026-09-12 12:44'
-updated_date: '2026-09-12 17:56'
+updated_date: '2026-09-12 18:20'
 labels: []
 dependencies: []
 type: feature
@@ -24,18 +24,18 @@ The design question the module exists to answer is where the credential lives. T
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A namespaced composite API vends a provider connection carrying title, type, description, url and the GitHub App app id and installation id
-- [ ] #2 The credential is expressible only as a reference to a secure value that already exists in the stack, and a claim carrying an inline credential literal is rejected at admission rather than at reconcile
-- [ ] #3 The secure version counter is a claim input, so a rotation is triggerable without recreating the connection
-- [ ] #4 Several connections in one namespace are provable from one claim set, each with its own stable external name
-- [ ] #5 The pinned provider connection CRD is added to the provider admission fixture from the pinned artefact, and the emitted shape round-trips through it
-- [ ] #6 GrafanaProvisioningRepository can reference a connection this API vends, and the catalog documents which of the two is applied first
+- [x] #1 A namespaced composite API vends a provider connection carrying title, type, description, url and the GitHub App app id and installation id
+- [x] #2 The credential is expressible only as a reference to a secure value that already exists in the stack, and a claim carrying an inline credential literal is rejected at admission rather than at reconcile
+- [x] #3 The secure version counter is a claim input, so a rotation is triggerable without recreating the connection
+- [x] #4 Several connections in one namespace are provable from one claim set, each with its own stable external name
+- [x] #5 The pinned provider connection CRD is added to the provider admission fixture from the pinned artefact, and the emitted shape round-trips through it
+- [x] #6 GrafanaProvisioningRepository can reference a connection this API vends, and the catalog documents which of the two is applied first
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -74,4 +74,6 @@ Final CodeRabbit disposition: complete post-security reviews produced only minor
 Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
 
 Additional resume check: reconcile the cached CRD kind SecurevalueV1Beta1 with the frozen SecureValueV1Beta1 seam before implementation.
+
+Wave 11 delivered the namespaced Git Sync connection API and ExternalSecret to SecurevalueV1Beta1 to ConnectionV0Alpha1 credential bridge, with exactly-one reviewed decrypter, stable identities, rotation input, admission rejection of every literal/create shape, provider-CRD round trips, and ordered catalog guidance. Source SHA cbfdb737a81dcc61dc6acf5c79f703f107f0810d passed hosted Validate run 34709762755 and published signed digest sha256:f4acdd026bed01b82e94e54e05411aabdba78258e7bac87a22fe7980aa817f8d in run 34709762808. Pin SHA 46abc2f816d9cf3bf6c1c8f90f9fca4e5be0a538 passed local just check at 85.0% coverage and hosted Validate run 34710556018.
 <!-- SECTION:FINAL_SUMMARY:END -->

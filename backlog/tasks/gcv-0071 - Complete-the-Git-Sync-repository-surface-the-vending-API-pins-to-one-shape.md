@@ -1,11 +1,11 @@
 ---
 id: GCV-0071
 title: Complete the Git Sync repository surface the vending API pins to one shape
-status: In Progress
+status: Done
 assignee:
   - '@codex'
 created_date: '2026-09-12 12:44'
-updated_date: '2026-09-12 17:32'
+updated_date: '2026-09-12 18:20'
 labels: []
 dependencies:
   - GCV-0070
@@ -25,18 +25,18 @@ Two of those are load-bearing rather than cosmetic. An empty workflow list is th
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The provider type is a claim input covering every type the pinned provider accepts, with the per-type url, branch, path and token-user fields expressible, and a claim whose type and per-type block disagree is rejected at admission
-- [ ] #2 Sync enabled, target and interval are claim inputs, and the instance target either carries an explicit ownership decision or is refused by construction with that refusal recorded as design
-- [ ] #3 The allowed-workflow list is a claim input and the empty read-only case is expressible and covered by a test
-- [ ] #4 Branch, pull request and commit templates, commit signer identity and signing method, and the webhook base url are claim inputs
-- [ ] #5 The repository token, webhook secret and commit signing key use the same secure-value reference route as the connection credential, and no inline credential literal is admissible
-- [ ] #6 Several repositories against one stack are provable from one claim set, and the pinned provider repository CRD in the admission fixture round-trips the emitted shape for each provider type
+- [x] #1 The provider type is a claim input covering every type the pinned provider accepts, with the per-type url, branch, path and token-user fields expressible, and a claim whose type and per-type block disagree is rejected at admission
+- [x] #2 Sync enabled, target and interval are claim inputs, and the instance target either carries an explicit ownership decision or is refused by construction with that refusal recorded as design
+- [x] #3 The allowed-workflow list is a claim input and the empty read-only case is expressible and covered by a test
+- [x] #4 Branch, pull request and commit templates, commit signer identity and signing method, and the webhook base url are claim inputs
+- [x] #5 The repository token, webhook secret and commit signing key use the same secure-value reference route as the connection credential, and no inline credential literal is admissible
+- [x] #6 Several repositories against one stack are provable from one claim set, and the pinned provider repository CRD in the admission fixture round-trips the emitted shape for each provider type
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -63,4 +63,6 @@ Wave 11 security correction: repository.uid and stackRef.name are immutable; pro
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+
+Wave 11 widened Git Sync repository vending across local, GitHub, GitHub Enterprise, Git, Bitbucket and GitLab shapes; exposed folder and folderless sync, explicit workflows including read-only empty, templates, signer and webhook fields; refused instance ownership; and accepted only secure-value name references. Source SHA cbfdb737a81dcc61dc6acf5c79f703f107f0810d passed hosted Validate run 34709762755. Pin SHA 46abc2f816d9cf3bf6c1c8f90f9fca4e5be0a538 passed local just check at 85.0% coverage and hosted Validate run 34710556018.
 <!-- SECTION:FINAL_SUMMARY:END -->
