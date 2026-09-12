@@ -142,6 +142,7 @@ spec:
     - roles.enterprise.grafana.m.crossplane.io
     - roleassignments.enterprise.grafana.m.crossplane.io
     - roleassignmentitems.enterprise.grafana.m.crossplane.io
+    - securevaluev1beta1s.enterprise.grafana.m.crossplane.io
     - foldersets.oss.grafana.o.crossplane.io
     - dashboardsets.oss.grafana.o.crossplane.io
     - teamsets.oss.grafana.o.crossplane.io

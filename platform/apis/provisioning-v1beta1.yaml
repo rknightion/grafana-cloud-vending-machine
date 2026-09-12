@@ -35,6 +35,8 @@ spec:
               x-kubernetes-validations:
                 - rule: '!has(self.dashboard)'
                   message: GrafanaProvisioningRepository owns its subtree through Git; use GrafanaCloudStackRequest for classic Crossplane Dashboard ownership.
+                - rule: self.stackRef.name == oldSelf.stackRef.name
+                  message: stackRef.name is immutable
               properties:
                 stackRef:
                   type: object
@@ -52,16 +54,22 @@ spec:
                   required:
                     - uid
                     - title
-                    - url
-                    - branch
-                    - path
+                    - type
                     - connectionRef
+                    - sync
+                    - workflows
+                  x-kubernetes-validations:
+                    - rule: "(self.type == 'local' && has(self.local) && !has(self.github) && !has(self.githubEnterprise) && !has(self.git) && !has(self.bitbucket) && !has(self.gitlab)) || (self.type == 'github' && has(self.github) && !has(self.local) && !has(self.githubEnterprise) && !has(self.git) && !has(self.bitbucket) && !has(self.gitlab)) || (self.type == 'githubEnterprise' && has(self.githubEnterprise) && !has(self.local) && !has(self.github) && !has(self.git) && !has(self.bitbucket) && !has(self.gitlab)) || (self.type == 'git' && has(self.git) && !has(self.local) && !has(self.github) && !has(self.githubEnterprise) && !has(self.bitbucket) && !has(self.gitlab)) || (self.type == 'bitbucket' && has(self.bitbucket) && !has(self.local) && !has(self.github) && !has(self.githubEnterprise) && !has(self.git) && !has(self.gitlab)) || (self.type == 'gitlab' && has(self.gitlab) && !has(self.local) && !has(self.github) && !has(self.githubEnterprise) && !has(self.git) && !has(self.bitbucket))"
+                      message: repository type requires exactly its matching provider block
                   properties:
                     uid:
                       type: string
                       minLength: 1
                       maxLength: 190
                       pattern: ^[a-zA-Z0-9._-]+$
+                      x-kubernetes-validations:
+                        - rule: self == oldSelf
+                          message: repository.uid is immutable
                       description: Stable Grafana repository UID and Crossplane external name.
                     title:
                       type: string
@@ -70,21 +78,76 @@ spec:
                     description:
                       type: string
                       maxLength: 1024
-                    url:
+                    type:
                       type: string
-                      minLength: 9
-                      maxLength: 2048
-                      pattern: ^https://.+$
-                      description: HTTPS Git repository URL.
-                    branch:
-                      type: string
-                      minLength: 1
-                      maxLength: 255
-                    path:
-                      type: string
-                      minLength: 1
-                      maxLength: 1024
-                      description: Repository path that is the Git-provisioned folder subtree.
+                      enum: [local, github, githubEnterprise, git, bitbucket, gitlab]
+                    local:
+                      type: object
+                      required: [path]
+                      properties:
+                        path:
+                          type: string
+                          minLength: 1
+                          maxLength: 1024
+                          description: Local filesystem path for a local Grafana repository.
+                    github:
+                      type: object
+                      required: [url, branch, path]
+                      properties:
+                        url: &repository-url
+                          type: string
+                          minLength: 9
+                          maxLength: 2048
+                          pattern: ^https://.+$
+                          x-kubernetes-validations:
+                            - rule: "!self.matches('^https://[^/]*@')"
+                              message: URL userinfo is forbidden because credentials must use secure value references
+                        branch: &repository-branch
+                          type: string
+                          minLength: 1
+                          maxLength: 255
+                        path: &repository-path
+                          type: string
+                          minLength: 1
+                          maxLength: 1024
+                        generateDashboardPreviews:
+                          type: boolean
+                    githubEnterprise:
+                      type: object
+                      required: [url, serverUrl, branch, path]
+                      properties:
+                        url: *repository-url
+                        serverUrl: *repository-url
+                        branch: *repository-branch
+                        path: *repository-path
+                        generateDashboardPreviews:
+                          type: boolean
+                    git:
+                      type: object
+                      required: [url, branch, path, tokenUser]
+                      properties:
+                        url: *repository-url
+                        branch: *repository-branch
+                        path: *repository-path
+                        tokenUser: &repository-token-user
+                          type: string
+                          minLength: 1
+                          maxLength: 255
+                    bitbucket:
+                      type: object
+                      required: [url, branch, path, tokenUser]
+                      properties:
+                        url: *repository-url
+                        branch: *repository-branch
+                        path: *repository-path
+                        tokenUser: *repository-token-user
+                    gitlab:
+                      type: object
+                      required: [url, branch, path]
+                      properties:
+                        url: *repository-url
+                        branch: *repository-branch
+                        path: *repository-path
                     connectionRef:
                       type: object
                       required:
@@ -96,6 +159,95 @@ spec:
                           maxLength: 190
                           pattern: ^[a-zA-Z0-9._-]+$
                           description: Existing Grafana ConnectionV0Alpha1 name containing the Git credential. This request references it but never manages its secure values.
+                    sync:
+                      type: object
+                      required: [enabled, target, intervalSeconds]
+                      x-kubernetes-validations:
+                        - rule: self.target != 'instance'
+                          message: sync.target instance is refused because one declarative owner is allowed per folder subtree
+                      properties:
+                        enabled:
+                          type: boolean
+                        target:
+                          type: string
+                          enum: [folder, folderless, instance]
+                        intervalSeconds:
+                          type: integer
+                          minimum: 1
+                    workflows:
+                      type: array
+                      description: Allowed Grafana change workflows. An explicit empty list keeps the subtree read-only.
+                      items:
+                        type: string
+                        enum: [write, branch]
+                      x-kubernetes-list-type: set
+                    branch:
+                      type: object
+                      properties:
+                        nameTemplate:
+                          type: string
+                          maxLength: 1024
+                        enforceTemplate:
+                          type: boolean
+                    pullRequest:
+                      type: object
+                      properties:
+                        titleTemplate:
+                          type: string
+                          maxLength: 1024
+                        enforceTemplate:
+                          type: boolean
+                    commit:
+                      type: object
+                      properties:
+                        signerName:
+                          type: string
+                          maxLength: 255
+                        signerEmail:
+                          type: string
+                          maxLength: 254
+                        signingMethod:
+                          type: string
+                          enum: [gpg, ssh, smime, ""]
+                        smimeCertificate:
+                          type: string
+                          maxLength: 32768
+                          description: Public PEM-encoded S/MIME certificate, never a private key.
+                        singleResourceMessageTemplate:
+                          type: string
+                          maxLength: 1024
+                        enforceTemplate:
+                          type: boolean
+                    webhook:
+                      type: object
+                      properties:
+                        baseUrl: *repository-url
+                    secure:
+                      type: object
+                      description: Stable names of externally vended secure values. Credential literals and creation controls are not part of this API.
+                      properties:
+                        token: &secure-value-name
+                          type: object
+                          required: [name]
+                          x-kubernetes-validations:
+                            - rule: '!has(self.create)'
+                              message: secure values must reference an existing secure value by name; create is forbidden
+                          properties:
+                            name:
+                              type: string
+                              minLength: 1
+                              maxLength: 190
+                              pattern: ^[a-zA-Z0-9._-]+$
+                            create:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: Rejected compatibility guard. Credential creation is never accepted from a claim.
+                        webhookSecret: *secure-value-name
+                        commitSigningKey: *secure-value-name
+                    secureVersion:
+                      type: integer
+                      minimum: 1
+                      description: Increment to request the provider to reapply unchanged secure-value names after rotation.
                 dashboard:
                   type: object
                   description: Rejected compatibility guard. Classic dashboard ownership belongs to GrafanaCloudStackRequest, never to this Git-provisioned subtree.

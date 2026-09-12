@@ -13,6 +13,7 @@ resources:
   - apis/agent-observability-v1beta1.yaml
   - apis/assistant-v1beta1.yaml
   - apis/datasource-access-v1beta1.yaml
+  - apis/provisioning-connection-v1beta1.yaml
   - apis/provisioning-v1beta1.yaml
   - apis/ladder-v1beta1.yaml
   - apis/k6-v1beta1.yaml

@@ -1,0 +1,24 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaProvisioningConnection
+metadata:
+  name: example-github-app
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithunique07
+  title: Example GitHub App connection
+  type: github
+  description: Git Sync connection for the example dashboard repository.
+  url: https://github.com/example/grafana-dashboards
+  github:
+    appId: replace-with-github-app-id
+    installationId: replace-with-github-app-installation-id
+  credential:
+    remoteRef:
+      key: replace-with-secret-store-key
+      property: replace-with-private-key-property
+  # This is a Grafana secure-value decrypter identity, not a credential.
+  decrypters:
+    - replace-with-approved-decrypter
+  # Increment after rotating the secret-store value to re-apply it.
+  secureVersion: 1

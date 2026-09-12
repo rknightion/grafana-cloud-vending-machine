@@ -1,11 +1,11 @@
 ---
 id: GCV-0070
 title: Vend the Git Sync connection so a repository credential never enters a claim
-status: Parked
+status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-09-12 12:44'
-updated_date: '2026-09-12 15:59'
+updated_date: '2026-09-12 17:56'
 labels: []
 dependencies: []
 type: feature
@@ -44,6 +44,8 @@ The design question the module exists to answer is where the credential lives. T
 1. Root imports the pinned Connection and SecureValue CRDs after a byte-equality provenance control.
 2. Lane A implements the frozen connection API, three-resource credential bridge, fail-closed admission controls, renderer tests, and catalog.
 3. Root wires registries, runs the integrated gate and security review, then records exact-SHA hosted evidence.
+
+Wave 11: implement the already-frozen connection API, ExternalSecret to SecurevalueV1Beta1 to ConnectionV0Alpha1 bridge, admission controls, renderer tests, and inert catalog; the fixture pre-pass is already complete on main.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -58,6 +60,12 @@ Reviewer correction, 2026-09-12, after wave 10 parked. The provenance blocker is
 Wave 10 was right that the control failed and wrong about what that meant. The control demanded byte equality against an existing fixture neighbour, and the fixture is deliberately inconsistent about an empty top-level status stanza: 12 of its 42 entries carry one and 30 do not, and the installer ignores it. The real provenance evidence is that all 42 pre-existing fixture CRDs are present in the cached package and every one agrees exactly modulo that stanza.
 
 Two frozen names were wrong, not one. Wave 10 caught the kind spelling and missed the group version. Both are now read off the artefact: kind SecurevalueV1Beta1 with a lowercase v, listKind SecurevalueV1Beta1List, plural securevaluev1beta1s, singular securevaluev1beta1, scope Namespaced, and served group version enterprise.grafana.m.crossplane.io/v1alpha1. The V1Beta1 in the kind and plural is the Grafana app-platform resource version, not the CRD version, so a managed-kind-map entry or a rendered child written against /v1beta1 is rejected.
+
+Wave 11 integration: the gate required two documentation registry entries omitted from the frozen wiring list: the new composite in the request-schema inventory and in the enterprise provider-family architecture row. Root judgement R1 added only those entries after the gate named both exact gaps; no API or architecture decision changed. CodeRabbit also identified that the connection must reference the per-stack ProviderConfig by the bare stackRef.name and that stackRef.name must be immutable. Both were corrected and covered before its zero-finding second pass.
+
+Wave 11 security correction: admission and renderer defenses now reject URL userinfo, secure-map create forms, and more than one decrypter. The exactly-one decrypter remains a required operator-supplied reviewed identity because the pinned package does not identify the provisioning reader. Corrective SECURITY review passed; focused security and admission tests passed in 31.554s. Common retain behavior remains deliberate; GCV-0073 records the separately authorized ordered-decommission design.
+
+Final CodeRabbit disposition: complete post-security reviews produced only minor findings. Root fixed the intentional ESO Retain lifecycle documentation, added renderer defenses for all three forbidden literal shapes, and added the empty-decrypter admission boundary. The duplicated suggestion to wait for Securevalue Ready rather than observed existence was left because goal section 5.1 freezes observed existence and the SECURITY review proved unready children still keep the composite unready. The exact pre-commit just check passed in 255.832s at 85.0% coverage with Validation passed.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

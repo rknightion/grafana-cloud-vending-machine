@@ -25,7 +25,8 @@ README describing its ownership boundary.
 | [assistant-governance](../../examples/catalog/assistant-governance/) | Terms-gated Assistant rules and MCP allow-list | Accepted terms, reviewed platform profiles, endpoint, and Secret-backed headers |
 | [datasource-access](../../examples/catalog/datasource-access/) | One datasource's authoritative team Query grants and aggregated LBAC tree | Observed team UID and numeric ID, basic-auth connection Secret, entitlement, and rules |
 | [observability-products](../../examples/catalog/observability-products/) | Stack-request product activation toggles | Organization, stack identity, and product-specific configuration outside this API |
-| [provisioning-repository](../../examples/catalog/provisioning-repository/) | Preview Git-provisioned dashboard subtree | Existing Grafana Connection, Git URL/branch/path, and exclusive subtree ownership |
+| [provisioning-connection](../../examples/catalog/provisioning-connection/) | Secret-store-backed GitHub App connection for Git Sync | Ready stack, configured consumer secret store, and reviewed decrypter identity |
+| [provisioning-repository](../../examples/catalog/provisioning-repository/) | Preview Git-provisioned dashboard subtree | Separately vended Grafana Connection, Git provider settings, and exclusive subtree ownership |
 | [sso-create-only](../../examples/catalog/sso-create-only/) | OAuth initialization followed by administrator ownership | Approved OAuth profile and handoff policy |
 | [sso-azuread](../../examples/catalog/sso-azuread/) | Enforced Azure AD OAuth with group role mapping | Tenant/application values, group claims, role expression, and client-secret path |
 | [sso-saml](../../examples/catalog/sso-saml/) | Enforced SAML metadata and role mapping | Metadata, attributes, signing requirements, and a tested administrator login path |

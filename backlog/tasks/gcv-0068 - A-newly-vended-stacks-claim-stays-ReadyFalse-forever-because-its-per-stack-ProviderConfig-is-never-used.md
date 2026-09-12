@@ -3,11 +3,11 @@ id: GCV-0068
 title: >-
   A newly vended stack's claim stays Ready=False forever, because its per-stack
   ProviderConfig is never used
-status: Parked
+status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-09-10 20:15'
-updated_date: '2026-09-12 13:08'
+updated_date: '2026-09-12 17:56'
 labels:
   - bug
 dependencies: []
@@ -72,12 +72,20 @@ Option 1 is probably right: the per-stack ProviderConfig genuinely IS ready in t
 1. Lane C adds the focused provider-config readiness tests first.
 2. Mark provider-config ready only after observed existence, preserving every other child readiness result.
 3. Root runs the integrated gate and records exact-SHA hosted evidence; AC3 is answered from source and marked not exercisable here.
+
+Wave 11: add focused readiness tests first, mark provider-config ready only after observed existence, preserve every other child readiness result, and answer existing-claim recovery from source as not exercised and not exercisable here.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+
+Wave 11 AC3 source position: RunFunction calls markObservedResourcesReady on every normal reconciliation before publishing desired composed resources. The provider-config branch now marks only an observed existing child ready, while absent provider-config remains unspecified and all other children still require observed Ready=True. Therefore an already-stuck claim recovers on its next normal reconcile without recreation once the ProviderConfig exists. This behavior is not exercised, and is not exercisable here, against a live Crossplane control plane.
+
+Wave 11 corrective SECURITY review found no false-positive readiness path: only logical child provider-config uses observed existence; absent ProviderConfig remains unspecified and every other child still requires observed Ready=True. Focused security review tests passed in 31.554s.
+
+Final CodeRabbit disposition: its duplicated minor suggestion to require Securevalue Ready was not applied because it concerns GCV-0070 and contradicts the frozen observed-existence staging contract; corrective SECURITY review independently found no false-positive aggregate readiness path. Exact pre-commit just check passed in 255.832s at 85.0% coverage.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

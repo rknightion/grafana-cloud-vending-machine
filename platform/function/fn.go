@@ -78,6 +78,7 @@ var compositeRenderers = map[string]compositeRenderer{
 	"GrafanaAgentObservability":     {render: renderAgentObservability, gateOnStack: true, implemented: agentObservabilityRendererImplemented},
 	"GrafanaAssistantGovernance":    {render: renderAssistantGovernance, gateOnStack: true, implemented: assistantRendererImplemented},
 	"GrafanaDatasourceAccess":       {render: renderDatasourceAccess, gateOnStack: true, implemented: datasourceAccessRendererImplemented},
+	"GrafanaProvisioningConnection": {render: renderProvisioningConnection, gateOnStack: true, observedStackContext: true, implemented: provisioningConnectionRendererImplemented},
 	"GrafanaProvisioningRepository": {render: renderProvisioningRepository, gateOnStack: true, implemented: provisioningRendererImplemented},
 }
 
@@ -439,6 +440,14 @@ func setAccessCompositeReadiness(rsp *fnv1.RunFunctionResponse, admitted bool) e
 
 func markObservedResourcesReady(desired map[resource.Name]*resource.DesiredComposed, observed map[resource.Name]resource.ObservedComposed) {
 	for name, desiredResource := range desired {
+		if name == "provider-config" {
+			// The provider only writes Ready after a managed resource uses this
+			// config, so observed existence is the readiness signal for it.
+			if observedExists(observed, name) {
+				desiredResource.Ready = resource.ReadyTrue
+			}
+			continue
+		}
 		if !observedReady(observed, name) {
 			continue
 		}

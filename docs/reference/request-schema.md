@@ -25,6 +25,7 @@ and the organization registry are in [Configuration](../configuration.md); worke
 | `GrafanaAgentObservability` | `grafanaagentobservabilities` | `gcagento11y` | `grafana-agent-observability-v1beta1` | `stackRef` |
 | `GrafanaAssistantGovernance` | `grafanaassistantgovernances` | `gcassistant` | `grafana-assistant-governance-v1beta1` | `stackRef`, `termsAcceptance` |
 | `GrafanaDatasourceAccess` | `grafanadatasourceaccesses` | `gcdatasourceaccess` | `grafana-datasource-access-v1beta1` | `stackRef`, `datasource`, `teams` |
+| `GrafanaProvisioningConnection` | `grafanaprovisioningconnections` | `gcprovisioningconn` | `grafana-provisioning-connection-v1beta1` | `stackRef`, `title`, `type`, `description`, `url`, `github`, `credential`, `decrypters`, `secureVersion` |
 | `GrafanaProvisioningRepository` | `grafanaprovisioningrepositories` | `gcprovisioningrepo` | `grafana-provisioning-repository-v1beta1` | `stackRef`, `repository` |
 
 | `GrafanaK6Project` | `grafanak6projects` | `gck6` | `grafana-k6-project-v1beta1` | `stackRef`, `grafanaUser`, `allowedLoadZones` |
@@ -89,7 +90,8 @@ same namespace and uses its selected per-stack ProviderConfig:
 | GrafanaAgentObservability | Explicit `guards` and `workload` sections | Does not install a plugin, mint credentials, or infer workload policy |
 | GrafanaAssistantGovernance | Terms-acceptance-gated rule profile and MCP allow-list | Withholds rules/MCP servers until acceptance is observed; headers are write-only Secret data |
 | GrafanaDatasourceAccess | One datasource's connection and authoritative team/LBAC set | Requires basic auth and entitlement; inherited or independent grants can bypass LBAC |
-| GrafanaProvisioningRepository | Preview Git-provisioned folder subtree | References an existing credential-managed Grafana Connection; classic Dashboards remain the default |
+| GrafanaProvisioningConnection | Secret-store-backed GitHub App connection | Requires a consumer-supplied, reviewed decrypter identity that this package cannot infer |
+| GrafanaProvisioningRepository | Preview Git-provisioned folder subtree | References a separately vended Grafana Connection; classic Dashboards remain the default |
 
 The XRD uses `defaultCompositionUpdatePolicy: Automatic` and an enforced Composition reference. Existing requests therefore move to the latest Composition revision automatically after a platform update. Treat an XRD or function change like a production API release: render it, inspect the desired-resource diff, and roll it through a non-production request first.
 
@@ -462,6 +464,13 @@ non-inherited Query grants are removed, but inherited/fixed/custom/independent g
 and can bypass LBAC. LBAC requires Grafana 11.5 or later plus Cloud or Enterprise entitlement; PDC
 is out of scope and namespace uniqueness is not cluster-wide.
 
+### `GrafanaProvisioningConnection`
+
+This opt-in preview API renders an ExternalSecret, a `SecurevalueV1Beta1`, and then a
+`ConnectionV0Alpha1`. The connection is withheld until the secure value is observed. The request
+names a value in the configured consumer secret store and supplies the reviewed Grafana decrypter
+identity, but it cannot carry an inline credential or a provider secure-map `create` value.
+
 ### `GrafanaProvisioningRepository`
 
 This opt-in preview API owns a Git-provisioned folder subtree. It references a required,
@@ -494,6 +503,8 @@ Viewer, Editor, and Admin roles are unchanged, and custom roles explicitly keep
   set.
 - `GrafanaProvisioningRepository` rejects a `dashboard` field. A Git-provisioned subtree and a
   classic Crossplane Dashboard must never claim the same content route.
+- `GrafanaProvisioningConnection` rejects inline credentials and provider secure-map creation
+  shapes; only a consumer secret-store reference is accepted.
 - `GrafanaAlertingBundle.provenance` is required: `enforced` retains provisioning provenance and
   locks UI changes, while `createOnly` seeds values and preserves later UI edits.
 - `GrafanaAssistantGovernance.termsAcceptance.accepted` is the safety gate. Rules and MCP servers
@@ -504,7 +515,7 @@ Viewer, Editor, and Admin roles are unchanged, and custom roles explicitly keep
 ```bash
 kubectl get gcstackrequest,gcrole,gcteamaccess,gccontentaccess -A
 kubectl get gcinventory,gcfleet,gcalerts,gcagento11y,gcassistant -A
-kubectl get gcdatasourceaccess,gcprovisioningrepo -A
+kubectl get gcdatasourceaccess,gcprovisioningconn,gcprovisioningrepo -A
 ```
 
 ## Status conditions

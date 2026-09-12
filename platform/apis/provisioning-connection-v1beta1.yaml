@@ -1,0 +1,157 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanaprovisioningconnections.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaProvisioningConnection
+    plural: grafanaprovisioningconnections
+    singular: grafanaprovisioningconnection
+    shortNames:
+      - gcprovisioningconn
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-provisioning-connection-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: A Git Sync connection whose credential is bridged from the configured secret store through a Grafana secure value.
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - stackRef
+                - title
+                - type
+                - description
+                - url
+                - github
+                - credential
+                - decrypters
+                - secureVersion
+              x-kubernetes-validations:
+                - rule: "!has(self.secure) && !has(self.credential.inline) && !has(self.credential.create)"
+                  message: Credentials must be supplied only through credential.remoteRef; inline credentials and secure create maps are forbidden.
+                - rule: self.stackRef.name == oldSelf.stackRef.name
+                  message: stackRef.name is immutable
+              properties:
+                stackRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 32
+                      pattern: ^[a-z0-9]+$
+                      description: GrafanaCloudStackRequest name and per-stack ProviderConfig name in this namespace.
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 190
+                type:
+                  type: string
+                  enum:
+                    - github
+                  description: Grafana connection type. This API currently vends the GitHub App form only.
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 1024
+                url:
+                  type: string
+                  minLength: 9
+                  maxLength: 2048
+                  pattern: ^https://.+$
+                  x-kubernetes-validations:
+                    - rule: "!self.matches('^https://[^/]*@')"
+                      message: URL userinfo is forbidden because credentials must use credential.remoteRef
+                github:
+                  type: object
+                  required:
+                    - appId
+                    - installationId
+                  properties:
+                    appId:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                    installationId:
+                      type: string
+                      minLength: 1
+                      maxLength: 190
+                credential:
+                  type: object
+                  required:
+                    - remoteRef
+                  properties:
+                    remoteRef:
+                      type: object
+                      required:
+                        - key
+                        - property
+                      properties:
+                        key:
+                          type: string
+                          minLength: 1
+                          maxLength: 1024
+                        property:
+                          type: string
+                          minLength: 1
+                          maxLength: 190
+                    inline:
+                      type: string
+                      description: Rejected compatibility guard. Credentials are never accepted inline.
+                    create:
+                      type: string
+                      description: Rejected compatibility guard. Secure-map create values are never accepted from a claim.
+                decrypters:
+                  type: array
+                  minItems: 1
+                  maxItems: 1
+                  items:
+                    type: string
+                    minLength: 1
+                  x-kubernetes-list-type: set
+                secureVersion:
+                  type: number
+                  minimum: 1
+                  description: Increment to re-apply the secure value without recreating the connection.
+                secure:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  description: Rejected compatibility guard. Provider secure maps are built only from the managed secure value.
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-provisioning-connection-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaProvisioningConnection
+  mode: Pipeline
+  pipeline:
+    - step: render-grafana-provisioning-connection
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          secretStoreRef:
+            name: grafana-vending-secrets
+            kind: SecretStore

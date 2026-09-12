@@ -18,7 +18,8 @@ Everything under `catalog/` is inert reference material. The supplied Argo CD Ap
 | [assistant-governance](catalog/assistant-governance/) | Terms-gated Assistant rules and MCP server allow-list | Accepted terms, platform rule profile, endpoint, and Secret-backed headers |
 | [datasource-access](catalog/datasource-access/) | One datasource's Query grants and aggregated LBAC rules | Observed team UID/numeric ID, basic-auth connection, entitlement, and rules |
 | [observability-products](catalog/observability-products/) | Application, Kubernetes, and Database Observability activation toggles | Product-specific configuration in its Helm/onboarding surface |
-| [provisioning-repository](catalog/provisioning-repository/) | Preview Git-backed dashboard subtree provisioning | Existing Grafana Connection and exclusive content ownership |
+| [provisioning-connection](catalog/provisioning-connection/) | Secret-store-backed GitHub App connection for Git Sync | Ready stack, configured consumer secret store, and reviewed decrypter identity |
+| [provisioning-repository](catalog/provisioning-repository/) | Preview Git-backed dashboard subtree provisioning | Separately vended Grafana Connection and exclusive content ownership |
 | [sso-create-only](catalog/sso-create-only/) | Initializing OAuth/OIDC before handing later changes to stack administrators | Approved OAuth profile and client-secret ExternalSecret |
 | [sso-azuread](catalog/sso-azuread/) | Enforced Azure AD OAuth with group-based role mapping | Tenant application, group claims, and client-secret ExternalSecret |
 | [sso-saml](catalog/sso-saml/) | Enforced SAML with metadata and role-value mapping | IdP metadata, matching attributes, and a tested administrator login path |

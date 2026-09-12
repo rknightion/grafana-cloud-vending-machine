@@ -1,11 +1,11 @@
 ---
 id: GCV-0071
 title: Complete the Git Sync repository surface the vending API pins to one shape
-status: Parked
+status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-09-12 12:44'
-updated_date: '2026-09-12 13:08'
+updated_date: '2026-09-12 17:32'
 labels: []
 dependencies:
   - GCV-0070
@@ -45,12 +45,18 @@ Two of those are load-bearing rather than cosmetic. An empty workflow list is th
 1. Root imports the pinned Repository CRD after a byte-equality provenance control.
 2. Lane B widens the existing API and renderer across all provider types, repository settings, folder or folderless sync, empty workflows, and secure-value name references.
 3. Root wires registries, runs the integrated gate and security review, then records exact-SHA hosted evidence.
+
+Wave 11: widen the existing repository API and renderer across the pinned provider surface, refuse instance sync by construction, preserve the empty read-only workflow list, and use secure-value name references; the fixture pre-pass is already complete on main.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+
+Wave 11 integration: provider children now reference the actual per-stack ProviderConfig named by stackRef.name, not the stale -provider suffix inherited by the preview renderer. The stack reference is immutable at admission, and an omitted repository description remains omitted rather than becoming an explicit empty value. Focused and full admission readback covered the corrected shape.
+
+Wave 11 security correction: repository.uid and stackRef.name are immutable; provider, enterprise-server and webhook URLs reject userinfo; every secure-map alias rejects create form on create and update with an isolated weaken-admit-restore control. Corrective SECURITY review passed with no blocking findings.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
