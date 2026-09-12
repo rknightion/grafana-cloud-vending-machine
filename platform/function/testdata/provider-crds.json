@@ -5643,5 +5643,2356 @@
     "conditions": null,
     "storedVersions": null
   }
+},
+{
+  "apiVersion": "apiextensions.k8s.io/v1",
+  "kind": "CustomResourceDefinition",
+  "metadata": {
+    "annotations": {
+      "controller-gen.kubebuilder.io/version": "v0.18.0"
+    },
+    "name": "connectionv0alpha1s.oss.grafana.m.crossplane.io"
+  },
+  "spec": {
+    "group": "oss.grafana.m.crossplane.io",
+    "names": {
+      "categories": [
+        "crossplane",
+        "managed",
+        "grafana"
+      ],
+      "kind": "ConnectionV0Alpha1",
+      "listKind": "ConnectionV0Alpha1List",
+      "plural": "connectionv0alpha1s",
+      "singular": "connectionv0alpha1"
+    },
+    "scope": "Namespaced",
+    "versions": [
+      {
+        "additionalPrinterColumns": [
+          {
+            "jsonPath": ".status.conditions[?(@.type=='Synced')].status",
+            "name": "SYNCED",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".status.conditions[?(@.type=='Ready')].status",
+            "name": "READY",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".metadata.annotations.crossplane\\.io/external-name",
+            "name": "EXTERNAL-NAME",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".metadata.creationTimestamp",
+            "name": "AGE",
+            "type": "date"
+          }
+        ],
+        "name": "v1alpha1",
+        "schema": {
+          "openAPIV3Schema": {
+            "description": "ConnectionV0Alpha1 is the Schema for the ConnectionV0Alpha1s API. Manages Grafana Git Sync connections used by repositories for provider authentication.",
+            "properties": {
+              "apiVersion": {
+                "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+                "type": "string"
+              },
+              "kind": {
+                "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+                "type": "string"
+              },
+              "metadata": {
+                "type": "object"
+              },
+              "spec": {
+                "description": "ConnectionV0Alpha1Spec defines the desired state of ConnectionV0Alpha1",
+                "properties": {
+                  "forProvider": {
+                    "properties": {
+                      "metadata": {
+                        "description": "(Block, Optional) The metadata of the resource. (see below for nested schema)\nThe metadata of the resource.",
+                        "properties": {
+                          "folderUid": {
+                            "description": "(String) The UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.\nThe UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.",
+                            "type": "string"
+                          },
+                          "uid": {
+                            "description": "(String) The unique identifier of the resource.\nThe unique identifier of the resource.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "options": {
+                        "description": "(Block, Optional) Options for applying the resource. (see below for nested schema)\nOptions for applying the resource.",
+                        "properties": {
+                          "managerIdentity": {
+                            "description": "Override the identity stamped on this resource's manager metadata.",
+                            "type": "string"
+                          },
+                          "overwrite": {
+                            "description": "(Boolean) Set to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.\nSet to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.",
+                            "type": "boolean"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secure": {
+                        "description": "(see below for nested schema)\nSensitive credentials.",
+                        "properties": {
+                          "privateKey": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Private key for GitHub App authentication.\nPrivate key for GitHub App authentication.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "token": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Access token.\nAccess token.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secureVersion": {
+                        "description": "application of secure values.\nSet this to 1 when using `secure`, then increment it to trigger re-application of secure values.",
+                        "type": "number"
+                      },
+                      "spec": {
+                        "description": "(Block, Optional) The spec of the resource. (see below for nested schema)\nThe spec of the resource.",
+                        "properties": {
+                          "description": {
+                            "description": "(String) Connection description.\nConnection description.",
+                            "type": "string"
+                          },
+                          "github": {
+                            "description": "(Block, Optional) GitHub App configuration. (see below for nested schema)\nGitHub App configuration.",
+                            "properties": {
+                              "appId": {
+                                "description": "(String) GitHub App ID.\nGitHub App ID.",
+                                "type": "string"
+                              },
+                              "installationId": {
+                                "description": "(String) GitHub App installation ID.\nGitHub App installation ID.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "title": {
+                            "description": "(String) Display name shown in the UI.\nDisplay name shown in the UI.",
+                            "type": "string"
+                          },
+                          "type": {
+                            "description": "(String) Connection provider type.\nConnection provider type.",
+                            "type": "string"
+                          },
+                          "url": {
+                            "description": "(String) The full URL of the resource.\nProvider URL.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "initProvider": {
+                    "description": "THIS IS A BETA FIELD. It will be honored\nunless the Management Policies feature flag is disabled.\nInitProvider holds the same fields as ForProvider, with the exception\nof Identifier and other resource reference fields. The fields that are\nin InitProvider are merged into ForProvider when the resource is created.\nThe same fields are also added to the terraform ignore_changes hook, to\navoid updating them after creation. This is useful for fields that are\nrequired on creation, but we do not desire to update them after creation,\nfor example because of an external controller is managing them, like an\nautoscaler.",
+                    "properties": {
+                      "metadata": {
+                        "description": "(Block, Optional) The metadata of the resource. (see below for nested schema)\nThe metadata of the resource.",
+                        "properties": {
+                          "folderUid": {
+                            "description": "(String) The UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.\nThe UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.",
+                            "type": "string"
+                          },
+                          "uid": {
+                            "description": "(String) The unique identifier of the resource.\nThe unique identifier of the resource.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "options": {
+                        "description": "(Block, Optional) Options for applying the resource. (see below for nested schema)\nOptions for applying the resource.",
+                        "properties": {
+                          "managerIdentity": {
+                            "description": "Override the identity stamped on this resource's manager metadata.",
+                            "type": "string"
+                          },
+                          "overwrite": {
+                            "description": "(Boolean) Set to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.\nSet to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.",
+                            "type": "boolean"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secure": {
+                        "description": "(see below for nested schema)\nSensitive credentials.",
+                        "properties": {
+                          "privateKey": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Private key for GitHub App authentication.\nPrivate key for GitHub App authentication.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "token": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Access token.\nAccess token.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secureVersion": {
+                        "description": "application of secure values.\nSet this to 1 when using `secure`, then increment it to trigger re-application of secure values.",
+                        "type": "number"
+                      },
+                      "spec": {
+                        "description": "(Block, Optional) The spec of the resource. (see below for nested schema)\nThe spec of the resource.",
+                        "properties": {
+                          "description": {
+                            "description": "(String) Connection description.\nConnection description.",
+                            "type": "string"
+                          },
+                          "github": {
+                            "description": "(Block, Optional) GitHub App configuration. (see below for nested schema)\nGitHub App configuration.",
+                            "properties": {
+                              "appId": {
+                                "description": "(String) GitHub App ID.\nGitHub App ID.",
+                                "type": "string"
+                              },
+                              "installationId": {
+                                "description": "(String) GitHub App installation ID.\nGitHub App installation ID.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "title": {
+                            "description": "(String) Display name shown in the UI.\nDisplay name shown in the UI.",
+                            "type": "string"
+                          },
+                          "type": {
+                            "description": "(String) Connection provider type.\nConnection provider type.",
+                            "type": "string"
+                          },
+                          "url": {
+                            "description": "(String) The full URL of the resource.\nProvider URL.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "managementPolicies": {
+                    "default": [
+                      "*"
+                    ],
+                    "description": "THIS IS A BETA FIELD. It is on by default but can be opted out\nthrough a Crossplane feature flag.\nManagementPolicies specify the array of actions Crossplane is allowed to\ntake on the managed and external resources.\nSee the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223\nand this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md",
+                    "items": {
+                      "description": "A ManagementAction represents an action that the Crossplane controllers\ncan take on an external resource.",
+                      "enum": [
+                        "Observe",
+                        "Create",
+                        "Update",
+                        "Delete",
+                        "LateInitialize",
+                        "*"
+                      ],
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "providerConfigRef": {
+                    "default": {
+                      "kind": "ClusterProviderConfig",
+                      "name": "default"
+                    },
+                    "description": "ProviderConfigReference specifies how the provider that will be used to\ncreate, observe, update, and delete this managed resource should be\nconfigured.",
+                    "properties": {
+                      "kind": {
+                        "description": "Kind of the referenced object.",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the referenced object.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "name"
+                    ],
+                    "type": "object"
+                  },
+                  "writeConnectionSecretToRef": {
+                    "description": "WriteConnectionSecretToReference specifies the namespace and name of a\nSecret to which any connection details for this managed resource should\nbe written. Connection details frequently include the endpoint, username,\nand password required to connect to the managed resource.",
+                    "properties": {
+                      "name": {
+                        "description": "Name of the secret.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "forProvider"
+                ],
+                "type": "object",
+                "x-kubernetes-validations": [
+                  {
+                    "message": "spec.forProvider.metadata is a required parameter",
+                    "rule": "!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.metadata) || (has(self.initProvider) && has(self.initProvider.metadata))"
+                  },
+                  {
+                    "message": "spec.forProvider.spec is a required parameter",
+                    "rule": "!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.spec) || (has(self.initProvider) && has(self.initProvider.spec))"
+                  }
+                ]
+              },
+              "status": {
+                "description": "ConnectionV0Alpha1Status defines the observed state of ConnectionV0Alpha1.",
+                "properties": {
+                  "atProvider": {
+                    "properties": {
+                      "id": {
+                        "description": "(String) The ID of the resource derived from UUID.",
+                        "type": "string"
+                      },
+                      "metadata": {
+                        "description": "(Block, Optional) The metadata of the resource. (see below for nested schema)\nThe metadata of the resource.",
+                        "properties": {
+                          "annotations": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "(Map of String) Annotations of the resource.\nAnnotations of the resource.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "folderUid": {
+                            "description": "(String) The UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.\nThe UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.",
+                            "type": "string"
+                          },
+                          "uid": {
+                            "description": "(String) The unique identifier of the resource.\nThe unique identifier of the resource.",
+                            "type": "string"
+                          },
+                          "url": {
+                            "description": "(String) The full URL of the resource.\nThe full URL of the resource.",
+                            "type": "string"
+                          },
+                          "uuid": {
+                            "description": "(String) The globally unique identifier of a resource, used by the API for tracking.\nThe globally unique identifier of a resource, used by the API for tracking.",
+                            "type": "string"
+                          },
+                          "version": {
+                            "description": "(String) The version of the resource.\nThe version of the resource.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "options": {
+                        "description": "(Block, Optional) Options for applying the resource. (see below for nested schema)\nOptions for applying the resource.",
+                        "properties": {
+                          "managerIdentity": {
+                            "description": "Override the identity stamped on this resource's manager metadata.",
+                            "type": "string"
+                          },
+                          "overwrite": {
+                            "description": "(Boolean) Set to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.\nSet to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.",
+                            "type": "boolean"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secure": {
+                        "description": "(see below for nested schema)\nSensitive credentials.",
+                        "properties": {
+                          "privateKey": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Private key for GitHub App authentication.\nPrivate key for GitHub App authentication.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "token": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Access token.\nAccess token.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secureVersion": {
+                        "description": "application of secure values.\nSet this to 1 when using `secure`, then increment it to trigger re-application of secure values.",
+                        "type": "number"
+                      },
+                      "spec": {
+                        "description": "(Block, Optional) The spec of the resource. (see below for nested schema)\nThe spec of the resource.",
+                        "properties": {
+                          "description": {
+                            "description": "(String) Connection description.\nConnection description.",
+                            "type": "string"
+                          },
+                          "github": {
+                            "description": "(Block, Optional) GitHub App configuration. (see below for nested schema)\nGitHub App configuration.",
+                            "properties": {
+                              "appId": {
+                                "description": "(String) GitHub App ID.\nGitHub App ID.",
+                                "type": "string"
+                              },
+                              "installationId": {
+                                "description": "(String) GitHub App installation ID.\nGitHub App installation ID.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "title": {
+                            "description": "(String) Display name shown in the UI.\nDisplay name shown in the UI.",
+                            "type": "string"
+                          },
+                          "type": {
+                            "description": "(String) Connection provider type.\nConnection provider type.",
+                            "type": "string"
+                          },
+                          "url": {
+                            "description": "(String) The full URL of the resource.\nProvider URL.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "conditions": {
+                    "description": "Conditions of the resource.",
+                    "items": {
+                      "description": "A Condition that may apply to a resource.",
+                      "properties": {
+                        "lastTransitionTime": {
+                          "description": "LastTransitionTime is the last time this condition transitioned from one\nstatus to another.",
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "A Message containing details about this condition's last transition from\none status to another, if any.",
+                          "type": "string"
+                        },
+                        "observedGeneration": {
+                          "description": "ObservedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                          "format": "int64",
+                          "type": "integer"
+                        },
+                        "reason": {
+                          "description": "A Reason for this condition's last transition from one status to another.",
+                          "type": "string"
+                        },
+                        "status": {
+                          "description": "Status of this condition; is it currently True, False, or Unknown?",
+                          "type": "string"
+                        },
+                        "type": {
+                          "description": "Type of this condition. At most one of each condition type may apply to\na resource at any point in time.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "lastTransitionTime",
+                        "reason",
+                        "status",
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array",
+                    "x-kubernetes-list-map-keys": [
+                      "type"
+                    ],
+                    "x-kubernetes-list-type": "map"
+                  },
+                  "observedGeneration": {
+                    "description": "ObservedGeneration is the latest metadata.generation\nwhich resulted in either a ready state, or stalled due to error\nit can not recover from without human intervention.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "required": [
+              "spec"
+            ],
+            "type": "object"
+          }
+        },
+        "served": true,
+        "storage": true,
+        "subresources": {
+          "status": {
+          }
+        }
+      }
+    ]
+  },
+  "status": {
+    "acceptedNames": {
+      "kind": "",
+      "plural": ""
+    },
+    "conditions": null,
+    "storedVersions": null
+  }
+},
+{
+  "apiVersion": "apiextensions.k8s.io/v1",
+  "kind": "CustomResourceDefinition",
+  "metadata": {
+    "annotations": {
+      "controller-gen.kubebuilder.io/version": "v0.18.0"
+    },
+    "name": "repositoryv0alpha1s.oss.grafana.m.crossplane.io"
+  },
+  "spec": {
+    "group": "oss.grafana.m.crossplane.io",
+    "names": {
+      "categories": [
+        "crossplane",
+        "managed",
+        "grafana"
+      ],
+      "kind": "RepositoryV0Alpha1",
+      "listKind": "RepositoryV0Alpha1List",
+      "plural": "repositoryv0alpha1s",
+      "singular": "repositoryv0alpha1"
+    },
+    "scope": "Namespaced",
+    "versions": [
+      {
+        "additionalPrinterColumns": [
+          {
+            "jsonPath": ".status.conditions[?(@.type=='Synced')].status",
+            "name": "SYNCED",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".status.conditions[?(@.type=='Ready')].status",
+            "name": "READY",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".metadata.annotations.crossplane\\.io/external-name",
+            "name": "EXTERNAL-NAME",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".metadata.creationTimestamp",
+            "name": "AGE",
+            "type": "date"
+          }
+        ],
+        "name": "v1alpha1",
+        "schema": {
+          "openAPIV3Schema": {
+            "description": "RepositoryV0Alpha1 is the Schema for the RepositoryV0Alpha1s API. Manages Grafana Git Sync repositories for provisioning dashboards and related resources.",
+            "properties": {
+              "apiVersion": {
+                "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+                "type": "string"
+              },
+              "kind": {
+                "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+                "type": "string"
+              },
+              "metadata": {
+                "type": "object"
+              },
+              "spec": {
+                "description": "RepositoryV0Alpha1Spec defines the desired state of RepositoryV0Alpha1",
+                "properties": {
+                  "forProvider": {
+                    "properties": {
+                      "metadata": {
+                        "description": "(Block, Optional) The metadata of the resource. (see below for nested schema)\nThe metadata of the resource.",
+                        "properties": {
+                          "folderUid": {
+                            "description": "(String) The UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.\nThe UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.",
+                            "type": "string"
+                          },
+                          "uid": {
+                            "description": "(String) The unique identifier of the resource.\nThe unique identifier of the resource.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "options": {
+                        "description": "(Block, Optional) Options for applying the resource. (see below for nested schema)\nOptions for applying the resource.",
+                        "properties": {
+                          "managerIdentity": {
+                            "description": "Override the identity stamped on this resource's manager metadata.",
+                            "type": "string"
+                          },
+                          "overwrite": {
+                            "description": "(Boolean) Set to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.\nSet to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.",
+                            "type": "boolean"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secure": {
+                        "description": "(see below for nested schema)\nSensitive credentials.",
+                        "properties": {
+                          "commitSigningKey": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Private key used to sign commits the repository writes back. The format is selected by spec.commit.signing_method.\nPrivate key used to sign commits the repository writes back. The format is selected by `spec.commit.signing_method`.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "token": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Token for repository authentication.\nToken for repository authentication.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "webhookSecret": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Webhook secret.\nWebhook secret.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secureVersion": {
+                        "description": "application of secure values.\nSet this to 1 when using `secure`, then increment it to trigger re-application of secure values.",
+                        "type": "number"
+                      },
+                      "spec": {
+                        "description": "(Block, Optional) The spec of the resource. (see below for nested schema)\nThe spec of the resource.",
+                        "properties": {
+                          "bitbucket": {
+                            "description": "(Block, Optional) Bitbucket repository configuration. (see below for nested schema)\nBitbucket repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "tokenUser": {
+                                "description": "(String) Username for PAT auth.\nUsername for PAT auth.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "branch": {
+                            "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch naming options for the branch workflow.",
+                            "properties": {
+                              "enforceTemplate": {
+                                "description": "only.\nWhen true, the branch name field in Save drawers is read-only.",
+                                "type": "boolean"
+                              },
+                              "nameTemplate": {
+                                "description": "(String) Template for the branch name created in the branch workflow.\nTemplate for the branch name created in the branch workflow.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "commit": {
+                            "description": "(Block, Optional) Commit message and signing options. (see below for nested schema)\nCommit message and signing options.",
+                            "properties": {
+                              "enforceTemplate": {
+                                "description": "only.\nWhen true, the commit message field in Save drawers is pre-filled from the template and rendered read-only.",
+                                "type": "boolean"
+                              },
+                              "signerEmail": {
+                                "description": "(String) Email used as the commit signer. Defaults to \"noreply@grafana.com\" when empty.\nEmail used as the commit signer. Defaults to \"noreply@grafana.com\" when empty.",
+                                "type": "string"
+                              },
+                              "signerName": {
+                                "description": "(String) Name used as the commit signer. Defaults to \"Grafana\" when empty.\nName used as the commit signer. Defaults to \"Grafana\" when empty.",
+                                "type": "string"
+                              },
+                              "signingMethod": {
+                                "description": "(String) Method used to sign commits with the key in secure.commit_signing_key: gpg, ssh, or smime. When empty, commits are not signed.\nMethod used to sign commits with the key in `secure.commit_signing_key`: gpg, ssh, or smime. When empty, commits are not signed.",
+                                "type": "string"
+                              },
+                              "singleResourceMessageTemplate": {
+                                "description": "resource UI operations.\nTemplate for commit messages produced by single-resource UI operations.",
+                                "type": "string"
+                              },
+                              "smimeCertificate": {
+                                "description": "encoded X.509 certificate paired with secure.commit_signing_key when signing_method is smime. This is public, not a secret.\nPEM-encoded X.509 certificate paired with `secure.commit_signing_key` when `signing_method` is smime. This is public, not a secret.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "connection": {
+                            "description": "(Block, Optional) Connection resource reference. (see below for nested schema)\nConnection resource reference.",
+                            "properties": {
+                              "name": {
+                                "description": "(String) Connection resource name.\nConnection resource name.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "description": {
+                            "description": "(String) Repository description.\nRepository description.",
+                            "type": "string"
+                          },
+                          "git": {
+                            "description": "(Block, Optional) Generic git repository configuration. (see below for nested schema)\nGeneric git repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "tokenUser": {
+                                "description": "(String) Username for PAT auth.\nUsername for PAT auth.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "github": {
+                            "description": "(Block, Optional) GitHub repository configuration. (see below for nested schema)\nGitHub repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "generateDashboardPreviews": {
+                                "description": "(Boolean) Whether to generate dashboard previews.\nWhether to generate dashboard previews.",
+                                "type": "boolean"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "githubEnterprise": {
+                            "description": "(Block, Optional) GitHub Enterprise Server repository configuration. (see below for nested schema)\nGitHub Enterprise Server repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "generateDashboardPreviews": {
+                                "description": "(Boolean) Whether to generate dashboard previews.\nWhether to generate dashboard previews.",
+                                "type": "boolean"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "serverUrl": {
+                                "description": "managed GitHub Enterprise Server instance.\nBase URL of the self-managed GitHub Enterprise Server instance.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "gitlab": {
+                            "description": "(Block, Optional) GitLab repository configuration. (see below for nested schema)\nGitLab repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "local": {
+                            "description": "(Block, Optional) Local filesystem repository configuration. (see below for nested schema)\nLocal filesystem repository configuration.",
+                            "properties": {
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nFilesystem path.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "pullRequest": {
+                            "description": "(Block, Optional) Pull request options for the branch workflow. (see below for nested schema)\nPull request options for the branch workflow.",
+                            "properties": {
+                              "enforceTemplate": {
+                                "description": "only.\nWhen true, the pull request title field in Save drawers is read-only.",
+                                "type": "boolean"
+                              },
+                              "titleTemplate": {
+                                "description": "(String) Template for pull request titles.\nTemplate for pull request titles.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "sync": {
+                            "description": "(Block, Optional) Sync configuration. (see below for nested schema)\nSync configuration.",
+                            "properties": {
+                              "enabled": {
+                                "description": "(Boolean) Whether sync is enabled.\nWhether sync is enabled.",
+                                "type": "boolean"
+                              },
+                              "intervalSeconds": {
+                                "description": "(Number) Sync interval in seconds.\nSync interval in seconds.",
+                                "type": "number"
+                              },
+                              "target": {
+                                "description": "(String) Sync target: instance, folder, or folderless.\nSync target: instance, folder, or folderless.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "title": {
+                            "description": "(String) Display name shown in the UI.\nDisplay name shown in the UI.",
+                            "type": "string"
+                          },
+                          "type": {
+                            "description": "(String) Repository provider type: local, github, githubEnterprise, git, bitbucket, or gitlab.\nRepository provider type: local, github, githubEnterprise, git, bitbucket, or gitlab.",
+                            "type": "string"
+                          },
+                          "webhook": {
+                            "description": "(Block, Optional) Webhook delivery configuration. (see below for nested schema)\nWebhook delivery configuration.",
+                            "properties": {
+                              "baseUrl": {
+                                "description": "(String) Optional public webhook base URL override used when incoming webhook delivery must target a different host than the Grafana UI URL.\nOptional public webhook base URL override used when incoming webhook delivery must target a different host than the Grafana UI URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "workflows": {
+                            "description": "(List of String) Allowed change workflows: write, branch.\nAllowed change workflows: write, branch.",
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "initProvider": {
+                    "description": "THIS IS A BETA FIELD. It will be honored\nunless the Management Policies feature flag is disabled.\nInitProvider holds the same fields as ForProvider, with the exception\nof Identifier and other resource reference fields. The fields that are\nin InitProvider are merged into ForProvider when the resource is created.\nThe same fields are also added to the terraform ignore_changes hook, to\navoid updating them after creation. This is useful for fields that are\nrequired on creation, but we do not desire to update them after creation,\nfor example because of an external controller is managing them, like an\nautoscaler.",
+                    "properties": {
+                      "metadata": {
+                        "description": "(Block, Optional) The metadata of the resource. (see below for nested schema)\nThe metadata of the resource.",
+                        "properties": {
+                          "folderUid": {
+                            "description": "(String) The UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.\nThe UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.",
+                            "type": "string"
+                          },
+                          "uid": {
+                            "description": "(String) The unique identifier of the resource.\nThe unique identifier of the resource.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "options": {
+                        "description": "(Block, Optional) Options for applying the resource. (see below for nested schema)\nOptions for applying the resource.",
+                        "properties": {
+                          "managerIdentity": {
+                            "description": "Override the identity stamped on this resource's manager metadata.",
+                            "type": "string"
+                          },
+                          "overwrite": {
+                            "description": "(Boolean) Set to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.\nSet to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.",
+                            "type": "boolean"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secure": {
+                        "description": "(see below for nested schema)\nSensitive credentials.",
+                        "properties": {
+                          "commitSigningKey": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Private key used to sign commits the repository writes back. The format is selected by spec.commit.signing_method.\nPrivate key used to sign commits the repository writes back. The format is selected by `spec.commit.signing_method`.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "token": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Token for repository authentication.\nToken for repository authentication.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "webhookSecret": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Webhook secret.\nWebhook secret.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secureVersion": {
+                        "description": "application of secure values.\nSet this to 1 when using `secure`, then increment it to trigger re-application of secure values.",
+                        "type": "number"
+                      },
+                      "spec": {
+                        "description": "(Block, Optional) The spec of the resource. (see below for nested schema)\nThe spec of the resource.",
+                        "properties": {
+                          "bitbucket": {
+                            "description": "(Block, Optional) Bitbucket repository configuration. (see below for nested schema)\nBitbucket repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "tokenUser": {
+                                "description": "(String) Username for PAT auth.\nUsername for PAT auth.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "branch": {
+                            "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch naming options for the branch workflow.",
+                            "properties": {
+                              "enforceTemplate": {
+                                "description": "only.\nWhen true, the branch name field in Save drawers is read-only.",
+                                "type": "boolean"
+                              },
+                              "nameTemplate": {
+                                "description": "(String) Template for the branch name created in the branch workflow.\nTemplate for the branch name created in the branch workflow.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "commit": {
+                            "description": "(Block, Optional) Commit message and signing options. (see below for nested schema)\nCommit message and signing options.",
+                            "properties": {
+                              "enforceTemplate": {
+                                "description": "only.\nWhen true, the commit message field in Save drawers is pre-filled from the template and rendered read-only.",
+                                "type": "boolean"
+                              },
+                              "signerEmail": {
+                                "description": "(String) Email used as the commit signer. Defaults to \"noreply@grafana.com\" when empty.\nEmail used as the commit signer. Defaults to \"noreply@grafana.com\" when empty.",
+                                "type": "string"
+                              },
+                              "signerName": {
+                                "description": "(String) Name used as the commit signer. Defaults to \"Grafana\" when empty.\nName used as the commit signer. Defaults to \"Grafana\" when empty.",
+                                "type": "string"
+                              },
+                              "signingMethod": {
+                                "description": "(String) Method used to sign commits with the key in secure.commit_signing_key: gpg, ssh, or smime. When empty, commits are not signed.\nMethod used to sign commits with the key in `secure.commit_signing_key`: gpg, ssh, or smime. When empty, commits are not signed.",
+                                "type": "string"
+                              },
+                              "singleResourceMessageTemplate": {
+                                "description": "resource UI operations.\nTemplate for commit messages produced by single-resource UI operations.",
+                                "type": "string"
+                              },
+                              "smimeCertificate": {
+                                "description": "encoded X.509 certificate paired with secure.commit_signing_key when signing_method is smime. This is public, not a secret.\nPEM-encoded X.509 certificate paired with `secure.commit_signing_key` when `signing_method` is smime. This is public, not a secret.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "connection": {
+                            "description": "(Block, Optional) Connection resource reference. (see below for nested schema)\nConnection resource reference.",
+                            "properties": {
+                              "name": {
+                                "description": "(String) Connection resource name.\nConnection resource name.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "description": {
+                            "description": "(String) Repository description.\nRepository description.",
+                            "type": "string"
+                          },
+                          "git": {
+                            "description": "(Block, Optional) Generic git repository configuration. (see below for nested schema)\nGeneric git repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "tokenUser": {
+                                "description": "(String) Username for PAT auth.\nUsername for PAT auth.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "github": {
+                            "description": "(Block, Optional) GitHub repository configuration. (see below for nested schema)\nGitHub repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "generateDashboardPreviews": {
+                                "description": "(Boolean) Whether to generate dashboard previews.\nWhether to generate dashboard previews.",
+                                "type": "boolean"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "githubEnterprise": {
+                            "description": "(Block, Optional) GitHub Enterprise Server repository configuration. (see below for nested schema)\nGitHub Enterprise Server repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "generateDashboardPreviews": {
+                                "description": "(Boolean) Whether to generate dashboard previews.\nWhether to generate dashboard previews.",
+                                "type": "boolean"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "serverUrl": {
+                                "description": "managed GitHub Enterprise Server instance.\nBase URL of the self-managed GitHub Enterprise Server instance.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "gitlab": {
+                            "description": "(Block, Optional) GitLab repository configuration. (see below for nested schema)\nGitLab repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "local": {
+                            "description": "(Block, Optional) Local filesystem repository configuration. (see below for nested schema)\nLocal filesystem repository configuration.",
+                            "properties": {
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nFilesystem path.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "pullRequest": {
+                            "description": "(Block, Optional) Pull request options for the branch workflow. (see below for nested schema)\nPull request options for the branch workflow.",
+                            "properties": {
+                              "enforceTemplate": {
+                                "description": "only.\nWhen true, the pull request title field in Save drawers is read-only.",
+                                "type": "boolean"
+                              },
+                              "titleTemplate": {
+                                "description": "(String) Template for pull request titles.\nTemplate for pull request titles.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "sync": {
+                            "description": "(Block, Optional) Sync configuration. (see below for nested schema)\nSync configuration.",
+                            "properties": {
+                              "enabled": {
+                                "description": "(Boolean) Whether sync is enabled.\nWhether sync is enabled.",
+                                "type": "boolean"
+                              },
+                              "intervalSeconds": {
+                                "description": "(Number) Sync interval in seconds.\nSync interval in seconds.",
+                                "type": "number"
+                              },
+                              "target": {
+                                "description": "(String) Sync target: instance, folder, or folderless.\nSync target: instance, folder, or folderless.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "title": {
+                            "description": "(String) Display name shown in the UI.\nDisplay name shown in the UI.",
+                            "type": "string"
+                          },
+                          "type": {
+                            "description": "(String) Repository provider type: local, github, githubEnterprise, git, bitbucket, or gitlab.\nRepository provider type: local, github, githubEnterprise, git, bitbucket, or gitlab.",
+                            "type": "string"
+                          },
+                          "webhook": {
+                            "description": "(Block, Optional) Webhook delivery configuration. (see below for nested schema)\nWebhook delivery configuration.",
+                            "properties": {
+                              "baseUrl": {
+                                "description": "(String) Optional public webhook base URL override used when incoming webhook delivery must target a different host than the Grafana UI URL.\nOptional public webhook base URL override used when incoming webhook delivery must target a different host than the Grafana UI URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "workflows": {
+                            "description": "(List of String) Allowed change workflows: write, branch.\nAllowed change workflows: write, branch.",
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "managementPolicies": {
+                    "default": [
+                      "*"
+                    ],
+                    "description": "THIS IS A BETA FIELD. It is on by default but can be opted out\nthrough a Crossplane feature flag.\nManagementPolicies specify the array of actions Crossplane is allowed to\ntake on the managed and external resources.\nSee the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223\nand this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md",
+                    "items": {
+                      "description": "A ManagementAction represents an action that the Crossplane controllers\ncan take on an external resource.",
+                      "enum": [
+                        "Observe",
+                        "Create",
+                        "Update",
+                        "Delete",
+                        "LateInitialize",
+                        "*"
+                      ],
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "providerConfigRef": {
+                    "default": {
+                      "kind": "ClusterProviderConfig",
+                      "name": "default"
+                    },
+                    "description": "ProviderConfigReference specifies how the provider that will be used to\ncreate, observe, update, and delete this managed resource should be\nconfigured.",
+                    "properties": {
+                      "kind": {
+                        "description": "Kind of the referenced object.",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the referenced object.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "name"
+                    ],
+                    "type": "object"
+                  },
+                  "writeConnectionSecretToRef": {
+                    "description": "WriteConnectionSecretToReference specifies the namespace and name of a\nSecret to which any connection details for this managed resource should\nbe written. Connection details frequently include the endpoint, username,\nand password required to connect to the managed resource.",
+                    "properties": {
+                      "name": {
+                        "description": "Name of the secret.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "forProvider"
+                ],
+                "type": "object",
+                "x-kubernetes-validations": [
+                  {
+                    "message": "spec.forProvider.metadata is a required parameter",
+                    "rule": "!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.metadata) || (has(self.initProvider) && has(self.initProvider.metadata))"
+                  },
+                  {
+                    "message": "spec.forProvider.spec is a required parameter",
+                    "rule": "!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.spec) || (has(self.initProvider) && has(self.initProvider.spec))"
+                  }
+                ]
+              },
+              "status": {
+                "description": "RepositoryV0Alpha1Status defines the observed state of RepositoryV0Alpha1.",
+                "properties": {
+                  "atProvider": {
+                    "properties": {
+                      "id": {
+                        "description": "(String) The ID of the resource derived from UUID.",
+                        "type": "string"
+                      },
+                      "metadata": {
+                        "description": "(Block, Optional) The metadata of the resource. (see below for nested schema)\nThe metadata of the resource.",
+                        "properties": {
+                          "annotations": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "(Map of String) Annotations of the resource.\nAnnotations of the resource.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "folderUid": {
+                            "description": "(String) The UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.\nThe UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.",
+                            "type": "string"
+                          },
+                          "uid": {
+                            "description": "(String) The unique identifier of the resource.\nThe unique identifier of the resource.",
+                            "type": "string"
+                          },
+                          "url": {
+                            "description": "(String) The full URL of the resource.\nThe full URL of the resource.",
+                            "type": "string"
+                          },
+                          "uuid": {
+                            "description": "(String) The globally unique identifier of a resource, used by the API for tracking.\nThe globally unique identifier of a resource, used by the API for tracking.",
+                            "type": "string"
+                          },
+                          "version": {
+                            "description": "(String) The version of the resource.\nThe version of the resource.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "options": {
+                        "description": "(Block, Optional) Options for applying the resource. (see below for nested schema)\nOptions for applying the resource.",
+                        "properties": {
+                          "managerIdentity": {
+                            "description": "Override the identity stamped on this resource's manager metadata.",
+                            "type": "string"
+                          },
+                          "overwrite": {
+                            "description": "(Boolean) Set to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.\nSet to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.",
+                            "type": "boolean"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secure": {
+                        "description": "(see below for nested schema)\nSensitive credentials.",
+                        "properties": {
+                          "commitSigningKey": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Private key used to sign commits the repository writes back. The format is selected by spec.commit.signing_method.\nPrivate key used to sign commits the repository writes back. The format is selected by `spec.commit.signing_method`.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "token": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Token for repository authentication.\nToken for repository authentication.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "webhookSecret": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "only) Webhook secret.\nWebhook secret.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "secureVersion": {
+                        "description": "application of secure values.\nSet this to 1 when using `secure`, then increment it to trigger re-application of secure values.",
+                        "type": "number"
+                      },
+                      "spec": {
+                        "description": "(Block, Optional) The spec of the resource. (see below for nested schema)\nThe spec of the resource.",
+                        "properties": {
+                          "bitbucket": {
+                            "description": "(Block, Optional) Bitbucket repository configuration. (see below for nested schema)\nBitbucket repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "tokenUser": {
+                                "description": "(String) Username for PAT auth.\nUsername for PAT auth.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "branch": {
+                            "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch naming options for the branch workflow.",
+                            "properties": {
+                              "enforceTemplate": {
+                                "description": "only.\nWhen true, the branch name field in Save drawers is read-only.",
+                                "type": "boolean"
+                              },
+                              "nameTemplate": {
+                                "description": "(String) Template for the branch name created in the branch workflow.\nTemplate for the branch name created in the branch workflow.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "commit": {
+                            "description": "(Block, Optional) Commit message and signing options. (see below for nested schema)\nCommit message and signing options.",
+                            "properties": {
+                              "enforceTemplate": {
+                                "description": "only.\nWhen true, the commit message field in Save drawers is pre-filled from the template and rendered read-only.",
+                                "type": "boolean"
+                              },
+                              "signerEmail": {
+                                "description": "(String) Email used as the commit signer. Defaults to \"noreply@grafana.com\" when empty.\nEmail used as the commit signer. Defaults to \"noreply@grafana.com\" when empty.",
+                                "type": "string"
+                              },
+                              "signerName": {
+                                "description": "(String) Name used as the commit signer. Defaults to \"Grafana\" when empty.\nName used as the commit signer. Defaults to \"Grafana\" when empty.",
+                                "type": "string"
+                              },
+                              "signingMethod": {
+                                "description": "(String) Method used to sign commits with the key in secure.commit_signing_key: gpg, ssh, or smime. When empty, commits are not signed.\nMethod used to sign commits with the key in `secure.commit_signing_key`: gpg, ssh, or smime. When empty, commits are not signed.",
+                                "type": "string"
+                              },
+                              "singleResourceMessageTemplate": {
+                                "description": "resource UI operations.\nTemplate for commit messages produced by single-resource UI operations.",
+                                "type": "string"
+                              },
+                              "smimeCertificate": {
+                                "description": "encoded X.509 certificate paired with secure.commit_signing_key when signing_method is smime. This is public, not a secret.\nPEM-encoded X.509 certificate paired with `secure.commit_signing_key` when `signing_method` is smime. This is public, not a secret.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "connection": {
+                            "description": "(Block, Optional) Connection resource reference. (see below for nested schema)\nConnection resource reference.",
+                            "properties": {
+                              "name": {
+                                "description": "(String) Connection resource name.\nConnection resource name.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "description": {
+                            "description": "(String) Repository description.\nRepository description.",
+                            "type": "string"
+                          },
+                          "git": {
+                            "description": "(Block, Optional) Generic git repository configuration. (see below for nested schema)\nGeneric git repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "tokenUser": {
+                                "description": "(String) Username for PAT auth.\nUsername for PAT auth.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "github": {
+                            "description": "(Block, Optional) GitHub repository configuration. (see below for nested schema)\nGitHub repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "generateDashboardPreviews": {
+                                "description": "(Boolean) Whether to generate dashboard previews.\nWhether to generate dashboard previews.",
+                                "type": "boolean"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "githubEnterprise": {
+                            "description": "(Block, Optional) GitHub Enterprise Server repository configuration. (see below for nested schema)\nGitHub Enterprise Server repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "generateDashboardPreviews": {
+                                "description": "(Boolean) Whether to generate dashboard previews.\nWhether to generate dashboard previews.",
+                                "type": "boolean"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "serverUrl": {
+                                "description": "managed GitHub Enterprise Server instance.\nBase URL of the self-managed GitHub Enterprise Server instance.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "gitlab": {
+                            "description": "(Block, Optional) GitLab repository configuration. (see below for nested schema)\nGitLab repository configuration.",
+                            "properties": {
+                              "branch": {
+                                "description": "(Block, Optional) Branch naming options for the branch workflow. (see below for nested schema)\nBranch to sync.",
+                                "type": "string"
+                              },
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nOptional subdirectory path.",
+                                "type": "string"
+                              },
+                              "url": {
+                                "description": "(String) The full URL of the resource.\nRepository URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "local": {
+                            "description": "(Block, Optional) Local filesystem repository configuration. (see below for nested schema)\nLocal filesystem repository configuration.",
+                            "properties": {
+                              "path": {
+                                "description": "(String) Optional subdirectory path.\nFilesystem path.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "pullRequest": {
+                            "description": "(Block, Optional) Pull request options for the branch workflow. (see below for nested schema)\nPull request options for the branch workflow.",
+                            "properties": {
+                              "enforceTemplate": {
+                                "description": "only.\nWhen true, the pull request title field in Save drawers is read-only.",
+                                "type": "boolean"
+                              },
+                              "titleTemplate": {
+                                "description": "(String) Template for pull request titles.\nTemplate for pull request titles.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "sync": {
+                            "description": "(Block, Optional) Sync configuration. (see below for nested schema)\nSync configuration.",
+                            "properties": {
+                              "enabled": {
+                                "description": "(Boolean) Whether sync is enabled.\nWhether sync is enabled.",
+                                "type": "boolean"
+                              },
+                              "intervalSeconds": {
+                                "description": "(Number) Sync interval in seconds.\nSync interval in seconds.",
+                                "type": "number"
+                              },
+                              "target": {
+                                "description": "(String) Sync target: instance, folder, or folderless.\nSync target: instance, folder, or folderless.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "title": {
+                            "description": "(String) Display name shown in the UI.\nDisplay name shown in the UI.",
+                            "type": "string"
+                          },
+                          "type": {
+                            "description": "(String) Repository provider type: local, github, githubEnterprise, git, bitbucket, or gitlab.\nRepository provider type: local, github, githubEnterprise, git, bitbucket, or gitlab.",
+                            "type": "string"
+                          },
+                          "webhook": {
+                            "description": "(Block, Optional) Webhook delivery configuration. (see below for nested schema)\nWebhook delivery configuration.",
+                            "properties": {
+                              "baseUrl": {
+                                "description": "(String) Optional public webhook base URL override used when incoming webhook delivery must target a different host than the Grafana UI URL.\nOptional public webhook base URL override used when incoming webhook delivery must target a different host than the Grafana UI URL.",
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "workflows": {
+                            "description": "(List of String) Allowed change workflows: write, branch.\nAllowed change workflows: write, branch.",
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "conditions": {
+                    "description": "Conditions of the resource.",
+                    "items": {
+                      "description": "A Condition that may apply to a resource.",
+                      "properties": {
+                        "lastTransitionTime": {
+                          "description": "LastTransitionTime is the last time this condition transitioned from one\nstatus to another.",
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "A Message containing details about this condition's last transition from\none status to another, if any.",
+                          "type": "string"
+                        },
+                        "observedGeneration": {
+                          "description": "ObservedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                          "format": "int64",
+                          "type": "integer"
+                        },
+                        "reason": {
+                          "description": "A Reason for this condition's last transition from one status to another.",
+                          "type": "string"
+                        },
+                        "status": {
+                          "description": "Status of this condition; is it currently True, False, or Unknown?",
+                          "type": "string"
+                        },
+                        "type": {
+                          "description": "Type of this condition. At most one of each condition type may apply to\na resource at any point in time.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "lastTransitionTime",
+                        "reason",
+                        "status",
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array",
+                    "x-kubernetes-list-map-keys": [
+                      "type"
+                    ],
+                    "x-kubernetes-list-type": "map"
+                  },
+                  "observedGeneration": {
+                    "description": "ObservedGeneration is the latest metadata.generation\nwhich resulted in either a ready state, or stalled due to error\nit can not recover from without human intervention.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "required": [
+              "spec"
+            ],
+            "type": "object"
+          }
+        },
+        "served": true,
+        "storage": true,
+        "subresources": {
+          "status": {
+          }
+        }
+      }
+    ]
+  },
+  "status": {
+    "acceptedNames": {
+      "kind": "",
+      "plural": ""
+    },
+    "conditions": null,
+    "storedVersions": null
+  }
+},
+{
+  "apiVersion": "apiextensions.k8s.io/v1",
+  "kind": "CustomResourceDefinition",
+  "metadata": {
+    "annotations": {
+      "controller-gen.kubebuilder.io/version": "v0.18.0"
+    },
+    "name": "securevaluev1beta1s.enterprise.grafana.m.crossplane.io"
+  },
+  "spec": {
+    "group": "enterprise.grafana.m.crossplane.io",
+    "names": {
+      "categories": [
+        "crossplane",
+        "managed",
+        "grafana"
+      ],
+      "kind": "SecurevalueV1Beta1",
+      "listKind": "SecurevalueV1Beta1List",
+      "plural": "securevaluev1beta1s",
+      "singular": "securevaluev1beta1"
+    },
+    "scope": "Namespaced",
+    "versions": [
+      {
+        "additionalPrinterColumns": [
+          {
+            "jsonPath": ".status.conditions[?(@.type=='Synced')].status",
+            "name": "SYNCED",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".status.conditions[?(@.type=='Ready')].status",
+            "name": "READY",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".metadata.annotations.crossplane\\.io/external-name",
+            "name": "EXTERNAL-NAME",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".metadata.creationTimestamp",
+            "name": "AGE",
+            "type": "date"
+          }
+        ],
+        "name": "v1alpha1",
+        "schema": {
+          "openAPIV3Schema": {
+            "description": "SecurevalueV1Beta1 is the Schema for the SecurevalueV1Beta1s API. <no value>",
+            "properties": {
+              "apiVersion": {
+                "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+                "type": "string"
+              },
+              "kind": {
+                "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+                "type": "string"
+              },
+              "metadata": {
+                "type": "object"
+              },
+              "spec": {
+                "description": "SecurevalueV1Beta1Spec defines the desired state of SecurevalueV1Beta1",
+                "properties": {
+                  "forProvider": {
+                    "properties": {
+                      "metadata": {
+                        "description": "The metadata of the resource.",
+                        "properties": {
+                          "folderUid": {
+                            "description": "The UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.",
+                            "type": "string"
+                          },
+                          "uid": {
+                            "description": "The unique identifier of the resource.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "options": {
+                        "description": "Options for applying the resource.",
+                        "properties": {
+                          "managerIdentity": {
+                            "description": "Override the identity stamped on this resource's manager metadata.",
+                            "type": "string"
+                          },
+                          "overwrite": {
+                            "description": "Set to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.",
+                            "type": "boolean"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "spec": {
+                        "description": "The spec of the resource.",
+                        "properties": {
+                          "decrypters": {
+                            "description": "List of decrypters allowed to read this secure value.",
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "description": {
+                            "description": "Secure value description.",
+                            "type": "string"
+                          },
+                          "ref": {
+                            "description": "Reference to an existing secret managed by the keeper.",
+                            "type": "string"
+                          },
+                          "valueSecretRef": {
+                            "description": "Plaintext value to store. This value is write-only.",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "description": "Name of the secret.",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "name"
+                            ],
+                            "type": "object"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "initProvider": {
+                    "description": "THIS IS A BETA FIELD. It will be honored\nunless the Management Policies feature flag is disabled.\nInitProvider holds the same fields as ForProvider, with the exception\nof Identifier and other resource reference fields. The fields that are\nin InitProvider are merged into ForProvider when the resource is created.\nThe same fields are also added to the terraform ignore_changes hook, to\navoid updating them after creation. This is useful for fields that are\nrequired on creation, but we do not desire to update them after creation,\nfor example because of an external controller is managing them, like an\nautoscaler.",
+                    "properties": {
+                      "metadata": {
+                        "description": "The metadata of the resource.",
+                        "properties": {
+                          "folderUid": {
+                            "description": "The UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.",
+                            "type": "string"
+                          },
+                          "uid": {
+                            "description": "The unique identifier of the resource.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "options": {
+                        "description": "Options for applying the resource.",
+                        "properties": {
+                          "managerIdentity": {
+                            "description": "Override the identity stamped on this resource's manager metadata.",
+                            "type": "string"
+                          },
+                          "overwrite": {
+                            "description": "Set to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.",
+                            "type": "boolean"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "spec": {
+                        "description": "The spec of the resource.",
+                        "properties": {
+                          "decrypters": {
+                            "description": "List of decrypters allowed to read this secure value.",
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "description": {
+                            "description": "Secure value description.",
+                            "type": "string"
+                          },
+                          "ref": {
+                            "description": "Reference to an existing secret managed by the keeper.",
+                            "type": "string"
+                          },
+                          "valueSecretRef": {
+                            "description": "Plaintext value to store. This value is write-only.",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "description": "Name of the secret.",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "name"
+                            ],
+                            "type": "object"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "managementPolicies": {
+                    "default": [
+                      "*"
+                    ],
+                    "description": "THIS IS A BETA FIELD. It is on by default but can be opted out\nthrough a Crossplane feature flag.\nManagementPolicies specify the array of actions Crossplane is allowed to\ntake on the managed and external resources.\nSee the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223\nand this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md",
+                    "items": {
+                      "description": "A ManagementAction represents an action that the Crossplane controllers\ncan take on an external resource.",
+                      "enum": [
+                        "Observe",
+                        "Create",
+                        "Update",
+                        "Delete",
+                        "LateInitialize",
+                        "*"
+                      ],
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "providerConfigRef": {
+                    "default": {
+                      "kind": "ClusterProviderConfig",
+                      "name": "default"
+                    },
+                    "description": "ProviderConfigReference specifies how the provider that will be used to\ncreate, observe, update, and delete this managed resource should be\nconfigured.",
+                    "properties": {
+                      "kind": {
+                        "description": "Kind of the referenced object.",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the referenced object.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "name"
+                    ],
+                    "type": "object"
+                  },
+                  "writeConnectionSecretToRef": {
+                    "description": "WriteConnectionSecretToReference specifies the namespace and name of a\nSecret to which any connection details for this managed resource should\nbe written. Connection details frequently include the endpoint, username,\nand password required to connect to the managed resource.",
+                    "properties": {
+                      "name": {
+                        "description": "Name of the secret.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "forProvider"
+                ],
+                "type": "object",
+                "x-kubernetes-validations": [
+                  {
+                    "message": "spec.forProvider.metadata is a required parameter",
+                    "rule": "!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.metadata) || (has(self.initProvider) && has(self.initProvider.metadata))"
+                  }
+                ]
+              },
+              "status": {
+                "description": "SecurevalueV1Beta1Status defines the observed state of SecurevalueV1Beta1.",
+                "properties": {
+                  "atProvider": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "metadata": {
+                        "description": "The metadata of the resource.",
+                        "properties": {
+                          "annotations": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "Annotations of the resource.",
+                            "type": "object",
+                            "x-kubernetes-map-type": "granular"
+                          },
+                          "folderUid": {
+                            "description": "The UID of the folder to save the resource in. For example, it's supported for dashboards and folders. To know if it's supported for the specific resource you're using check the documentation.",
+                            "type": "string"
+                          },
+                          "uid": {
+                            "description": "The unique identifier of the resource.",
+                            "type": "string"
+                          },
+                          "url": {
+                            "description": "The full URL of the resource.",
+                            "type": "string"
+                          },
+                          "uuid": {
+                            "description": "The globally unique identifier of a resource, used by the API for tracking.",
+                            "type": "string"
+                          },
+                          "version": {
+                            "description": "The version of the resource.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "options": {
+                        "description": "Options for applying the resource.",
+                        "properties": {
+                          "managerIdentity": {
+                            "description": "Override the identity stamped on this resource's manager metadata.",
+                            "type": "string"
+                          },
+                          "overwrite": {
+                            "description": "Set to true if you want to overwrite existing resource with newer version, same resource title in folder or same resource uid.",
+                            "type": "boolean"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "spec": {
+                        "description": "The spec of the resource.",
+                        "properties": {
+                          "decrypters": {
+                            "description": "List of decrypters allowed to read this secure value.",
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "description": {
+                            "description": "Secure value description.",
+                            "type": "string"
+                          },
+                          "ref": {
+                            "description": "Reference to an existing secret managed by the keeper.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "conditions": {
+                    "description": "Conditions of the resource.",
+                    "items": {
+                      "description": "A Condition that may apply to a resource.",
+                      "properties": {
+                        "lastTransitionTime": {
+                          "description": "LastTransitionTime is the last time this condition transitioned from one\nstatus to another.",
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "A Message containing details about this condition's last transition from\none status to another, if any.",
+                          "type": "string"
+                        },
+                        "observedGeneration": {
+                          "description": "ObservedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                          "format": "int64",
+                          "type": "integer"
+                        },
+                        "reason": {
+                          "description": "A Reason for this condition's last transition from one status to another.",
+                          "type": "string"
+                        },
+                        "status": {
+                          "description": "Status of this condition; is it currently True, False, or Unknown?",
+                          "type": "string"
+                        },
+                        "type": {
+                          "description": "Type of this condition. At most one of each condition type may apply to\na resource at any point in time.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "lastTransitionTime",
+                        "reason",
+                        "status",
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array",
+                    "x-kubernetes-list-map-keys": [
+                      "type"
+                    ],
+                    "x-kubernetes-list-type": "map"
+                  },
+                  "observedGeneration": {
+                    "description": "ObservedGeneration is the latest metadata.generation\nwhich resulted in either a ready state, or stalled due to error\nit can not recover from without human intervention.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "required": [
+              "spec"
+            ],
+            "type": "object"
+          }
+        },
+        "served": true,
+        "storage": true,
+        "subresources": {
+          "status": {
+          }
+        }
+      }
+    ]
+  },
+  "status": {
+    "acceptedNames": {
+      "kind": "",
+      "plural": ""
+    },
+    "conditions": null,
+    "storedVersions": null
+  }
+},
+{
+  "apiVersion": "apiextensions.k8s.io/v1",
+  "kind": "CustomResourceDefinition",
+  "metadata": {
+    "annotations": {
+      "controller-gen.kubebuilder.io/version": "v0.18.0"
+    },
+    "name": "slackchannels.oncall.grafana.o.crossplane.io"
+  },
+  "spec": {
+    "group": "oncall.grafana.o.crossplane.io",
+    "names": {
+      "categories": [
+        "crossplane"
+      ],
+      "kind": "SlackChannel",
+      "listKind": "SlackChannelList",
+      "plural": "slackchannels",
+      "singular": "slackchannel"
+    },
+    "scope": "Namespaced",
+    "versions": [
+      {
+        "additionalPrinterColumns": [
+          {
+            "jsonPath": ".status.conditions[?(@.type=='Ready')].status",
+            "name": "READY",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".status.conditions[?(@.type=='Synced')].status",
+            "name": "SYNCED",
+            "type": "string"
+          },
+          {
+            "jsonPath": ".metadata.creationTimestamp",
+            "name": "AGE",
+            "type": "date"
+          }
+        ],
+        "name": "v1alpha1",
+        "schema": {
+          "openAPIV3Schema": {
+            "description": "SlackChannel is an observe-only resource backed by the grafana_oncall_slack_channel Terraform data source.",
+            "properties": {
+              "apiVersion": {
+                "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+                "type": "string"
+              },
+              "kind": {
+                "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+                "type": "string"
+              },
+              "metadata": {
+                "type": "object"
+              },
+              "spec": {
+                "properties": {
+                  "forProvider": {
+                    "description": "SlackChannelParameters defines the input parameters for the grafana_oncall_slack_channel data source.",
+                    "properties": {
+                      "name": {
+                        "description": "The Slack channel name.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "type": "object"
+                  },
+                  "managementPolicies": {
+                    "default": [
+                      "*"
+                    ],
+                    "description": "THIS IS A BETA FIELD. It is on by default but can be opted out\nthrough a Crossplane feature flag.\nManagementPolicies specify the array of actions Crossplane is allowed to\ntake on the managed and external resources.\nSee the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223\nand this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md",
+                    "items": {
+                      "description": "A ManagementAction represents an action that the Crossplane controllers\ncan take on an external resource.",
+                      "enum": [
+                        "Observe",
+                        "Create",
+                        "Update",
+                        "Delete",
+                        "LateInitialize",
+                        "*"
+                      ],
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "providerConfigRef": {
+                    "default": {
+                      "kind": "ClusterProviderConfig",
+                      "name": "default"
+                    },
+                    "description": "ProviderConfigReference specifies how the provider that will be used to\ncreate, observe, update, and delete this managed resource should be\nconfigured.",
+                    "properties": {
+                      "kind": {
+                        "description": "Kind of the referenced object.",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the referenced object.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "name"
+                    ],
+                    "type": "object"
+                  },
+                  "writeConnectionSecretToRef": {
+                    "description": "WriteConnectionSecretToReference specifies the namespace and name of a\nSecret to which any connection details for this managed resource should\nbe written. Connection details frequently include the endpoint, username,\nand password required to connect to the managed resource.",
+                    "properties": {
+                      "name": {
+                        "description": "Name of the secret.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "forProvider"
+                ],
+                "type": "object"
+              },
+              "status": {
+                "properties": {
+                  "atProvider": {
+                    "description": "SlackChannelObservation holds the observed (computed) fields from the grafana_oncall_slack_channel data source.",
+                    "properties": {
+                      "slackID": {
+                        "description": "The Slack ID of the channel.",
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "conditions": {
+                    "description": "Conditions of the resource.",
+                    "items": {
+                      "description": "A Condition that may apply to a resource.",
+                      "properties": {
+                        "lastTransitionTime": {
+                          "description": "LastTransitionTime is the last time this condition transitioned from one\nstatus to another.",
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "A Message containing details about this condition's last transition from\none status to another, if any.",
+                          "type": "string"
+                        },
+                        "observedGeneration": {
+                          "description": "ObservedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                          "format": "int64",
+                          "type": "integer"
+                        },
+                        "reason": {
+                          "description": "A Reason for this condition's last transition from one status to another.",
+                          "type": "string"
+                        },
+                        "status": {
+                          "description": "Status of this condition; is it currently True, False, or Unknown?",
+                          "type": "string"
+                        },
+                        "type": {
+                          "description": "Type of this condition. At most one of each condition type may apply to\na resource at any point in time.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "lastTransitionTime",
+                        "reason",
+                        "status",
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array",
+                    "x-kubernetes-list-map-keys": [
+                      "type"
+                    ],
+                    "x-kubernetes-list-type": "map"
+                  },
+                  "observedGeneration": {
+                    "description": "ObservedGeneration is the latest metadata.generation\nwhich resulted in either a ready state, or stalled due to error\nit can not recover from without human intervention.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "required": [
+              "spec"
+            ],
+            "type": "object"
+          }
+        },
+        "served": true,
+        "storage": true,
+        "subresources": {
+          "status": {
+          }
+        }
+      }
+    ]
+  },
+  "status": {
+    "acceptedNames": {
+      "kind": "",
+      "plural": ""
+    },
+    "conditions": null,
+    "storedVersions": null
+  }
 }
 ]

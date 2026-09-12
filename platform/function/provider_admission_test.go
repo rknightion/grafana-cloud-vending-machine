@@ -18,6 +18,13 @@ import (
 // The fixture contains complete, unmodified CRDs from provider-grafana v2.14.0,
 // source dc795606df97a72dce81a0c953e0ec0750e0b489. These are the commissioned
 // managed kinds, not a hand-written approximation of their provider schemas.
+//
+// A top-level status stanza is optional here and carries no information: the
+// generated CRDs ship an empty one (acceptedNames blank, conditions and
+// storedVersions null) and InstallCRDs ignores it, so entries added by different
+// passes disagree about whether it is present. Do not normalise the file to make
+// them agree, and never gate a newly imported kind on byte equality against a
+// neighbour — compare it against the pinned package instead.
 func installProviderAdmissionCRDs(t *testing.T, e *admissionEnv) {
 	t.Helper()
 	raw, err := os.ReadFile("testdata/provider-crds.json")
