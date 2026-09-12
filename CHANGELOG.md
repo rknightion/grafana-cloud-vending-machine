@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.1](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v1.0.0...v1.0.1) (2026-09-11)
+
+
+### Bug Fixes
+
+* take the publication scan's customer identifiers from the environment ([f2c15ab](https://github.com/rknightion/grafana-cloud-vending-machine/commit/f2c15ab3a6d7f4fb627eda464294443723e3ef6c))
+
+
+### Documentation
+
+* align recovery contracts and compaction evidence ([9137442](https://github.com/rknightion/grafana-cloud-vending-machine/commit/9137442cf2dfa8275dff34d4c1c498b14b00ad58))
+* **backlog:** a vended stack's claim never reaches Ready without an in-stack resource ([4c88c67](https://github.com/rknightion/grafana-cloud-vending-machine/commit/4c88c67e3c736cbe63dd2b3840f0abbb59dff2fd))
+* **backlog:** GCV-0069 - the alerting and oncall APIs cannot express an IRM chat destination ([446b3c4](https://github.com/rknightion/grafana-cloud-vending-machine/commit/446b3c43495cbe2c07f5a8f96ea79212719fe5c4))
+* sync root async question policy ([c0685db](https://github.com/rknightion/grafana-cloud-vending-machine/commit/c0685db75848b618c5c78ad5c4e926dc25d5c30f))
+* sync same-session fan-out recovery contract ([43cdec0](https://github.com/rknightion/grafana-cloud-vending-machine/commit/43cdec078489c8c0b21234adfec7297a6dfd099a))
+
 ## [1.0.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v0.1.0...v1.0.0) (2026-09-09)
 
 
