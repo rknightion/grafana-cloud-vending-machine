@@ -42,7 +42,7 @@ lint:
 [group('check')]
 [no-exit-message]
 test filter="":
-    cd platform/function && go test -race -cover {{ if filter != "" { "-run " + filter } else { "" } }} ./...
+    cd platform/function && go test -race -cover {{ if filter != "" { "-run " + quote(filter) } else { "" } }} ./...
 
 # scan the working tree and reachable Git history for source-environment identifiers
 [group('check')]
