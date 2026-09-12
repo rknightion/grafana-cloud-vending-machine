@@ -1,9 +1,11 @@
 ---
 id: GCV-0069
 title: Let the alerting and oncall APIs express an IRM Slack destination end to end
-status: To Do
-assignee: []
+status: Parked
+assignee:
+  - '@codex'
 created_date: '2026-09-11 13:22'
+updated_date: '2026-09-12 13:08'
 labels: []
 dependencies: []
 ordinal: 69000
@@ -45,3 +47,25 @@ SCOPE NOTE. Items 1 to 3 are one coherent change: an integration type, a route-l
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Lane D adds selectable integration type, exactly-one Slack channel reference or opaque id, unresolved-reference readiness blocking, and the IRM contact-point cross-resource reference.
+2. Prove the four-resource route in one claim set while preserving the existing regex notification policy surface.
+3. Root wires SlackChannel activation and mapping, runs the integrated gate and security review, then records exact-SHA hosted evidence.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-12 AC2 amendment: the route accepts exactly one of channelRef.name, resolved through an observe-only SlackChannel, or channelId as an opaque-id escape hatch. The pinned provider supports slackChannelRef with Required resolution; passing a display name as channelId was observed to succeed while silently dropping the destination, so a reference-by-name path is required.
+
+Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+<!-- SECTION:FINAL_SUMMARY:END -->

@@ -3,10 +3,11 @@ id: GCV-0068
 title: >-
   A newly vended stack's claim stays Ready=False forever, because its per-stack
   ProviderConfig is never used
-status: To Do
-assignee: []
+status: Parked
+assignee:
+  - '@codex'
 created_date: '2026-09-10 20:15'
-updated_date: '2026-09-11 09:06'
+updated_date: '2026-09-12 13:08'
 labels:
   - bug
 dependencies: []
@@ -64,3 +65,23 @@ Option 1 is probably right: the per-stack ProviderConfig genuinely IS ready in t
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Lane C adds the focused provider-config readiness tests first.
+2. Mark provider-config ready only after observed existence, preserving every other child readiness result.
+3. Root runs the integrated gate and records exact-SHA hosted evidence; AC3 is answered from source and marked not exercisable here.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+<!-- SECTION:FINAL_SUMMARY:END -->

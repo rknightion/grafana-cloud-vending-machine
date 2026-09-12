@@ -1,9 +1,11 @@
 ---
 id: GCV-0071
 title: Complete the Git Sync repository surface the vending API pins to one shape
-status: To Do
-assignee: []
+status: Parked
+assignee:
+  - '@codex'
 created_date: '2026-09-12 12:44'
+updated_date: '2026-09-12 13:08'
 labels: []
 dependencies:
   - GCV-0070
@@ -36,3 +38,23 @@ Two of those are load-bearing rather than cosmetic. An empty workflow list is th
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Root imports the pinned Repository CRD after a byte-equality provenance control.
+2. Lane B widens the existing API and renderer across all provider types, repository settings, folder or folderless sync, empty workflows, and secure-value name references.
+3. Root wires registries, runs the integrated gate and security review, then records exact-SHA hosted evidence.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+<!-- SECTION:FINAL_SUMMARY:END -->
