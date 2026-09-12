@@ -1,5 +1,39 @@
 # Changelog
 
+## [2.0.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v1.0.1...v2.0.0) (2026-09-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* GrafanaProvisioningRepository requests written against 1.x are refused at admission until they are restructured. The required url, branch and path fields moved off spec.repository into a block named by a new required type discriminator, which selects one of six provider shapes; sync and workflows are now required rather than supplied by the renderer; stackRef.name and repository.uid became immutable, so an update that changes either is refused; and the create form of every secure.<key> field is unrepresentable. No other request kind changes. See docs/migration-1.0.md#migrating-to-20.
+
+### Features
+
+* vend Git Sync provisioning end to end ([cbfdb73](https://github.com/rknightion/grafana-cloud-vending-machine/commit/cbfdb737a81dcc61dc6acf5c79f703f107f0810d))
+
+
+### Bug Fixes
+
+* quote optional test filters containing shell metacharacters ([b0a3b37](https://github.com/rknightion/grafana-cloud-vending-machine/commit/b0a3b37a8513c49f8b9a89436d5735be8594ad30))
+* vend a Git Sync connection Grafana Cloud will accept ([e65313f](https://github.com/rknightion/grafana-cloud-vending-machine/commit/e65313fd684aeb52d88bdfcae72d6aebc74dd1c9))
+
+
+### Documentation
+
+* **backlog:** a shared prerequisite parks its consumers, never the whole run ([a015fee](https://github.com/rknightion/grafana-cloud-vending-machine/commit/a015fee68e1022fe7962a26cd8394540a580af16))
+* **backlog:** GCV-0070 and GCV-0071 - the Git Sync surface is one third vendable ([b43192c](https://github.com/rknightion/grafana-cloud-vending-machine/commit/b43192c58d89a4d62c957aca2233a0da85f57eb8))
+* **backlog:** GCV-0074 - the vended Git Sync connection cannot be created ([e6a7666](https://github.com/rknightion/grafana-cloud-vending-machine/commit/e6a76660f9f2ba79ed68b2c72c11577de50aba75))
+* record the 1.x to 2.0 GrafanaProvisioningRepository migration ([87844be](https://github.com/rknightion/grafana-cloud-vending-machine/commit/87844be3ac5a5cfffa74522f8e12f792e0be8034))
+
+
+### Miscellaneous Chores
+
+* close wave 11 delivery tasks ([3d789c8](https://github.com/rknightion/grafana-cloud-vending-machine/commit/3d789c8b8530fdd405155753ce1a05580d736817))
+* park wave 10 on fixture provenance mismatch ([e624f16](https://github.com/rknightion/grafana-cloud-vending-machine/commit/e624f16fb85aab10a35fdb13bbf154cf4511e3f9))
+* pin published vending function ([2be1af8](https://github.com/rknightion/grafana-cloud-vending-machine/commit/2be1af8ae9f6bb48639c6baeeb604b29518ed921))
+* pin published vending function ([46abc2f](https://github.com/rknightion/grafana-cloud-vending-machine/commit/46abc2f816d9cf3bf6c1c8f90f9fca4e5be0a538))
+* record provider kind mismatch ([9c5f1b7](https://github.com/rknightion/grafana-cloud-vending-machine/commit/9c5f1b731e91b7e5ca560fb988500a8bc7951628))
+
 ## [1.0.1](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v1.0.0...v1.0.1) (2026-09-11)
 
 
