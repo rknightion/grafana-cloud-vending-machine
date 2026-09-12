@@ -3,7 +3,7 @@ id: doc-0002
 title: Wave operating model
 type: guide
 created_date: '2026-08-14 16:36'
-updated_date: '2026-09-09 21:37'
+updated_date: '2026-09-12 15:58'
 ---
 This document carries **only** what is specific to this repository. The campaign model itself —
 run contract and run modes, the routing contract, authority and the thread pool, child lane briefs,
@@ -192,6 +192,43 @@ check` meaningfully before its kustomization and activation-policy entries exist
 acceptance check is its package tests plus a YAML parse of the documents it wrote. One named gate
 owner runs `just check` after the wiring pass, against the integrated tree.
 
+## A shared prerequisite parks its consumers, never the whole run
+
+A wave that builds one shared thing before fanning out — a test fixture, an extracted external
+contract, a frozen schema — must say **which lanes consume it**, and a failure in it parks exactly
+those. Lanes that do not consume it still run.
+
+Wave 10 is the worked example and it cost a whole run. Its fixture pre-pass fed two of four lanes;
+the goal classified a pre-pass failure as a whole-run stop; the control failed; and the root
+correctly obeyed the goal and stopped, killing an independent five-line lane whose own dependency
+column said `nothing`. Zero entries landed. The root even noted the contradiction in its report and
+still stopped, which is the right behaviour — a lane brief that contradicts the goal is the root's to
+repair, but an explicit whole-run stop rule is not something to reinterpret under pressure.
+
+So the rule is the goal writer's to get right, not the root's to work around:
+
+- Every shared prerequisite names its consuming lanes in the lane table's `Depends on` column, and
+  the stop rule parks **that set**, not the run.
+- Reserve a whole-run stop for something that invalidates the wave's premises — the gate already red
+  on `main`, a missing credential the run cannot proceed without, a constraint breach.
+- **Never write a control that compares a new artefact against a neighbour for byte equality.**
+  Compare it against the authority it came from. Wave 10's control demanded a newly extracted CRD
+  match its existing fixture neighbour exactly; the fixture is deliberately inconsistent about an
+  empty top-level `status` stanza (12 of 42 entries carry one), so the control was unsatisfiable by
+  construction and said nothing about provenance either way.
+
+The provenance question it was reaching for has a real answer, and it is the shape to copy: all 42
+pre-existing fixture CRDs are present in the cached package at the pinned digest and every one agrees
+exactly modulo that empty stanza. Agreement across 42 complete schemas is the evidence. One
+neighbour is not.
+
+**A name in a goal is frozen, not verified.** Wave 10's goal froze a provider kind as
+`SecureValueV1Beta1` at group version `.../v1beta1`. The artefact says `SecurevalueV1Beta1` — lowercase
+`v` — served at `enterprise.grafana.m.crossplane.io/v1alpha1`, because the `V1Beta1` in the kind and
+plural is the Grafana app-platform resource version, not the CRD's. Read every frozen GVK out of the
+pinned artefact before a lane codes against it; the registry test catches a wrong one, but only after
+a lane has burned a cycle on it.
+
 ## The exclusive resource: function package publishing
 
 Publishing the composition function is **serialized, single-owner, and cannot run in parallel with
@@ -220,4 +257,3 @@ run learned that no single task captures. Nothing durable may live only there.
 - untouched work is self-evidently still `To Do`.
 
 Writing the report is the last unit of work, not a reply to a request.
-

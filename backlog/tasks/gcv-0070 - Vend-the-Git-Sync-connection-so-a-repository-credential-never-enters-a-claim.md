@@ -5,7 +5,7 @@ status: Parked
 assignee:
   - '@codex'
 created_date: '2026-09-12 12:44'
-updated_date: '2026-09-12 13:16'
+updated_date: '2026-09-12 15:59'
 labels: []
 dependencies: []
 type: feature
@@ -52,6 +52,12 @@ The design question the module exists to answer is where the credential lives. T
 Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
 
 Additional resume check: the cached securevaluev1beta1s.enterprise.grafana.m.crossplane.io CRD declares spec.names.kind and listKind as SecurevalueV1Beta1 and SecurevalueV1Beta1List, while the frozen wave seam spells the kind SecureValueV1Beta1. Do not emit or register either spelling until the package provenance blocker is resolved and the actual admitted GVK is re-frozen.
+
+Reviewer correction, 2026-09-12, after wave 10 parked. The provenance blocker is cleared and the fixture pre-pass has landed on main at 8b183cd; hosted Validate public reference run 34702990499 succeeded at that SHA. ConnectionV0Alpha1, RepositoryV0Alpha1, SecurevalueV1Beta1 and SlackChannel are now in the admission fixture, each proven identical to its copy in the package at the pinned digest.
+
+Wave 10 was right that the control failed and wrong about what that meant. The control demanded byte equality against an existing fixture neighbour, and the fixture is deliberately inconsistent about an empty top-level status stanza: 12 of its 42 entries carry one and 30 do not, and the installer ignores it. The real provenance evidence is that all 42 pre-existing fixture CRDs are present in the cached package and every one agrees exactly modulo that stanza.
+
+Two frozen names were wrong, not one. Wave 10 caught the kind spelling and missed the group version. Both are now read off the artefact: kind SecurevalueV1Beta1 with a lowercase v, listKind SecurevalueV1Beta1List, plural securevaluev1beta1s, singular securevaluev1beta1, scope Namespaced, and served group version enterprise.grafana.m.crossplane.io/v1alpha1. The V1Beta1 in the kind and plural is the Grafana app-platform resource version, not the CRD version, so a managed-kind-map entry or a rendered child written against /v1beta1 is rejected.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
