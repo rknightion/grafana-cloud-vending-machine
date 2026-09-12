@@ -90,8 +90,8 @@ same namespace and uses its selected per-stack ProviderConfig:
 | GrafanaAgentObservability | Explicit `guards` and `workload` sections | Does not install a plugin, mint credentials, or infer workload policy |
 | GrafanaAssistantGovernance | Terms-acceptance-gated rule profile and MCP allow-list | Withholds rules/MCP servers until acceptance is observed; headers are write-only Secret data |
 | GrafanaDatasourceAccess | One datasource's connection and authoritative team/LBAC set | Requires basic auth and entitlement; inherited or independent grants can bypass LBAC |
-| GrafanaProvisioningConnection | Secret-store-backed GitHub App connection | Requires a consumer-supplied, reviewed decrypter identity that this package cannot infer |
-| GrafanaProvisioningRepository | Preview Git-provisioned folder subtree | References a separately vended Grafana Connection; classic Dashboards remain the default |
+| GrafanaProvisioningConnection | Secret-store-backed GitHub App connection | Requires a consumer-supplied, reviewed decrypter identity that this package cannot infer. The composed Connection carries the private key as a base64 literal in `forProvider`, a deliberate narrowing scoped to this API because Grafana Cloud refuses the secure-value reference form; no claim field accepts a credential. See the catalog README. |
+| GrafanaProvisioningRepository | Preview Git-provisioned folder subtree | References a separately vended Grafana Connection; classic Dashboards remain the default. Grafana Cloud silently raises `sync.intervalSeconds` below 300 and neither it nor the provider reports the override as drift. |
 
 The XRD uses `defaultCompositionUpdatePolicy: Automatic` and an enforced Composition reference. Existing requests therefore move to the latest Composition revision automatically after a platform update. Treat an XRD or function change like a production API release: render it, inspect the desired-resource diff, and roll it through a non-production request first.
 
@@ -504,7 +504,13 @@ Viewer, Editor, and Admin roles are unchanged, and custom roles explicitly keep
 - `GrafanaProvisioningRepository` rejects a `dashboard` field. A Git-provisioned subtree and a
   classic Crossplane Dashboard must never claim the same content route.
 - `GrafanaProvisioningConnection` rejects inline credentials and provider secure-map creation
-  shapes; only a consumer secret-store reference is accepted.
+  shapes on the claim; only a consumer secret-store reference is accepted. The composed Grafana
+  Connection is the one place in this repository where a credential value, not a reference, reaches
+  a `forProvider`: Grafana Cloud returns `403 identity type access-policy not allowed` for the
+  secure-value reference form, from a service account and from an interactive user alike, so only
+  the base64 `create` form works. The value is passed through as the Kubernetes Secret already
+  stores it and is never decoded in the composition function. GCV-0074 records the evidence and
+  tracks the upstream defect; the catalog README states what the exposure costs.
 - `GrafanaAlertingBundle.provenance` is required: `enforced` retains provisioning provenance and
   locks UI changes, while `createOnly` seeds values and preserves later UI edits.
 - `GrafanaAssistantGovernance.termsAcceptance.accepted` is the safety gate. Rules and MCP servers

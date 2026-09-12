@@ -120,7 +120,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		response.Fatal(rsp, errors.Errorf("composite kind %q is registered but not implemented", kind))
 		return rsp, nil
 	}
-	resolvedConfig := serviceBootstrapConfig(req, rsp, content, rendererConfig(req, content, config))
+	resolvedConfig := provisioningConnectionCredentialConfig(req, rsp, content, serviceBootstrapConfig(req, rsp, content, rendererConfig(req, content, config)))
 	productContextReady := true
 	if renderer.observedStackContext {
 		resolvedConfig, productContextReady, err = observedSurfaceStackConfig(req, rsp, content, resolvedConfig)

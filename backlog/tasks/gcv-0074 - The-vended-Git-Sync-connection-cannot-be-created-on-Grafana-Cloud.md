@@ -1,9 +1,10 @@
 ---
 id: GCV-0074
 title: The vended Git Sync connection cannot be created on Grafana Cloud
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-12 19:11'
+updated_date: '2026-09-12 19:21'
 labels:
   - needs-triage
 dependencies: []
@@ -48,9 +49,9 @@ GrafanaProvisioningRepository is unaffected and vends correctly: a repository wi
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 The reference form's 403 is reproduced in a test or recorded as an upstream defect with a link
-- [ ] #2 A decision is recorded on whether the create form's in-cluster credential exposure is accepted, and the XRD guards and docs are made consistent with it
+- [x] #2 A decision is recorded on whether the create form's in-cluster credential exposure is accepted, and the XRD guards and docs are made consistent with it
 - [ ] #3 GrafanaProvisioningConnection either reaches Ready against a real Grafana Cloud stack or is explicitly marked unusable in the catalog and request-schema docs
-- [ ] #4 The repository API documents the 300s sync.intervalSeconds floor and the fact that neither Grafana nor the provider reports it as drift
+- [x] #4 The repository API documents the 300s sync.intervalSeconds floor and the fact that neither Grafana nor the provider reports it as drift
 <!-- AC:END -->
 
 ## Definition of Done
@@ -58,3 +59,27 @@ GrafanaProvisioningRepository is unaffected and vends correctly: a repository wi
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-12 root fix, option 1 plus option 3's reporting half, decided by the owner.
+
+DECISION (AC2). The renderer emits `secure.privateKey.create` from the ExternalSecret-materialised Kubernetes Secret, and the in-cluster exposure is accepted as a deliberate narrowing of the no-credential-literal rule scoped to this one API. Rejected: waiting on a secretRef-shaped field in provider-grafana, which blocks on someone else's release; and marking the API unusable, which leaves Git Sync unvendable and wave 11's headline false in practice.
+
+The claim-side guards are UNCHANGED and still reject all three literal shapes on create and on update. The narrowing applies only to what the composition emits. Guards, catalog README and request-schema docs were made consistent in the same commit.
+
+MECHANISM. `provisioningConnectionCredentialConfig` registers a `v1/Secret` requirement for `<name>-credential` in the request namespace and reads it through `request.GetRequiredResource`, the same mechanism `serviceBootstrapConfig` already uses at bootstrap.go:57, so no new RBAC. The Secret's identity is checked before the value is trusted: apiVersion, kind, name, namespace, absent deletionTimestamp, non-empty key.
+
+The value is NEVER DECODED. A Kubernetes Secret `data` entry is already base64, which is exactly the encoding Grafana requires, so the plaintext PEM does not exist in function memory, in a function result, in a status field or in any log path. Decoding and re-encoding would be the only way to get it wrong.
+
+The Connection is withheld when the credential has not materialised yet, rather than rendered without one - Grafana returns a clean 422 for a Connection with no private key, so a credential-less Connection is strictly worse than none.
+
+The SecurevalueV1Beta1 is RETAINED on purpose and now duplicates the credential inside Grafana. It is the half of the chain Grafana accepts, so restoring the reference form once the 403 is fixed upstream is a one-line renderer change. `decrypters` therefore stays required and reviewed.
+
+AC4 done: the 300s `sync.intervalSeconds` floor and the fact that neither Grafana nor the provider reports the override as drift are documented in the repository catalog README and the request-schema reference.
+
+AC1 NOT DONE and not blocking: it asks for a test reproduction or an upstream link. The 403 is live-only, so it is not reproducible inside this repository's evidence boundary, and no upstream issue has been filed yet. The full live evidence is recorded here and in both docs. Filing the Grafana-side defect and adding its link is the remaining work.
+
+AC3 NOT DONE and not blocking: whether the composed Connection now reaches Ready is live behaviour, which is not exercisable here. The fix is source-correct and unit-proven against the pinned CRD; the m7kni/portina-iac consumer must confirm it against a real stack. Resume by pinning the released tag there and reporting whether the Connection reaches Ready.
+<!-- SECTION:NOTES:END -->

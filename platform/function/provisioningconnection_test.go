@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/resource"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -87,8 +88,13 @@ func TestProvisioningConnectionStagesCredentialBridgeAndConnection(t *testing.T)
 	if got := nestedMap(t, connection, "spec", "providerConfigRef")["name"]; got != "teamdemo01" {
 		t.Fatalf("Connection ProviderConfig = %v, want teamdemo01", got)
 	}
-	if got := nestedMap(t, connectionProvider, "secure", "privateKey"); mustJSON(got) != `{"name":"dashboards-github-secure-value"}` {
-		t.Fatalf("Connection private key reference = %s", mustJSON(got))
+	// Grafana Cloud 403s the reference form {name: <securevalue>}; only the
+	// base64 create form is accepted. GCV-0074 carries the live evidence.
+	if got := nestedMap(t, connectionProvider, "secure", "privateKey"); mustJSON(got) != `{"create":"`+provisioningConnectionMaterialisedKey+`"}` {
+		t.Fatalf("Connection private key = %s", mustJSON(got))
+	}
+	if _, found := nestedMap(t, connectionProvider, "secure", "privateKey")["name"]; found {
+		t.Fatal("Connection rendered the reference form Grafana Cloud refuses")
 	}
 	if _, found := nestedMap(t, connectionProvider, "secure")["token"]; found {
 		t.Fatal("GitHub App Connection rendered a token secure map")
@@ -381,10 +387,161 @@ func provisioningConnectionClaim(name string) map[string]any {
 	}
 }
 
+// The base64 of a PEM, as a Kubernetes Secret data entry already stores it.
+// Grafana requires exactly this encoding, so nothing decodes it on the way.
+const provisioningConnectionMaterialisedKey = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCnRlc3QKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo="
+
 func provisioningConnectionConfig() map[string]any {
+	config := provisioningConnectionConfigWithoutCredential()
+	config[provisioningConnectionCredentialConfigKey] = provisioningConnectionMaterialisedKey
+	return config
+}
+
+func provisioningConnectionConfigWithoutCredential() map[string]any {
 	return map[string]any{"spec": map[string]any{"secretStoreRef": map[string]any{"name": "platform-secrets", "kind": "ClusterSecretStore"}}}
 }
 
 func provisioningConnectionAdmissionRequest(name string) *unstructured.Unstructured {
 	return &unstructured.Unstructured{Object: provisioningConnectionClaim(name)}
+}
+
+// The Connection carries a credential value, so the Secret it comes from is
+// identity-checked before it is trusted, and a Connection is never rendered
+// without one. GCV-0074 recorded the live 403 that forces the create form.
+func TestProvisioningConnectionCredentialConfigTrustsOnlyItsOwnSecret(t *testing.T) {
+	claim := provisioningConnectionClaim("dashboards-github")
+	metadata := claim["metadata"].(map[string]any)
+	namespace := metadata["namespace"].(string)
+
+	secret := func(mutate func(object map[string]any)) *fnv1.Resources {
+		object := map[string]any{
+			"apiVersion": "v1", "kind": "Secret",
+			"metadata": map[string]any{"name": "dashboards-github-credential", "namespace": namespace},
+			"data":     map[string]any{provisioningConnectionCredentialKey: provisioningConnectionMaterialisedKey},
+		}
+		if mutate != nil {
+			mutate(object)
+		}
+		return &fnv1.Resources{Items: []*fnv1.Resource{{Resource: resource.MustStructJSON(mustJSON(object))}}}
+	}
+
+	for _, testCase := range []struct {
+		name    string
+		secret  *fnv1.Resources
+		wantKey bool
+	}{
+		{name: "own secret", secret: secret(nil), wantKey: true},
+		{name: "unresolved", secret: nil},
+		{name: "wrong namespace", secret: secret(func(object map[string]any) {
+			object["metadata"].(map[string]any)["namespace"] = "other"
+		})},
+		{name: "wrong name", secret: secret(func(object map[string]any) {
+			object["metadata"].(map[string]any)["name"] = "someone-elses-credential"
+		})},
+		{name: "being deleted", secret: secret(func(object map[string]any) {
+			object["metadata"].(map[string]any)["deletionTimestamp"] = "2026-09-12T00:00:00Z"
+		})},
+		{name: "wrong kind", secret: secret(func(object map[string]any) { object["kind"] = "ConfigMap" })},
+		{name: "empty key", secret: secret(func(object map[string]any) {
+			object["data"] = map[string]any{provisioningConnectionCredentialKey: ""}
+		})},
+		{name: "absent key", secret: secret(func(object map[string]any) { object["data"] = map[string]any{} })},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			req := &fnv1.RunFunctionRequest{RequiredResources: map[string]*fnv1.Resources{}}
+			if testCase.secret != nil {
+				req.RequiredResources[provisioningConnectionCredentialRequirement] = testCase.secret
+			}
+			rsp := &fnv1.RunFunctionResponse{}
+			resolved := provisioningConnectionCredentialConfig(req, rsp, claim, provisioningConnectionConfigWithoutCredential())
+
+			// The requirement is always registered, or a Secret that appears
+			// later is never fetched and the Connection never renders.
+			selector := rsp.GetRequirements().GetResources()[provisioningConnectionCredentialRequirement]
+			if selector == nil {
+				t.Fatal("credential requirement was not registered")
+			}
+			if selector.GetApiVersion() != "v1" || selector.GetKind() != "Secret" || selector.GetNamespace() != namespace || selector.GetMatchName() != "dashboards-github-credential" {
+				t.Fatalf("credential selector = %#v", selector)
+			}
+
+			value, found := resolved[provisioningConnectionCredentialConfigKey].(string)
+			if found != testCase.wantKey {
+				t.Fatalf("credential present = %t, want %t", found, testCase.wantKey)
+			}
+			if !testCase.wantKey {
+				return
+			}
+			// Passed through verbatim: a Secret data entry is already base64,
+			// which is the encoding Grafana requires, so decoding it and
+			// re-encoding it would be the only way to get it wrong.
+			if value != provisioningConnectionMaterialisedKey {
+				t.Fatalf("credential = %q, want the Secret entry verbatim", value)
+			}
+		})
+	}
+}
+
+// A Connection with no private key is refused by Grafana with a 422 before it
+// reaches the 403, so rendering one is strictly worse than rendering nothing.
+func TestProvisioningConnectionWithheldUntilCredentialMaterialises(t *testing.T) {
+	claim := provisioningConnectionClaim("dashboards-github")
+	observed := map[resource.Name]resource.ObservedComposed{
+		provisioningConnectionSecureValue: observedComposed(`{"metadata":{"name":"dashboards-github-secure-value"}}`),
+	}
+	withheld, err := renderProvisioningConnection(claim, observed, provisioningConnectionConfigWithoutCredential())
+	if err != nil {
+		t.Fatalf("render without a materialised credential: %v", err)
+	}
+	if _, found := withheld[provisioningConnectionConnection]; found {
+		t.Fatal("Connection rendered before its credential was materialised")
+	}
+	if got, want := len(withheld), 2; got != want {
+		t.Fatalf("withheld render resource count = %d, want %d", got, want)
+	}
+
+	rendered, err := renderProvisioningConnection(claim, observed, provisioningConnectionConfig())
+	if err != nil {
+		t.Fatalf("render with a materialised credential: %v", err)
+	}
+	if _, found := rendered[provisioningConnectionConnection]; !found {
+		t.Fatal("Connection withheld despite a materialised credential")
+	}
+}
+
+// A credential that stops materialising must never take a live Connection with
+// it. The ExternalSecret can fail to sync or its Secret can be deleted, and the
+// shorter desired set would withdraw the external Grafana Connection.
+func TestProvisioningConnectionRefusesToWithdrawConnectionWhenCredentialVanishes(t *testing.T) {
+	claim := provisioningConnectionClaim("dashboards-github")
+	observed := map[resource.Name]resource.ObservedComposed{
+		provisioningConnectionSecureValue: observedComposed(`{"metadata":{"name":"dashboards-github-secure-value"}}`),
+		provisioningConnectionConnection:  observedComposed(`{"metadata":{"name":"dashboards-github"}}`),
+	}
+	if _, err := renderProvisioningConnection(claim, observed, provisioningConnectionConfigWithoutCredential()); err == nil {
+		t.Fatal("render withdrew an observed Connection when the credential was not materialised")
+	} else if !strings.Contains(err.Error(), "refusing to withdraw the existing connection") {
+		t.Fatalf("unexpected error = %v", err)
+	}
+
+	// The same absence before the Connection exists is a normal first reconcile.
+	firstReconcile := map[resource.Name]resource.ObservedComposed{
+		provisioningConnectionSecureValue: observedComposed(`{"metadata":{"name":"dashboards-github-secure-value"}}`),
+	}
+	staged, err := renderProvisioningConnection(claim, firstReconcile, provisioningConnectionConfigWithoutCredential())
+	if err != nil {
+		t.Fatalf("render before the credential materialises: %v", err)
+	}
+	if _, found := staged[provisioningConnectionConnection]; found {
+		t.Fatal("Connection rendered before its credential was materialised")
+	}
+
+	// And an observed Connection with the credential present still renders.
+	rendered, err := renderProvisioningConnection(claim, observed, provisioningConnectionConfig())
+	if err != nil {
+		t.Fatalf("render with an observed Connection and a credential: %v", err)
+	}
+	if _, found := rendered[provisioningConnectionConnection]; !found {
+		t.Fatal("Connection withheld despite a materialised credential")
+	}
 }

@@ -227,8 +227,14 @@ scan_fixed "source account identifier" "robknight"
 scan_fixed "source proof-of-concept identifier" "crossplaneavm"
 scan_fixed "source architecture acronym" "avm"
 
-scan_fixed "Grafana Cloud token prefix" "gl""c_"
-scan_fixed "Grafana service-account token prefix" "gl""sa_"
+# Matched as prefix PLUS a token body, not as the bare prefix. A real token is
+# the prefix followed by a long base62 body, so this still catches every one of
+# them, while prose that merely names the prefix - which an authentication bug
+# report does by necessity - is not a credential and must not red-light the
+# gate permanently. The scan reads reachable history, so a false positive that
+# reaches a commit cannot be undone by a later one.
+scan_regex "Grafana Cloud token" "gl""c_[A-Za-z0-9_-]{16,}"
+scan_regex "Grafana service-account token" "gl""sa_[A-Za-z0-9_-]{16,}"
 scan_fixed "private Tailscale hostname" ".ts"".net"
 scan_fixed_case_sensitive "local macOS path" "/Users/"
 scan_fixed_case_sensitive "private key material" "-----BEGIN ""PRIVATE KEY-----"

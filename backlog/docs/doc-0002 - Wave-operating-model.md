@@ -182,6 +182,16 @@ hard-coded literal becomes selectable, the child's Kubernetes name and its `forP
 name stay exactly as they are for the pre-existing default; only newly selectable values get new
 identities.
 
+**The renderer config map is aliased, and copying it at a new seam loses writes silently.**
+`expiry.go:53` writes the expiry status into whatever config map the renderer was handed, and
+`fn.go` reads it back out of its own `config` reference to build the composite status. Those are the
+same map object, and `serviceBootstrapConfig` preserves that identity for every kind it does not
+rewrite. A new wrapper at that seam that rebuilds the map - the natural thing to write - drops the
+expiry status with no error anywhere: the render succeeds, the status is just missing. Four expiry
+tests are the only thing that catches it. Add config keys **in place** and return the same map;
+copy only to strip a key, as `serviceBootstrapConfig` does for its two kinds.
+
+
 ## Lane conventions
 
 Natural boundaries, each with a single owner per wave:
