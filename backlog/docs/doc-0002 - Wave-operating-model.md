@@ -155,6 +155,33 @@ generator's `directories` equals exactly `[{path: enabled/*}]`. `enabled/` start
 assignments replace the entire set. Two owners silently fight. Any change that adds a second writer
 to one of these is a design error, not a merge conflict to resolve.
 
+**A fail-closed tightening on an ALREADY-RELEASED API is a breaking change, however safe it looks.**
+Wave 11 added `stackRef.name is immutable` and `repository.uid is immutable` to
+`GrafanaProvisioningRepository`, which shipped mutable in v1.0.0 and v1.0.1, and graded it in its
+root-judgement record as "authorization-boundary hardening without changing intended valid inputs".
+It does change them: an update that v1.0.1 accepted is now rejected. The same commit also moved
+required `url`, `branch` and `path` out of `spec.repository` into per-provider blocks, invalidating
+every existing request. Both landed under a plain `feat:` with no `!` and no `BREAKING CHANGE:`
+footer, so release-please computed a **minor** bump for a major-shaped change and the changelog said
+only "Features". The reviewer caught it while PR #34 was still unmerged, which is the only reason it
+was cheap.
+
+Two rules follow. **Before adding any CEL rule, required field or immutability constraint, check
+whether the kind is already released** — `git show <latest tag>:platform/apis/<file>` is the whole
+check. **If it is, the commit carries `!` or a `BREAKING CHANGE:` footer and the change gets a
+migration section**, and the delegated-authority prohibition on amending a seam frozen in an earlier
+wave applies to it: a released API is such a seam whether or not the goal names it in the standing
+list.
+
+**Never rename a Kubernetes child whose external identity is recovered from observed state.** The
+on-call renderer names its integration child `<name>-inbound-email` and sets
+`crossplane.io/external-name` only from the *observed* value
+(`platform/function/oncall.go:141`, `onCallExternalAnnotations` at :180). Renaming the child drops
+the observed link, so the provider creates a second external resource and orphans the first. When a
+hard-coded literal becomes selectable, the child's Kubernetes name and its `forProvider` display
+name stay exactly as they are for the pre-existing default; only newly selectable values get new
+identities.
+
 ## Lane conventions
 
 Natural boundaries, each with a single owner per wave:

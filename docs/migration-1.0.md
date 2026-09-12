@@ -1,11 +1,121 @@
 ---
-title: Migrating to 1.0
-description: Schema-led migration from the unreleased pre-breaking checkout to the 1.0 API surface
+title: Migration and adoption
+description: Schema-led migration across the repository's breaking API boundaries, and the non-destructive adoption path
 ---
 
-# Migrating to 1.0
+# Migration and adoption
 
-This guide compares the explicit pre-breaking checkout baseline
+This page carries every breaking migration this repository has published. Read
+the section for the boundary you are crossing. [Migrating to 2.0](#migrating-to-20)
+is the current one; [Migrating to 1.0](#migrating-to-10) is retained because the
+adoption and cross-cluster consumption procedures below are still the supported
+ones.
+
+## Migrating to 2.0
+
+2.0 changes one request kind: `GrafanaProvisioningRepository`. Every other
+request API is unaffected, and no 1.x request of any other kind needs an edit.
+
+### `GrafanaProvisioningRepository` provider settings moved into a typed block
+
+1.x accepted exactly one repository shape: `url`, `branch` and `path` were
+required directly on `spec.repository`.
+
+```yaml
+spec:
+  repository:
+    uid: example-application-overview
+    title: Example application overview
+    url: https://github.com/example/grafana-dashboards
+    branch: main
+    path: application-overview
+    connectionRef:
+      name: existing-grafana-connection
+```
+
+2.0 accepts six provider shapes, so those three fields moved into a block named
+by a required `type` discriminator. `spec.repository.required` is now `uid`,
+`title`, `type`, `connectionRef`, `sync` and `workflows`. The request above
+becomes:
+
+```yaml
+spec:
+  repository:
+    uid: example-application-overview
+    title: Example application overview
+    type: github
+    github:
+      url: https://github.com/example/grafana-dashboards
+      branch: main
+      path: application-overview
+    connectionRef:
+      name: existing-grafana-connection
+    sync:
+      enabled: true
+      target: folder
+      intervalSeconds: 60
+    # Empty means this Git-provisioned subtree is read-only from Grafana.
+    workflows: []
+```
+
+`type` accepts `local`, `github`, `githubEnterprise`, `git`, `bitbucket` and
+`gitlab`. A fail-closed admission rule requires exactly the block matching
+`type` and refuses every other provider block, so a request naming `github`
+while carrying a `gitlab` block is rejected rather than silently pruned.
+
+**Outcome: rejected.** Every 1.x request is refused at admission until it is
+restructured, because `url`, `branch` and `path` no longer exist on
+`spec.repository` and `type`, `sync` and `workflows` are all required.
+
+### `sync` and `workflows` are required, not defaulted
+
+1.x hard-coded the sync block in the renderer and emitted no change workflows at
+all. 2.0 takes both from the request and supplies no default, so both keys are
+required.
+
+`sync` requires `enabled`, `target` and `intervalSeconds` together.
+`sync.target` accepts `folder` and `folderless`; `instance` is present in the
+schema enum but refused by a fail-closed admission rule, because an
+instance-target repository claims the whole instance rather than one folder
+subtree, which is the two-owner conflict GCV-0023's decision exists to prevent.
+
+`workflows` items are `write` and `branch`. An explicit empty list keeps the
+subtree read-only from Grafana, which is the behaviour 1.x had with no way to
+express anything else.
+
+**Outcome: rejected** if either key is omitted.
+
+### `stackRef.name` and `repository.uid` are immutable
+
+Both were mutable in 1.x. In 2.0 an update that changes either is refused.
+
+The guard closes a retargeting path: `repository.uid` and the stack reference
+together are the external identity of an already-created Grafana repository, so
+changing one on an existing request pointed a live external resource at a
+different stack or a different repository rather than creating a new one.
+**Outcome: rejected on update.** An existing object retains its current values
+without an edit; to change either, delete the request and create a new one under
+the decommission contract.
+
+### `secure` fields take a name, never a credential
+
+The `create` form of every `secure.<key>` field is unrepresentable, on this kind
+and on `GrafanaProvisioningConnection`. A credential reaches Grafana only as a
+secure value the composition itself creates from a Kubernetes Secret, referenced
+by name. HTTPS URLs also reject userinfo, so a credential cannot be smuggled
+through `https://user:token@host`. **Outcome: rejected** for any request that
+carried a credential literal; no 1.x request could have, because the field did
+not exist.
+
+### Verification after the 2.0 migration
+
+Apply each restructured request and confirm it is admitted, then confirm the
+rendered `RepositoryV0Alpha1` carries the provider block you selected. A request
+refused at admission names the exact rule that refused it.
+
+## Migrating to 1.0
+
+This section compares the explicit pre-breaking checkout baseline
 `85c4344a5146eea98b4bfa9fb1c110858cd1f152` with the 1.0 candidate's
 `platform/apis/` schemas. That baseline is an unreleased 0.x checkout, not a
 `v0.1.0` tag or a published release: neither exists. The parent of the first

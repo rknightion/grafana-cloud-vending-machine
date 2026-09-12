@@ -19,7 +19,7 @@ until a user copies an inert catalog example, edits it, reviews the render, and 
 
 ## Quickstart
 
-The 1.0 candidate remains held by owner decision. The admission repairs are proven; see the [current release boundary](docs/migration-1.0.md).
+The next release is a breaking one. `GrafanaProvisioningRepository` requests written against 1.x must be restructured; see [Migrating to 2.0](docs/migration-1.0.md#migrating-to-20). No other request kind changes.
 
 Read [Getting started](docs/getting-started.md) for prerequisites and the copy-edit-review-commit
 path to a first request. Use [Installation](docs/installation.md) first when the controllers,
@@ -40,7 +40,7 @@ provider, secret store, and organization `ProviderConfig` objects are not alread
 | [SSO](docs/sso.md) | OAuth and SAML profiles and reconciliation modes |
 | [Security](docs/security.md) | Credential boundaries, token models, RBAC, and network restrictions |
 | [Governance](docs/governance.md) | Token ceilings, bounded product APIs, retention, tenancy, expiry, SCIM scope, and reviewed decommission |
-| [Migration and adoption](docs/migration-1.0.md) | 0.x schema changes and inventory-first, non-destructive adoption |
+| [Migration and adoption](docs/migration-1.0.md) | Breaking schema changes per release boundary, and inventory-first, non-destructive adoption |
 | [Troubleshooting](docs/troubleshooting.md) | Recurring reconciliation and validation failures |
 | [FAQ](docs/faq.md) | Short answers to common questions |
 

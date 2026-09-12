@@ -151,7 +151,7 @@ procedure in [Migration and adoption](migration-1.0.md) as requiring that rehear
 | [SSO](sso.md) | OAuth and SAML configuration |
 | [Security](security.md) | Supply-chain controls, secret handling, and the Retain-by-default lifecycle |
 | [Governance](governance.md) | Token ceilings, network restrictions, product modules, retention, and tenancy |
-| [Migration and adoption](migration-1.0.md) | Inventory-first adoption and the non-destructive handover path |
+| [Migration and adoption](migration-1.0.md) | Breaking schema changes per release boundary, inventory-first adoption, and the non-destructive handover path |
 | [Troubleshooting](troubleshooting.md) | Common failure modes |
 | [FAQ](faq.md) | Short answers to recurring questions |
 
