@@ -20,3 +20,15 @@ reviews:
       Examples remain inert, portable and free of source-environment identity, credentials and live requests.
       Do not introduce absolute local paths, private endpoints, real account identifiers or token-like
       placeholders. Keep each example renderable as its documented Kustomize base.
+knowledge_base:
+  linked_repositories:
+  - repository: m7kni/m7kni-net-site
+    instructions: >-
+      Documentation hub. This repository dispatches documentation changes to the hub, which clones the
+      docs source and builds it. Check docs_path, config_file and the dispatch payload against this
+      repository's entry in the hub's docs-repos.json manifest.
+  - repository: rknightion/grafana-cloud-org-insights
+    instructions: >-
+      Shares the customer-identifier scan contract. scripts/public-release-scan.sh deliberately matches
+      that repository's bin/check-customer-identifiers precedence so one exported
+      CUSTOMER_IDENTIFIER_PATTERN serves both. Check a precedence or variable-name change against both.
