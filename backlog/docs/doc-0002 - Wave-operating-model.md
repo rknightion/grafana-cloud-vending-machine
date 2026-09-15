@@ -3,7 +3,7 @@ id: doc-0002
 title: Wave operating model
 type: guide
 created_date: '2026-08-14 16:36'
-updated_date: '2026-09-12 15:58'
+updated_date: '2026-09-15 12:10'
 ---
 This document carries **only** what is specific to this repository. The campaign model itself —
 run contract and run modes, the routing contract, authority and the thread pool, child lane briefs,
@@ -229,11 +229,15 @@ check` meaningfully before its kustomization and activation-policy entries exist
 acceptance check is its package tests plus a YAML parse of the documents it wrote. One named gate
 owner runs `just check` after the wiring pass, against the integrated tree.
 
-## A shared prerequisite parks its consumers, never the whole run
+## A shared prerequisite blocks its consumers, never unrelated work
 
 A wave that builds one shared thing before fanning out — a test fixture, an extracted external
-contract, a frozen schema — must say **which lanes consume it**, and a failure in it parks exactly
-those. Lanes that do not consume it still run.
+contract, a frozen schema — must say **which lanes consume it**. A failure blocks those consumers
+while unrelated lanes continue. Before making that block a terminal park, the root applies the
+canonical resolution rule: investigate or delegate the unresolved prerequisite, repair within
+authority, and preserve required review and shared attempt limits. Park the affected consumers only
+when authorised feasible resolution is exhausted, required authority or evidence is unavailable, or
+an explicit stop limit is reached.
 
 Wave 10 is the worked example and it cost a whole run. Its fixture pre-pass fed two of four lanes;
 the goal classified a pre-pass failure as a whole-run stop; the control failed; and the root
