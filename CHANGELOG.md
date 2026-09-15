@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.0.1](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v2.0.0...v2.0.1) (2026-09-15)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/crossplane/crossplane/apis/v2 to v2.4.1 ([#38](https://github.com/rknightion/grafana-cloud-vending-machine/issues/38)) ([c0a8fae](https://github.com/rknightion/grafana-cloud-vending-machine/commit/c0a8faeaa42eed6532f592a794859ee18da01b40))
+* **deps:** update module sigs.k8s.io/controller-runtime to v0.25.1 ([#36](https://github.com/rknightion/grafana-cloud-vending-machine/issues/36)) ([04dcdef](https://github.com/rknightion/grafana-cloud-vending-machine/commit/04dcdef0bbc35418426637dec447913bc93b194b))
+
+
+### Documentation
+
+* adopt canonical routing and bounded root rescue ([fb8c122](https://github.com/rknightion/grafana-cloud-vending-machine/commit/fb8c122aba5ea7b855afb4b46667f9610b6945cb))
+* reconcile local fan-out overrides with root resolution authority ([5af54aa](https://github.com/rknightion/grafana-cloud-vending-machine/commit/5af54aaaca7557e1868d53367bad0908cbb76b09))
+* sync approved fan-out scheduling and route verification ([d92486f](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d92486ff3681aa5b362e133b118e10f47b2c7df3))
+* sync cost-aware fan-out routing and prompt guidance ([d014174](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d014174e87b30ba123813cd3d760779e44d58110))
+* sync fan-out async decision-only guidance ([9324eaf](https://github.com/rknightion/grafana-cloud-vending-machine/commit/9324eaf3d7097505632f831abe6f2835bacc1160))
+* sync fixed Astra low orchestration and rescue routing ([7ed1f58](https://github.com/rknightion/grafana-cloud-vending-machine/commit/7ed1f58d3f5581b4f9d3ac366175b7655ebc1505))
+* sync polling and integration contracts ([09a9064](https://github.com/rknightion/grafana-cloud-vending-machine/commit/09a90648c9861836f7cd29539e95d41e17de282d))
+* sync wave orchestration and existing-root contracts ([97d7a40](https://github.com/rknightion/grafana-cloud-vending-machine/commit/97d7a407745dddaaffc8b01f1e830deb78c876fe))
+* sync wave reliability and worktree contracts ([b585f40](https://github.com/rknightion/grafana-cloud-vending-machine/commit/b585f40574f6be72b7a5282d6a4ea98556913600))
+
+
+### Miscellaneous Chores
+
+* **deps:** update rknightion/.github action to v1.21.1 ([#37](https://github.com/rknightion/grafana-cloud-vending-machine/issues/37)) ([d7368ad](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d7368ad5a43fc1871ba514e3134bca8590561e24))
+* **reviews:** declare linked repositories for cross-repo review context ([acfa5c8](https://github.com/rknightion/grafana-cloud-vending-machine/commit/acfa5c8e78a3e7b6f2e0ab148700690a3432660e))
+
 ## [2.0.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v1.0.1...v2.0.0) (2026-09-12)
 
 
