@@ -174,15 +174,19 @@ Composition then computes the resulting managed-resource change.
 
 ## Decommission and access-claim ordering
 
-Arming deletion and removing a request are separate reviewed stages. The first changes the request
-lifecycle to `Delete`; it does not delete anything. Wait for `status.deletionArmed=true` and then
-`status.deletionReady=true`, where readiness means observed provider state reports the Stack's
-`deleteProtection=false` and ESO has finalized and successfully synced each enabled credential
-document at its current generation. Stage 2 removes dependent `GrafanaCustomRoleBinding`, `GrafanaTeamAccess`,
+Delete follows three reviewed stages. First, change the request lifecycle to `Delete`. That arms
+deletion; it does not delete anything. Wait for `status.deletionArmed=true` and then
+`status.deletionReady=true`. Readiness requires the provider to report the Stack's
+`deleteProtection=false`, and the ESO finalizer to have finalized and successfully synced each enabled
+`PushSecret` document at its current generation. Stage 2 removes dependent `GrafanaCustomRoleBinding`, `GrafanaTeamAccess`,
 and `GrafanaContentAccessPolicy` objects. Merge or sync that change and wait until their Kubernetes
 objects and finalizers are gone while the Stack and request still exist. Stage 3 removes the request
-from Git only after that check passes, so the stack endpoint does not
-disappear before the access claims clear.
+from Git only after the claims and finalizers are gone. The stack endpoint stays available until the
+access claims clear.
+
+<iframe title="Reviewed decommission lifecycle" src="diagrams/decommission-lifecycle.html" width="100%" height="640" loading="lazy"></iframe>
+
+[Open the reviewed decommission lifecycle figure](diagrams/decommission-lifecycle.html) in its own tab.
 
 New access claims fail closed as soon as deletion is armed or the stack request is terminating.
 Already-observed access children remain desired until their claims are deliberately removed in Stage 2.
