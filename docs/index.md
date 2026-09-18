@@ -1,5 +1,5 @@
 ---
-title: grafana-cloud-vending-machine — declarative Grafana Cloud stack vending
+title: grafana-cloud-vending-machine: declarative Grafana Cloud stack vending
 description: A portable reference architecture that vends Grafana Cloud stacks through a declarative Kubernetes API, using Argo CD, Crossplane, and External Secrets Operator.
 image: assets/social-card.png
 ---
@@ -29,17 +29,17 @@ The source and issue tracker live on
 
 !!! warning "`platform.example.org` is a documentation placeholder"
     Every XRD, Composition, example, and page in this documentation uses the API group
-    `platform.example.org`. It is not a production API group — it is not resolvable and it is not
-    meant to be used as-is. Replace every occurrence with a domain your organization controls
+    `platform.example.org`. It is not a production API group, is not resolvable, and is not meant
+    to be used as-is. Replace every occurrence with a domain your organization controls
     before adopting this API. See [Getting started](getting-started.md) and
     [Configuration](configuration.md) for where this matters most.
 
 ## Who this is for
 
 Platform teams that already run Argo CD and Crossplane and want to offer Grafana Cloud stacks as
-a self-service, GitOps-native product — with rotating credentials, safe defaults, and an explicit
-Retain-by-default lifecycle with a reviewable Delete path — rather than hand-running Terraform or
-the Grafana Cloud API per request.
+a self-service, GitOps-native product with rotating credentials, safe defaults, and an explicit
+Retain-by-default lifecycle with a reviewable Delete path, instead of manually running Terraform
+or calling the Grafana Cloud API for each request.
 
 ## Request-to-stack flow
 
@@ -54,7 +54,7 @@ repository's top-level `enabled/`. From there:
    dashboards, and any SSO, plugin, report, incident, team, or access-control resources the
    request enables.
 3. **Crossplane's Grafana provider** continuously reconciles those managed resources against
-   Grafana Cloud — creating what is missing and repairing drift on anything the request's
+   Grafana Cloud, creating what is missing and repairing drift on anything the request's
    reconciliation mode marks as enforced.
 4. **External Secrets Operator** moves each registered organization's credential from an external
    secret store into the cluster so the provider can authenticate, and moves the stack's generated
@@ -105,7 +105,7 @@ Every enabled request gets, by default or by opt-in field:
 | Stack-local provider configuration | A namespaced Grafana `ProviderConfig` scoped to the one stack, built from the generated administrator credential |
 | Starter content | Three baseline folder/dashboard pairs occupying the billing/usage, telemetry-endpoints, and stack-home slots, when `spec.baselineDashboards.enabled` is true |
 | Configurable drift behaviour | Per-resource `enforced`/`createOnly`/`observeOnly`/`disabled` reconciliation modes that decide whether Crossplane repairs an administrator's UI edit or leaves it alone |
-| OAuth and SAML SSO | Platform-defined SSO profiles a request selects by name — `github`, `gitlab`, `google`, `azuread`, `okta`, `generic_oauth`, or `saml` |
+| OAuth and SAML SSO | Platform-defined SSO profiles a request selects by name: `github`, `gitlab`, `google`, `azuread`, `okta`, `generic_oauth`, or `saml` |
 | Reports | An optional scheduled monthly usage report (PDF/CSV) |
 | Plugins | An optional list of Grafana Cloud plugin installations |
 | Incident relay resources | Optional OnCall outgoing webhooks and Alerting contact points that call a platform-owned relay |
@@ -144,6 +144,7 @@ procedure in [Migration and adoption](migration-1.0.md) as requiring that rehear
 | | |
 |---|---|
 | [Getting started](getting-started.md) | Prerequisites and the copy-edit-review-commit path to your first stack |
+| [Core concepts](concepts.md) | The Crossplane, GitOps, reconciliation, and ownership terms used by this reference |
 | [Installation](installation.md) | Bootstrapping Crossplane, ESO, and the platform components |
 | [Configuration](configuration.md) | Platform policy, profiles, and the organization registry |
 | [Architecture](architecture.md) | The three-controller split, reconciliation, and where state lives |

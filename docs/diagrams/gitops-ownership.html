@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitOps and reconciliation ownership</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; background: #f5f5f5; color: #2d3142; font-family: 'Geist', system-ui, sans-serif; }
+    .frame { width: min(1200px, 100%); margin: 0 auto; }
+    .eyebrow { margin: 0 0 8px; color: #4f5d75; font: 500 11px 'Geist Mono', ui-monospace, monospace; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 0 0 20px; font: 400 clamp(28px, 4vw, 40px) 'Instrument Serif', Georgia, serif; letter-spacing: -.02em; }
+    svg { display: block; width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Architecture · doc-wide · engineer</p>
+    <h1>GitOps and reconciliation ownership</h1>
+    <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="gitops-ownership-title gitops-ownership-desc">
+      <title id="gitops-ownership-title">GitOps and reconciliation ownership</title>
+      <desc id="gitops-ownership-desc">Architecture diagram showing Git requests moving through Argo CD, Crossplane, the Grafana provider, and Grafana Cloud, with External Secrets Operator carrying credentials through Kubernetes.</desc>
+      <defs>
+        <marker id="gitops-ownership-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="gitops-ownership-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="gitops-ownership-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+      <rect width="1280" height="720" fill="#f5f5f5"/>
+
+      <rect x="40" y="216" width="184" height="156" rx="8" fill="rgba(45,49,66,.02)" stroke="rgba(45,49,66,.18)" stroke-dasharray="4,4"/>
+      <rect x="56" y="224" width="112" height="16" rx="2" fill="#f5f5f5"/>
+      <text x="64" y="236" fill="#7a8399" font-family="'Geist Mono', monospace" font-size="8" letter-spacing=".14em">GIT SOURCE</text>
+      <rect x="232" y="144" width="856" height="252" rx="8" fill="rgba(45,49,66,.02)" stroke="rgba(45,49,66,.18)" stroke-dasharray="4,4"/>
+      <rect x="248" y="152" width="160" height="16" rx="2" fill="#f5f5f5"/>
+      <text x="256" y="164" fill="#7a8399" font-family="'Geist Mono', monospace" font-size="8" letter-spacing=".14em">KUBERNETES CONTROL PLANE</text>
+      <rect x="1096" y="216" width="144" height="156" rx="8" fill="rgba(45,49,66,.02)" stroke="rgba(45,49,66,.18)" stroke-dasharray="4,4"/>
+      <rect x="1112" y="224" width="112" height="16" rx="2" fill="#f5f5f5"/>
+      <text x="1120" y="236" fill="#7a8399" font-family="'Geist Mono', monospace" font-size="8" letter-spacing=".14em">EXTERNAL API</text>
+
+      <path d="M208 300 H256" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#gitops-ownership-arrow)"/>
+      <path d="M416 300 H464" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#gitops-ownership-arrow)"/>
+      <path d="M640 300 H688" fill="none" stroke="#eb6c36" stroke-width="1.4" marker-end="url(#gitops-ownership-arrow-accent)"/>
+      <path d="M864 300 H912" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#gitops-ownership-arrow)"/>
+      <path d="M1072 300 H1120" fill="none" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#gitops-ownership-arrow-link)"/>
+      <path d="M240 492 H288" fill="none" stroke="#4f5d75" stroke-width="1" marker-end="url(#gitops-ownership-arrow)"/>
+      <path d="M288 532 H240" fill="none" stroke="#4f5d75" stroke-width="1" marker-end="url(#gitops-ownership-arrow)"/>
+      <path d="M464 512 H512" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#gitops-ownership-arrow)"/>
+      <path d="M688 512 H792 Q800 512 800 504 V340 Q800 332 808 332 H912" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#gitops-ownership-arrow)"/>
+      <path d="M776 340 V468" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#gitops-ownership-arrow)"/>
+
+      <rect x="64" y="260" width="144" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="64" y="260" width="144" height="80" rx="6" fill="#fff" stroke="#2d3142"/>
+      <rect x="76" y="272" width="32" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="92" y="281" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">GIT</text>
+      <text x="136" y="303" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Enabled request</text>
+      <text x="136" y="321" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">enabled/*</text>
+
+      <rect x="256" y="260" width="160" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="256" y="260" width="160" height="80" rx="6" fill="#fff" stroke="#2d3142"/>
+      <rect x="268" y="272" width="40" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="288" y="281" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">GITOPS</text>
+      <text x="336" y="303" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Argo CD</text>
+      <text x="336" y="321" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">ApplicationSet</text>
+
+      <rect x="464" y="260" width="176" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="464" y="260" width="176" height="80" rx="6" fill="rgba(235,108,54,.08)" stroke="#eb6c36"/>
+      <rect x="476" y="272" width="28" height="12" rx="2" fill="none" stroke="#eb6c36"/>
+      <text x="490" y="281" fill="#eb6c36" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">XR</text>
+      <text x="552" y="303" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Stack request</text>
+      <text x="552" y="321" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">custom resource</text>
+
+      <rect x="688" y="260" width="176" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="688" y="260" width="176" height="80" rx="6" fill="rgba(235,108,54,.08)" stroke="#eb6c36"/>
+      <rect x="700" y="272" width="32" height="12" rx="2" fill="none" stroke="#eb6c36"/>
+      <text x="716" y="281" fill="#eb6c36" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">XFN</text>
+      <text x="776" y="303" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Crossplane function</text>
+      <text x="776" y="321" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">desired resources</text>
+
+      <rect x="912" y="260" width="160" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="912" y="260" width="160" height="80" rx="6" fill="#fff" stroke="#2d3142"/>
+      <rect x="924" y="272" width="40" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="944" y="281" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">PROVIDER</text>
+      <text x="992" y="303" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Grafana provider</text>
+      <text x="992" y="321" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">managed resources</text>
+
+      <rect x="1120" y="260" width="120" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="1120" y="260" width="120" height="80" rx="6" fill="rgba(45,49,66,.03)" stroke="rgba(45,49,66,.45)"/>
+      <rect x="1132" y="272" width="32" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="1148" y="281" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">API</text>
+      <text x="1180" y="303" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Grafana Cloud</text>
+      <text x="1180" y="321" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">system of record</text>
+
+      <rect x="64" y="468" width="176" height="88" rx="6" fill="#f5f5f5"/>
+      <rect x="64" y="468" width="176" height="88" rx="6" fill="rgba(45,49,66,.03)" stroke="rgba(45,49,66,.45)"/>
+      <rect x="76" y="480" width="48" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="100" y="489" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">STORE</text>
+      <text x="152" y="515" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">External secret store</text>
+      <text x="152" y="533" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">inputs and outputs</text>
+
+      <rect x="288" y="468" width="176" height="88" rx="6" fill="#f5f5f5"/>
+      <rect x="288" y="468" width="176" height="88" rx="6" fill="#fff" stroke="#2d3142"/>
+      <rect x="300" y="480" width="28" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="314" y="489" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">ESO</text>
+      <text x="376" y="515" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">External Secrets</text>
+      <text x="376" y="533" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">read and publish</text>
+
+      <rect x="512" y="468" width="176" height="88" rx="6" fill="#f5f5f5"/>
+      <rect x="512" y="468" width="176" height="88" rx="6" fill="rgba(45,49,66,.05)" stroke="#4f5d75"/>
+      <rect x="524" y="480" width="40" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="544" y="489" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">SECRET</text>
+      <text x="600" y="515" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Kubernetes Secrets</text>
+      <text x="600" y="533" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">provider credentials</text>
+
+      <line x1="40" y1="636" x2="1240" y2="636" stroke="rgba(45,49,66,.15)"/>
+      <text x="40" y="662" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="8" letter-spacing=".14em">OWNERSHIP</text>
+      <rect x="176" y="652" width="12" height="12" rx="2" fill="rgba(235,108,54,.08)" stroke="#eb6c36"/>
+      <text x="200" y="662" fill="#4f5d75" font-family="'Geist', sans-serif" font-size="10">Crossplane request and function</text>
+      <rect x="448" y="652" width="12" height="12" rx="2" fill="#fff" stroke="#2d3142"/>
+      <text x="472" y="662" fill="#4f5d75" font-family="'Geist', sans-serif" font-size="10">controller-owned resources</text>
+      <rect x="744" y="652" width="12" height="12" rx="2" fill="rgba(45,49,66,.03)" stroke="rgba(45,49,66,.45)"/>
+      <text x="768" y="662" fill="#4f5d75" font-family="'Geist', sans-serif" font-size="10">external system of record</text>
+    </svg>
+  </main>
+</body>
+</html>

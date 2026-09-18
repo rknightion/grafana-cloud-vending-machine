@@ -5,19 +5,9 @@ description: The three-controller split between Argo CD, Crossplane, and Externa
 
 # Architecture
 
-```mermaid
-flowchart LR
-    Git[Git request] --> Argo[Argo CD]
-    Argo --> XR[GrafanaCloudStackRequest]
-    XR --> XP[Crossplane composition]
-    XP --> Cloud[Grafana Cloud resources]
-    AWSIn[AWS Secrets Manager\nper-organization and profile credentials] --> ESO[External Secrets Operator]
-    ESO --> K8sIn[Kubernetes Secrets]
-    K8sIn --> XP
-    Cloud --> Generated[Kubernetes connection Secrets]
-    Generated --> ESO
-    ESO --> AWSOut[AWS Secrets Manager\nper-stack outputs]
-```
+<iframe title="GitOps and reconciliation ownership" src="diagrams/gitops-ownership.html" width="100%" height="640" loading="lazy"></iframe>
+
+[Open the GitOps and reconciliation ownership figure](diagrams/gitops-ownership.html) in its own tab.
 
 There are four separate ownership layers:
 
@@ -33,7 +23,16 @@ There are four separate ownership layers:
 **Argo CD must not also declare the managed resources emitted by the Composition.** That would
 give two controllers ownership of the same Kubernetes objects. This is why
 `application.resourceTrackingMethod: annotation` and the Crossplane-aware health customizations
-in `deploy/argocd/argocd-values.yaml` matter — see [Installation](installation.md).
+in `deploy/argocd/argocd-values.yaml` matter. See [Installation](installation.md).
+
+The [Core concepts](concepts.md) page introduces the Crossplane terms used below. The request
+lifecycle figure separates validation, rendering, and provider reconciliation, which are distinct
+stages even though they begin with one Git commit.
+
+<iframe title="Crossplane request lifecycle" src="diagrams/composition-reconciliation.html" width="100%" height="600" loading="lazy"></iframe>
+
+[Open the Crossplane request lifecycle figure](diagrams/composition-reconciliation.html) in its own tab.
+
 ## What is in the repository
 
 ~~~text
@@ -90,8 +89,8 @@ Each public kind is backed by a single-step Crossplane `Composition` in `Pipelin
 the `function-grafana-vending` composition function (a Go program built from
 `platform/function/`). The function reads the request spec plus the platform-owned
 `GrafanaVendingConfig` Composition input and renders the complete set of desired Kubernetes
-managed resources — there is no templating language involved, the rendering logic is Go code
-covered by `platform/function/fn_test.go`.
+managed resources. The rendering logic is Go code, not a templating language, and is covered by
+`platform/function/fn_test.go`.
 
 ## Composition model, renderer registry, and resource graph
 
@@ -126,11 +125,10 @@ together again.
 ## Reconciliation and out-of-band changes
 
 Crossplane providers poll the external APIs and compare observed state with desired state. The
-exact delay is the provider poll interval plus API and controller latency — it is not an
-immediate webhook response.
+exact delay is the provider poll interval plus API and controller latency. It is not an immediate
+webhook response.
 
-The short answer is: an administrator's SSO edit is automatically repaired only when SSO mode is
-enforced.
+An administrator's SSO edit is automatically repaired only when SSO mode is enforced.
 
 An administrator's out-of-band change (through the Grafana UI, say) is repaired only when the
 affected field's reconciliation mode says so:
@@ -163,12 +161,12 @@ affected field's reconciliation mode says so:
 | Product singleton | activation toggle enabled | Removing the composed child does not request external Delete under the standard policy |
 
 Changing SSO from `enforced` to `createOnly` moves `oauth2Settings`/`samlSettings` from
-`forProvider` to `initProvider` while retaining a stable external name for the provider — the
-supported handoff from platform ownership to administrator ownership. `observeOnly` removes write
-authority. `disabled` removes the managed-resource object from the Composition; under the
-retain-by-default lifecycle, the external SSO configuration remains but is no longer observed. Changing the
-identity type itself (e.g. `generic_oauth` to `saml`) is an identity-provider migration, not a
-routine mode toggle — plan a tested login and rollback path.
+`forProvider` to `initProvider` while retaining a stable external name for the provider. This is
+the supported handoff from platform ownership to administrator ownership. `observeOnly` removes
+write authority. `disabled` removes the managed-resource object from the Composition; under the
+retain-by-default lifecycle, the external SSO configuration remains but is no longer observed.
+Changing the identity type itself (e.g. `generic_oauth` to `saml`) is an identity-provider
+migration, so plan a tested login and rollback path.
 
 Argo CD should ignore Crossplane-generated resource churn rather than carrying broad ignore rules
 for the request itself. If the request in Git changes, Argo CD applies the request; the
@@ -221,7 +219,10 @@ for the complete ownership map across all 121 managed-resource kinds the provide
 
 ## Complete provider surface and ownership boundaries
 
-The pinned provider exposes 121 namespaced external managed-resource kinds across 17 Grafana API families, plus 50 observe-only kinds generated from Terraform data sources. Comprehensive architecture means assigning every family a sensible owner; it does not mean every new stack should automatically create an SLO, a k6 project, an incident schedule, an ML job, and organization members.
+The pinned provider exposes 121 namespaced external managed-resource kinds across 17 Grafana API
+families, plus 50 observe-only kinds generated from Terraform data sources. This architecture
+assigns an owner to every family. A new stack does not automatically create an SLO, a k6 project,
+an incident schedule, an ML job, or organization members.
 
 The activation policy enables the reviewed managed-kind set. The gate checks coverage of emitted kinds. Add a kind deliberately when adding a domain API.
 
@@ -249,7 +250,7 @@ The table lists provider families reachable from each composite renderer, includ
 | slo | vended | `GrafanaCloudStackRequest`, `GrafanaStackLadder` | Platform usage profiles vend a ratio golden SLO in handoff mode after datasource observation. Workload metrics and objectives remain explicitly supplied. |
 | sm | vended | `GrafanaSyntheticMonitoring` | Exchanges a bootstrap credential, independently verifies a disabled Check, and constrains team-authored checks by platform budgets. Private probes and their tokens remain outside this API. |
 
-This leads to a clean GitOps tree:
+The GitOps tree is:
 
 ~~~text
 platform Application
@@ -334,16 +335,16 @@ Delete contract does not turn stack-local content into independently deletable r
 - **Desired state** lives in Git, as stack, access, and explicit opt-in module objects under
   `enabled/`.
 - **Composed managed-resource state** lives in Kubernetes, generated by the composition function
-  and never hand-edited — a hand-applied patch to a generated managed resource is overwritten on
+  and never hand-edited. A hand-applied patch to a generated managed resource is overwritten on
   the next reconciliation and can turn an intended adoption into an attempted create.
 - **External state** lives in Grafana Cloud, observed and corrected by the Grafana provider on
   its poll interval.
-- **Credential material** never lives in Git or in a Composition input. It flows through ESO — see
+- **Credential material** never lives in Git or in a Composition input. It flows through ESO. See
   [Secrets](secrets.md).
 
 ## Next steps
 
-- [Request Schema Reference](reference/request-schema.md) — every request field.
-- [Configuration](configuration.md) — platform policy, profiles, and the organization registry.
-- [Secrets](secrets.md) — the credential rotation model in detail.
-- [Security](security.md) — supply-chain verification and the Retain-by-default lifecycle.
+- [Request Schema Reference](reference/request-schema.md): every request field.
+- [Configuration](configuration.md): platform policy, profiles, and the organization registry.
+- [Secrets](secrets.md): the credential rotation model in detail.
+- [Security](security.md): supply-chain verification and the Retain-by-default lifecycle.

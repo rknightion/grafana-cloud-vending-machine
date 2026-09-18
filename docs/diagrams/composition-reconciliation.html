@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crossplane request lifecycle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; background: #f5f5f5; color: #2d3142; font-family: 'Geist', system-ui, sans-serif; }
+    .frame { width: min(1200px, 100%); margin: 0 auto; }
+    .eyebrow { margin: 0 0 8px; color: #4f5d75; font: 500 11px 'Geist Mono', ui-monospace, monospace; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 0 0 20px; font: 400 clamp(28px, 4vw, 40px) 'Instrument Serif', Georgia, serif; letter-spacing: -.02em; }
+    svg { display: block; width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Data flow · doc-wide · engineer</p>
+    <h1>Crossplane request lifecycle</h1>
+    <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="composition-reconciliation-title composition-reconciliation-desc">
+      <title id="composition-reconciliation-title">Crossplane request lifecycle</title>
+      <desc id="composition-reconciliation-desc">Data-flow diagram showing a Git request passing validation and a Crossplane Composition before the Grafana provider reconciles managed resources, with observed IDs and conditions feeding the next Composition run.</desc>
+      <defs>
+        <marker id="composition-reconciliation-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="composition-reconciliation-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="composition-reconciliation-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+      <rect width="1280" height="720" fill="#f5f5f5"/>
+      <rect x="32" y="216" width="1216" height="168" rx="8" fill="rgba(45,49,66,.02)" stroke="rgba(45,49,66,.18)" stroke-dasharray="4,4"/>
+      <rect x="48" y="224" width="152" height="16" rx="2" fill="#f5f5f5"/>
+      <text x="56" y="236" fill="#7a8399" font-family="'Geist Mono', monospace" font-size="8" letter-spacing=".14em">REQUEST TO EXTERNAL STATE</text>
+
+      <path d="M184 312 H224" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#composition-reconciliation-arrow)"/>
+      <path d="M392 312 H432" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#composition-reconciliation-arrow)"/>
+      <path d="M600 312 H640" fill="none" stroke="#eb6c36" stroke-width="1.4" marker-end="url(#composition-reconciliation-arrow-accent)"/>
+      <path d="M808 312 H848" fill="none" stroke="#eb6c36" stroke-width="1.4" marker-end="url(#composition-reconciliation-arrow-accent)"/>
+      <path d="M1016 312 H1056" fill="none" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#composition-reconciliation-arrow-link)"/>
+      <path d="M1056 336 H984 Q976 336 976 344 V492 Q976 500 968 500 H808" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#composition-reconciliation-arrow)"/>
+      <path d="M724 456 V352" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#composition-reconciliation-arrow)"/>
+
+      <rect x="40" y="272" width="144" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="40" y="272" width="144" height="80" rx="6" fill="#fff" stroke="#2d3142"/>
+      <rect x="52" y="284" width="28" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="66" y="293" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">GIT</text>
+      <text x="112" y="315" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Request</text>
+      <text x="112" y="333" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">desired input</text>
+
+      <rect x="224" y="272" width="168" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="224" y="272" width="168" height="80" rx="6" fill="#fff" stroke="#2d3142"/>
+      <rect x="236" y="284" width="40" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="256" y="293" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">CHECK</text>
+      <text x="308" y="315" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Schema and admission</text>
+      <text x="308" y="333" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">accept or deny</text>
+
+      <rect x="432" y="272" width="168" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="432" y="272" width="168" height="80" rx="6" fill="#fff" stroke="#2d3142"/>
+      <rect x="444" y="284" width="32" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="460" y="293" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">XRD</text>
+      <text x="516" y="315" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Composition</text>
+      <text x="516" y="333" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">Pipeline mode</text>
+
+      <rect x="640" y="272" width="168" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="640" y="272" width="168" height="80" rx="6" fill="rgba(235,108,54,.08)" stroke="#eb6c36"/>
+      <rect x="652" y="284" width="32" height="12" rx="2" fill="none" stroke="#eb6c36"/>
+      <text x="668" y="293" fill="#eb6c36" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">XFN</text>
+      <text x="724" y="315" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Composition function</text>
+      <text x="724" y="333" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">renders desired state</text>
+
+      <rect x="848" y="272" width="168" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="848" y="272" width="168" height="80" rx="6" fill="rgba(235,108,54,.08)" stroke="#eb6c36"/>
+      <rect x="860" y="284" width="32" height="12" rx="2" fill="none" stroke="#eb6c36"/>
+      <text x="876" y="293" fill="#eb6c36" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">MR</text>
+      <text x="932" y="315" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Managed resources</text>
+      <text x="932" y="333" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">desired objects</text>
+
+      <rect x="1056" y="272" width="184" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="1056" y="272" width="184" height="80" rx="6" fill="rgba(45,49,66,.03)" stroke="rgba(45,49,66,.45)"/>
+      <rect x="1068" y="284" width="40" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="1088" y="293" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">API</text>
+      <text x="1148" y="315" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Grafana provider</text>
+      <text x="1148" y="333" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">Grafana Cloud reconcile</text>
+
+      <rect x="640" y="456" width="168" height="88" rx="6" fill="#f5f5f5"/>
+      <rect x="640" y="456" width="168" height="88" rx="6" fill="rgba(45,49,66,.05)" stroke="#4f5d75"/>
+      <rect x="652" y="468" width="48" height="12" rx="2" fill="none" stroke="#4f5d75"/>
+      <text x="676" y="477" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="7" text-anchor="middle">STATUS</text>
+      <text x="724" y="505" fill="#2d3142" font-family="'Geist', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Observed state</text>
+      <text x="724" y="523" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="9" text-anchor="middle">IDs and conditions</text>
+
+      <text x="40" y="600" fill="#2d3142" font-family="'Instrument Serif', serif" font-size="20" font-style="italic">A child that needs a provider-assigned ID waits until the next observed-state cycle.</text>
+      <line x1="40" y1="636" x2="1240" y2="636" stroke="rgba(45,49,66,.15)"/>
+      <text x="40" y="662" fill="#4f5d75" font-family="'Geist Mono', monospace" font-size="8" letter-spacing=".14em">READING THE FLOW</text>
+      <rect x="216" y="652" width="12" height="12" rx="2" fill="rgba(235,108,54,.08)" stroke="#eb6c36"/>
+      <text x="240" y="662" fill="#4f5d75" font-family="'Geist', sans-serif" font-size="10">desired-state calculation</text>
+      <rect x="504" y="652" width="12" height="12" rx="2" fill="rgba(45,49,66,.05)" stroke="#4f5d75"/>
+      <text x="528" y="662" fill="#4f5d75" font-family="'Geist', sans-serif" font-size="10">observed state returns to the function</text>
+      <line x1="856" y1="658" x2="888" y2="658" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="904" y="662" fill="#4f5d75" font-family="'Geist', sans-serif" font-size="10">asynchronous next cycle</text>
+    </svg>
+  </main>
+</body>
+</html>

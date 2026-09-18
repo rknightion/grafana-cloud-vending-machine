@@ -30,6 +30,7 @@ provider, secret store, and organization `ProviderConfig` objects are not alread
 | Page | Covers |
 | --- | --- |
 | [Documentation home](docs/index.md) | Who this is for, the request-to-stack flow, baseline capabilities, and the full reading map |
+| [Core concepts](docs/concepts.md) | The Crossplane, GitOps, reconciliation, and ownership terms used by this reference |
 | [Getting started](docs/getting-started.md) | Prerequisites and the first request |
 | [Installation](docs/installation.md) | Direct and Argo CD installation, pins, signatures, releases, and upgrades |
 | [Configuration](docs/configuration.md) | Platform policy, profiles, and the organization registry |
