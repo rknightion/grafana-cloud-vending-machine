@@ -3,10 +3,10 @@ id: GCV-0077
 title: >-
   Composed resources churn hard enough to hold the composite watch circuit
   breaker open on every stack
-status: In Progress
+status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 08:26'
+updated_date: '2026-09-18 10:22'
 labels: []
 dependencies: []
 references:
@@ -32,9 +32,9 @@ Impact today looks bounded: event-driven composite reconciles are throttled to o
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The source of the repeated no-op updates is identified per affected kind, with evidence showing what the provider sends and what the API returns
-- [ ] #2 Whether the churn originates in the provider or in what this composition sets is settled, and the finding names which of the two has to change
-- [ ] #3 Either the churn is removed for the kinds this platform composes, or the platform records why it is acceptable, what it costs and what it would take to fix
+- [x] #1 The source of the repeated no-op updates is identified per affected kind, with evidence showing what the provider sends and what the API returns
+- [x] #2 Whether the churn originates in the provider or in what this composition sets is settled, and the finding names which of the two has to change
+- [x] #3 Either the churn is removed for the kinds this platform composes, or the platform records why it is acceptable, what it costs and what it would take to fix
 - [ ] #4 A composite with no failing children reports Responsive=True, or the condition is documented as uninformative with the reason
 <!-- AC:END -->
 
@@ -84,4 +84,12 @@ THE DISCRIMINATOR TO START FROM instead. On the estate with no in-stack content,
 One more structural clue worth testing: all three churning kinds are WHOLE-SET replace resources, the ones the wave operating model already singles out as needing exactly one declarative owner. The quiet kinds are not. Two writers fighting over a whole-set field would produce exactly this signature.
 
 Also observed, and separately relevant to GCV-0075 AC4: AccessPolicyRotatingToken exposes NO expiration, secondsToLive or earlyRotationWindowSeconds in status.atProvider at all - all three read null - while StackServiceAccountRotatingToken exposes every one of them. An operator cannot see when an access policy token expires from the resource.
+
+Wave 13 terminal reconciliation: pinned-source evidence identifies resolver and late-initializer scalar writes as the no-op spec-write source for AccessPolicy, FolderPermission, and DashboardPermission. Focused tests prove the renderer preserves observed identifiers, UIDs, team IDs, and org IDs. No live cluster contact was permitted, so generation settling and Responsive=True remain unverified.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Parked after landing the source-backed renderer correction. The composition now preserves provider-resolved fields for all three affected kinds, with focused tests and integrated just check plus hosted Validate run 35333659147 green at b47831ddddfd5ec10e1e699d4d8608886261becd. Resume after deploying this pin: observe generations over several burst windows and confirm a healthy composite returns Responsive=True. AC4 remains unproven.
+<!-- SECTION:FINAL_SUMMARY:END -->

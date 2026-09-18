@@ -3,10 +3,10 @@ id: GCV-0082
 title: >-
   Make the refused-vendor-shape class unrepeatable, instead of fixed one kind at
   a time
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-18 07:46'
-updated_date: '2026-09-18 09:24'
+updated_date: '2026-09-18 10:22'
 labels:
   - needs-triage
   - vendor-defect
@@ -36,18 +36,18 @@ Scope boundary: this task builds the control and records the class. Fixing the i
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 One artefact in this repository names every vendor request shape known to be refused, with the exact error string, the date, and whether it was observed or inferred
-- [ ] #2 The gate fails if any composed child emits a shape on that list, checked across every emitted kind rather than per-field in one test
-- [ ] #3 The behaviour of a permanently refused child is documented: that it is retried indefinitely, that it generates continuous load on the vendor tenant, and what an operator should do about it
-- [ ] #4 An operator can tell from resource conditions that a child is failing in a way no reconcile will fix, without reading provider logs
-- [ ] #5 A written protocol for verifying a vendor shape against a live stack exists, stating that the vendor's secret API ignores dryRun and that every call must be assumed to mutate
-- [ ] #6 A decision is recorded on whether the connection renderer keeps duplicating the credential as a standalone secure value, with a migration note if it stops
+- [x] #1 One artefact in this repository names every vendor request shape known to be refused, with the exact error string, the date, and whether it was observed or inferred
+- [x] #2 The gate fails if any composed child emits a shape on that list, checked across every emitted kind rather than per-field in one test
+- [x] #3 The behaviour of a permanently refused child is documented: that it is retried indefinitely, that it generates continuous load on the vendor tenant, and what an operator should do about it
+- [x] #4 An operator can tell from resource conditions that a child is failing in a way no reconcile will fix, without reading provider logs
+- [x] #5 A written protocol for verifying a vendor shape against a live stack exists, stating that the vendor's secret API ignores dryRun and that every call must be assumed to mutate
+- [x] #6 A decision is recorded on whether the connection renderer keeps duplicating the credential as a standalone secure value, with a migration note if it stops
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -57,3 +57,15 @@ Wave 13: create a machine-readable refused-shape record and all-emitted-kind ass
 
 AC4 evidence uses each composed child standard Synced and Ready conditions plus events; the public troubleshooting text states that the composite can remain healthy and directs operators to the child. AC6 keeps the connection standalone secure value under the frozen decision because GCV-0084 tracks restoration of reference-form support; the duplicated vendor credential is the explicit trade-off and no migration occurs in this wave.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 13 terminal evidence: refusedshapes.go is the executable record for every known refused GVK/path, including exact error, evidence class, and date. TestRefusedVendorShapeAssertionCoversEveryEmittedKind and scripts/refused-shapes.sh prove all-emitted-kind coverage and the controlled failure path. Public troubleshooting and request-schema guidance cover child conditions, indefinite retries, targeted correction, and mutation-safe probing. The standalone connection secure value is retained under the frozen GCV-0084 restoration seam. Local just check and hosted Validate run 35333659147 passed at b47831ddddfd5ec10e1e699d4d8608886261becd.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added an executable refused-vendor-shape registry, central post-render guard, all-emitted-kind assertion, controlled negative proof, and operator guidance for permanent 4xx failures and live probing. Retained the connection standalone secure value as an explicit restoration seam. Verified by the focused assertion, controlled failure script, full local gate, and hosted Validate run 35333659147 at b47831ddddfd5ec10e1e699d4d8608886261becd.
+<!-- SECTION:FINAL_SUMMARY:END -->

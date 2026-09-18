@@ -3,10 +3,10 @@ id: GCV-0075
 title: >-
   Vended rotating tokens can never rotate, so every stack loses its credentials
   at the first rotation window
-status: In Progress
+status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 09:24'
+updated_date: '2026-09-18 10:22'
 labels: []
 dependencies: []
 references:
@@ -37,12 +37,12 @@ This needs a decision, not a patch, and every option is unattractive: delete and
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The failure is reproduced against the provider version this repository pins, with the resource kinds, the exact provider message and the timing relative to the early-rotation window recorded as evidence
-- [ ] #2 The chosen handling of rotation is recorded as a decision with its trade-offs, covering both rotating token kinds the composition emits
+- [x] #1 The failure is reproduced against the provider version this repository pins, with the resource kinds, the exact provider message and the timing relative to the early-rotation window recorded as evidence
+- [x] #2 The chosen handling of rotation is recorded as a decision with its trade-offs, covering both rotating token kinds the composition emits
 - [ ] #3 The chosen handling works for an estate that has already passed a rotation window, not only for a stack vended after the change
 - [ ] #4 An operator can distinguish a stuck token from a healthy one from resource conditions alone, without reading provider logs
 - [ ] #5 The composite no longer reports Ready=True while a token it owns cannot rotate, or the reason it still does is recorded
-- [ ] #6 The upstream position is recorded: whether a provider or Upjet change is required, and whether it has been raised
+- [x] #6 The upstream position is recorded: whether a provider or Upjet change is required, and whether it has been raised
 <!-- AC:END -->
 
 ## Definition of Done
@@ -96,4 +96,12 @@ Provider versions differ across the two estates, v2.14.0 on one and a v2.13.0 bu
 Lane A verified the third ServiceAccountRotatingToken has the same Computed ForceNew ready_for_rotation mechanism at the provider pin. Design packet: codex/wave13/lane-a-packet.md.
 
 Wave 13 security review found material safe-ordering defects in the attempted A2 implementation: publication deadlock, candidate withdrawal, unsafe lineage fallback, wrong consumer ProviderConfig identity, and dishonest unknown-expiry handling. The A2 code was removed. Resume by correcting the accepted design packet against lane-f-review.md, then reimplement and replay the complete desired-to-observed lifecycle before any publish. AC2 applies to all three emitted rotating-token kinds, including ServiceAccountRotatingToken.
+
+Wave 13 terminal reconciliation: the A2 implementation was rejected and removed after lane-f-review.md found material safe-ordering defects. Resume only after repairing the design for publication ordering, observed candidate retention, lineage, consumer identity, unknown expiry, and root wiring across all three token kinds.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Parked after design and adversarial review. Provider replacement behavior, all three emitted token kinds, the overlapping-generation decision, and the upstream Upjet boundary are recorded. No rotation implementation remains in the tree. Resume from codex/wave13/lane-f-review.md. The integrated repository passed just check locally and hosted Validate run 35333659147 at b47831ddddfd5ec10e1e699d4d8608886261becd, but AC3 through AC5 remain unproven.
+<!-- SECTION:FINAL_SUMMARY:END -->

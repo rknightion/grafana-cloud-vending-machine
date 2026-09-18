@@ -3,10 +3,10 @@ id: GCV-0081
 title: >-
   GrafanaProvisioningRepository can only express the secure-value shape the
   vendor refuses, so setting any repository secret 403s forever
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-18 07:45'
-updated_date: '2026-09-18 09:24'
+updated_date: '2026-09-18 10:22'
 labels:
   - needs-triage
   - vendor-defect
@@ -42,18 +42,18 @@ Doing nothing is also an option worth costing: mark the three fields unusable, s
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Whether the vendor refuses repository.secure name references is settled against the pinned provider CRD and the vendor API group evidence, and the finding states plainly whether it is observed or inferred
-- [ ] #2 A consumer setting any of token, webhookSecret or commitSigningKey either reaches a working repository or is refused at admission with a message naming the vendor defect; it is never left generating retries
-- [ ] #3 If the create form is adopted, all three secrets go through the same ExternalSecret-materialised Secret mechanism as the connection credential, the value is never decoded inside the function, and the claim-side literal prohibition stays intact
-- [ ] #4 The change is graded against the released-API rule: either it is additive, or it carries a breaking marker and a migration section
-- [ ] #5 The vendor-side consequence of a permanently refused child - continuous retries against a live stack and an alert on the vendor's on-call - is documented where a consumer of this API will read it
-- [ ] #6 A renderer test fails if any provisioning kind emits a secure-value name reference to the vendor
+- [x] #1 Whether the vendor refuses repository.secure name references is settled against the pinned provider CRD and the vendor API group evidence, and the finding states plainly whether it is observed or inferred
+- [x] #2 A consumer setting any of token, webhookSecret or commitSigningKey either reaches a working repository or is refused at admission with a message naming the vendor defect; it is never left generating retries
+- [x] #3 If the create form is adopted, all three secrets go through the same ExternalSecret-materialised Secret mechanism as the connection credential, the value is never decoded inside the function, and the claim-side literal prohibition stays intact
+- [x] #4 The change is graded against the released-API rule: either it is additive, or it carries a breaking marker and a migration section
+- [x] #5 The vendor-side consequence of a permanently refused child - continuous retries against a live stack and an alert on the vendor's on-call - is documented where a consumer of this API will read it
+- [x] #6 A renderer test fails if any provisioning kind emits a secure-value name reference to the vendor
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -76,4 +76,12 @@ So the shape of the work is: reject token, webhookSecret and commitSigningKey at
 This is a fail-closed tightening on an API released in 2.0.0, so the wave operating model's rule applies in full: the commit carries a breaking marker and the change gets a migration section. An update that 2.0.0 accepted will be rejected.
 
 AC1 CAVEAT, and it is load-bearing for how the refusal is worded. The 403 on Repository is INFERRED from Connection, a sibling kind in the same vendor API group whose secure-value resolution path is where the refusal was traced. It has not been observed on Repository. Nothing on either live estate has ever created a RepositoryV0Alpha1 with a secure value, so there is no live evidence either way, and probing for it would mean creating a secure value and a repository on a real stack - the same action that raised the vendor's alert last time, and the vendor's secret API ignores dryRun, so the probe would be a real mutation. Do not probe as part of this wave. Word the documentation as inferred, name the sibling evidence, and say so plainly rather than asserting an observation that was never made.
+
+Wave 13 terminal evidence: renderer tests refuse token, webhookSecret, and commitSigningKey; admission tests cover create, addition update, retained legacy values after CRD upgrade, and removal. The breaking migration identifies the repository refusal as inferred sibling evidence and preserves the claim-side literal prohibition. Local just check and hosted Validate run 35333659147 passed at b47831ddddfd5ec10e1e699d4d8608886261becd.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Refused all three GrafanaProvisioningRepository secure-value fields at admission and render time, with ratcheting-resistant upgrade behavior and a breaking migration. Documentation distinguishes inferred Repository behavior from the observed sibling Connection failure and explains retry/on-call consequences. Verified by focused renderer and envtest admission tests, the full local gate, and hosted Validate run 35333659147 at b47831ddddfd5ec10e1e699d4d8608886261becd.
+<!-- SECTION:FINAL_SUMMARY:END -->

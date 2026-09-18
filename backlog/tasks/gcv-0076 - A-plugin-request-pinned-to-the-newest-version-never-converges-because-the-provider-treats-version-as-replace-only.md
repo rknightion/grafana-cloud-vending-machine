@@ -3,10 +3,10 @@ id: GCV-0076
 title: >-
   A plugin request pinned to the newest version never converges, because the
   provider treats version as replace-only
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 09:24'
+updated_date: '2026-09-18 10:22'
 labels: []
 dependencies: []
 type: bug
@@ -25,16 +25,16 @@ This is the default path rather than an unusual request, because a caller who na
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A request that names a plugin without naming a version produces a managed resource that reaches Synced=True
-- [ ] #2 The behaviour when a caller explicitly asks for the newest version is defined, and either converges or is rejected at admission rather than left permanently out of sync
-- [ ] #3 A plugin installation already stuck in this state has a stated remediation an operator can follow
-- [ ] #4 A function test covers the version-defaulting path and fails if the default reintroduces a value the provider cannot converge on
+- [x] #1 A request that names a plugin without naming a version produces a managed resource that reaches Synced=True
+- [x] #2 The behaviour when a caller explicitly asks for the newest version is defined, and either converges or is rejected at admission rather than left permanently out of sync
+- [x] #3 A plugin installation already stuck in this state has a stated remediation an operator can follow
+- [x] #4 A function test covers the version-defaulting path and fails if the default reintroduces a value the provider cannot converge on
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -59,4 +59,12 @@ Same upstream mechanism as GCV-0075, verified from source: Upjet's Update path c
 AC3's remediation is already evidenced by the neighbouring task: deleting and recreating the managed resource is what cleared the equivalent state on the rotating tokens. State it explicitly as the operator step, because the object will not repair itself.
 
 AC2 is the real decision: whether asking for the newest version is rejected at admission, or resolved to a concrete version at render time, or accepted with the churn documented. Rejecting it is the smallest change and the one that cannot be wrong later, but it removes a convenience a caller currently has - note that spec.repository style version pinning is not comparable here because this API is not released under the same constraint. Check whether the plugin API is already released before adding a rule that refuses an input it previously accepted.
+
+Wave 13 terminal evidence: TestPluginInstallationsAdoptObservedVersionForNewestRequests covers omitted version, explicit latest, and explicit numeric pinning. The integrated local just check passed, and hosted Validate run 35333659147 passed at b47831ddddfd5ec10e1e699d4d8608886261becd.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Implemented additive plugin-version convergence. Omitted or explicit latest adopts the provider-observed concrete version, numeric requests stay pinned, and an already-stuck object is remediated by delete and recreate. Verified by focused function tests, the full local gate, and hosted Validate run 35333659147 at b47831ddddfd5ec10e1e699d4d8608886261becd.
+<!-- SECTION:FINAL_SUMMARY:END -->
