@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-16 17:10'
+updated_date: '2026-09-18 11:11'
 labels: []
 dependencies: []
 documentation:
@@ -43,3 +44,47 @@ The version gap will be larger by the time this is picked up, and the schema may
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-18 deferral reasoning corrected, and the task split for wave 14.
+
+AC1 IS NOT LIVE WORK, and every prior wave that deferred this task said it was. Wave 13's selection
+table recorded GCV-0078 as "needs a live admission answer / an API-server experiment" and deferred
+it on that basis. AC1's own wording is "against a real API server using THIS REPOSITORY'S admission
+fixture" - that is the pinned ephemeral envtest server the gate already stands up on every `just
+check` run, not a live cluster. The load-bearing unknown is answerable here with zero live contact.
+Do not re-defer this task on the belief that AC1 needs an estate.
+
+The shape to copy is the create-persist-upgrade-update sequence wave 13 used to defeat Kubernetes
+validation ratcheting on the provisioning API; `platform/function/provisioning_test.go`'s CRD
+upgrade cases are the worked example. Test BOTH an update that touches no sibling field and one that
+changes a sibling, because ratcheting is live in this harness and the migration guide's instruction
+is the former while a real cutover is likely the latter.
+
+AC1 THROUGH AC5 ARE COMMISSIONED IN WAVE 14. AC6 IS NOT. The cutover is an authorised action on a
+real estate, which the wave forbids, so this task will not reach Done in wave 14 even if its lane
+fully succeeds. It is also not Parked if the lane succeeds, because nothing is blocked - the cutover
+is simply the next human step.
+
+WHY THE CUTOVER IS AFTER THE WAVE RATHER THAN BEFORE OR DURING IT, so this is not re-litigated:
+
+1. The frozen estate cannot take the current pin at all. Its stored request carries no
+   spec.organization and the current schema makes that field required, so the request is refused the
+   moment a newer revision lands. This is not a pin bump and no rollout ordering makes it one. It
+   also means this estate is irrelevant to GCV-0077's clean-signal problem, which only ever
+   concerned the estate that is not frozen.
+2. AC5 requires the delta re-derived at pickup, and wave 14 itself moves two XRDs (the stack
+   consumer API and the provisioning connection API). A delta derived before that wave is stale by
+   the end of it.
+3. Cutting over after wave 14 lands the estate on a pin that can rotate, once GCV-0075 is in it.
+   Migrating onto the current un-rotatable pin and re-rolling a week later is two cutovers on the
+   most fragile estate in the fleet, and the first would hand it credentials that cannot rotate.
+
+A released-API change is a blocker, not a lane edit. If AC1's answer implies relaxing the
+spec.organization transition rule or making the field optional again, that is a change to
+platform/apis/stack-v1beta1.yaml, which shipped in v1.0.0, v1.0.1 and v2.0.0. Return the exact edit
+and let the owner decide; a fail-closed loosening on a released API is a breaking change however
+safe it looks.
+<!-- SECTION:NOTES:END -->
