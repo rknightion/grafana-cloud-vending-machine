@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 19:02'
+updated_date: '2026-09-18 19:05'
 labels: []
 dependencies: []
 references:
@@ -119,6 +119,8 @@ The seven Lane F findings in codex/wave14/lane-f-review.md are no longer a repai
 Timing, so no plan assumes a cliff: the windows reopen on the thirty-day cycle the 2026-09-16 recreation restarted. Manual delete-and-recreate remains the proven fallback and needs no code.
 
 Wave 15 design packet recommends controlled replacement only where the owner explicitly accepts interruption for that consumer and token type. Keep operator-controlled replacement as the proven fallback. Where uninterrupted authentication is mandatory, pursue provider-owned renewal instead. Do not automate universally and do not retry the rejected overlapping-generation design. Owner decision still required: which consumers accept interruption, the maximum acceptable interruption or telemetry loss, and the recovery evidence required before automation. GCV-0075 remains Parked and no acceptance criterion was satisfied.
+
+The Wave 15 direction packet is codex/wave15/lane-a-direction.md. AC3 remains open pending the owner decision on direction.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
