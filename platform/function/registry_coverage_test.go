@@ -73,13 +73,6 @@ func TestManagedKindActivationCoverage(t *testing.T) {
 	}
 }
 
-type managedGVK struct {
-	APIVersion string
-	Kind       string
-}
-
-func (g managedGVK) key() string { return g.APIVersion + "/" + g.Kind }
-
 type managedKindMap struct {
 	ProviderPackageDigest string                `json:"providerPackageDigest"`
 	ManagedKinds          []managedKindMapEntry `json:"managedKinds"`

@@ -19,6 +19,13 @@ type refusedVendorShape struct {
 	Evidence   string
 }
 
+type managedGVK struct {
+	APIVersion string
+	Kind       string
+}
+
+func (g managedGVK) key() string { return g.APIVersion + "/" + g.Kind }
+
 func (s refusedVendorShape) gvk() managedGVK {
 	return managedGVK{APIVersion: s.APIVersion, Kind: s.Kind}
 }
