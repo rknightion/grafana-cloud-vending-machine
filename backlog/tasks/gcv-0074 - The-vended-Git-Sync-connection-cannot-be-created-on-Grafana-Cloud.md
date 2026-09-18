@@ -4,7 +4,7 @@ title: The vended Git Sync connection cannot be created on Grafana Cloud
 status: Parked
 assignee: []
 created_date: '2026-09-12 19:11'
-updated_date: '2026-09-18 08:00'
+updated_date: '2026-09-18 10:54'
 labels:
   - needs-triage
 dependencies: []
@@ -17,13 +17,13 @@ ordinal: 74000
 <!-- SECTION:DESCRIPTION:BEGIN -->
 GrafanaProvisioningConnection composes a ConnectionV0Alpha1 whose forProvider carries secure.privateKey: {name: <securevalue>}, the reference form. Grafana Cloud refuses that form outright with HTTP 403, so no vended Git Sync connection can ever reach Ready and the separately vended GrafanaProvisioningRepository sits unhealthy for want of one.
 
-VERIFIED LIVE on 2026-09-12 against stack portina (1824620, prod-gb-south-1) from the m7kni/portina-iac consumer, at pin 3d789c8.
+VERIFIED LIVE on 2026-09-12 against the portina stack in prod-gb-south-1 from the m7kni/portina-iac consumer, at pin 3d789c8.
 
 THE ERROR NAMES THE WRONG THING, which is the expensive part:
 
   403 PermissionDenied: identity type access-policy not allowed, expected either user or service-account: invalid identity
 
-It is about neither the caller nor an access policy. The identical request fails from the stack's own glsa_ service-account token (service-account:20, 'Grafana vending controller', which /api/user confirms is a service account, not an access policy) AND from a real interactive user via gcx. It also fails whoever created the referenced secure value: a secure value created by the vending controller and one created by a user, both with decrypters [provisioning.grafana.app], are refused the same way.
+It is about neither the caller nor an access policy. The identical request fails from the stack's own glsa_ service-account token (the 'Grafana vending controller' identity, which /api/user confirms is a service account, not an access policy) AND from a real interactive user via gcx. It also fails whoever created the referenced secure value: a secure value created by the vending controller and one created by a user, both with decrypters [provisioning.grafana.app], are refused the same way.
 
 WHAT DOES WORK is the create form with a BASE64-ENCODED PEM:
 
@@ -44,6 +44,8 @@ So the options each need a decision rather than an implementation:
   3. treat the reference form's 403 as a Grafana Cloud defect, raise it upstream, and park this API until it works
 
 GrafanaProvisioningRepository is unaffected and vends correctly: a repository with sync.target folderless, workflows [write] and a github path landed with the declared uid and reconciles clean. Separately worth recording in the repository API's docs: Grafana Cloud's floor for sync.intervalSeconds is 300 and it silently raises anything lower, while the Crossplane provider reads back its own requested 60 and reports no drift, so neither side flags the override.
+
+IDENTIFIER SCRUB 2026-09-18: this description previously carried the stack's numeric id and its service account's numeric id. Both are removed. They remain in reachable history, which cannot be rewritten; see GCV-0086 for the control that stops the class recurring. A stack slug and a region are permitted here by owner decision; bare numeric stack, org and account ids are not.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
