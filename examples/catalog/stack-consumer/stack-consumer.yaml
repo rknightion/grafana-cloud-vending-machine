@@ -1,10 +1,10 @@
 apiVersion: platform.example.org/v1beta1
 kind: GrafanaStackConsumer
 metadata:
-  name: example-reader
-  namespace: consumer-platform
+  name: robk-telemetry-writer
+  namespace: telemetry-consumers
 spec:
-  profile: example-reader
+  profile: robk-telemetry-writer
   stack:
-    slug: exampleobservedstack
-    region: prod-us-central-0
+    slug: robk
+    region: prod-gb-south-1

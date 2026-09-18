@@ -29,6 +29,14 @@ home-directory prefix case-sensitively, and tooling instructions, hook tests and
 carry them by default. Derive paths from `git rev-parse --show-toplevel` or use relative paths. Never
 hard-code one, in this file included.
 
+The frozen publication boundary is narrower than a blanket slug prohibition. Stack slugs, regions
+and `grafana.net` hostnames are permitted. Bare numeric organisation, stack and account identifiers,
+private repository names outside the enumerated allowlist in `scripts/public-release-scan.sh`, and
+internal project or estate names are refused. The new control checks those classes in the working
+tree only because the three prior leak classes are already reachable in history; published history
+is not rewritten as a disproportionate repair. Keep future reports scrubbed without restoring those
+values.
+
 ## Task tracking
 
 Work is tracked with Backlog.md in `backlog/`, committed to git. `backlog doc list --plain` shows the
@@ -38,9 +46,11 @@ model**, this project's own lane conventions, recurring defects, exclusive publi
 run-end. Read both before designing a wave.
 
 `backlog/` is committed to git and is inside the publication scan, so tasks, docs and decisions must
-never contain real account identifiers or personal data: no email addresses, handles, usernames,
-account IDs, stack slugs, device names, addresses or coordinates. Write the shape, not the instance.
-Aggregate counts, timings and structural findings are fine. A leak here fails the scan permanently.
+never contain refused account identifiers or personal data: no email addresses, handles, usernames,
+bare numeric organisation, stack or account IDs, private repository names outside the enumerated
+allowlist, internal project or estate names, device names, addresses or coordinates. Stack slugs,
+regions and `grafana.net` hostnames are permitted; write refused values as shapes. Aggregate counts,
+timings and structural findings are fine. A leak here fails the scan permanently.
 
 Backlog CLI traps beyond the global "drive it through the CLI" rule:
 

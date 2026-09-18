@@ -156,6 +156,15 @@ external credential output path.
 | `spec.stack.region` | Required Grafana Cloud region slug. It is immutable after creation. |
 | `spec.profile` | Required immutable platform-owned consumer profile. `metadata.name` must equal this value, so one composite owns the selected consumer identity in its namespace. |
 
+The shipped `robk-telemetry-writer` profile admits requests only from the
+`telemetry-consumers` namespace for the `robk` stack in `prod-gb-south-1`; the request name and
+profile must match. The profile renders a credential publication at
+`/platform/grafana-cloud/consumers/robk-telemetry` whose `telemetry.json` contains `stack_slug`,
+`stack_region`, `access_policy_name`, and the vended `access_policy_token`. It grants
+`metrics:write`, `logs:write`, and `traces:write` because the consumer publishes those three
+telemetry signals. Live secret-store read-back is not exercised, and not exercisable here; the
+consuming estate verifies its approved store after deployment.
+
 The request cannot supply a stack ID, an AccessPolicy realm type or identifier,
 a ProviderConfig, scopes, a consumer name, a credential path, or a secret-store
 destination. The renderer creates a non-creating Observe-only Cloud Stack using

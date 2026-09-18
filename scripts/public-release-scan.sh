@@ -90,6 +90,206 @@ sift_hits() {
   ' "$allowed" "$pattern"
 }
 
+# Like sift_hits, but the forbidden expression is an ERE rather than a fixed
+# string. This is used only by the working-tree identifier-class control below.
+sift_regex_hits() {
+  local pattern=$1
+  local allowed=$2
+  run_search perl -ne '
+    BEGIN { $allowed = shift @ARGV; $forbidden = shift @ARGV }
+    $stripped = $_;
+    $stripped =~ s/$allowed//gi if length $allowed;
+    print if $stripped =~ /$forbidden/i;
+  ' "$allowed" "$pattern"
+}
+
+# Search a working-tree root only. The existing scan helpers deliberately pair
+# their working-tree search with a history search, because a finding in history
+# cannot be repaired without rewriting published commits. These identifier
+# classes are already present in reachable history, so pairing them would make
+# this new control permanently red. Only the scan source itself is excluded;
+# tests, fixtures, backlog and evidence remain in scope.
+scan_working_tree_only() {
+  local label=$1
+  local pattern=$2
+  local allowed=$3
+  local scan_root=$4
+  local quiet=${5:-0}
+  local case_sensitive=${6:-0}
+  local status
+  local -a rg_args=(rg --hidden --glob '!.git/**' \
+    --glob '!scripts/public-release-scan.sh' -n)
+  local hits
+
+  if (( case_sensitive == 0 )); then
+    rg_args+=(-i)
+  fi
+
+  if hits=$(
+    cd "$scan_root"
+    if [[ -n $allowed ]]; then
+      run_search "${rg_args[@]}" -- "$pattern" . |
+        sift_regex_hits "$pattern" "$allowed"
+    else
+      run_search "${rg_args[@]}" -- "$pattern" .
+    fi
+  ); then
+    status=0
+  else
+    status=$?
+  fi
+  if (( status > 1 )); then
+    echo "public-release scan: search failed while checking $label" >&2
+    return "$status"
+  fi
+  if [[ -n $hits ]]; then
+    if (( quiet == 0 )); then
+      printf '%s\n' "$hits"
+    fi
+    echo "public-release scan: found $label in the working tree" >&2
+    return 1
+  fi
+}
+
+# The fixture is deliberately created outside the repository. Keeping it out
+# of the tree means the normal scan cannot pass merely because its own negative
+# example is excluded, and it keeps the refused shapes out of committed files.
+# Each case must fail with status 1; run_search turns a broken search (>1) into
+# status 2, so a missing or malfunctioning search cannot satisfy this control.
+run_refused_identifier_negative_control() (
+  local fixture_dir
+  local allowed_dir
+  local output
+  local status
+  local numeric_label
+  local numeric_case
+  local numeric_index=0
+  local synthetic_number=1
+  local -a numeric_labels=(
+    orgId orgID org_id org-id organizationId org
+    stackId stackID stack_id stack-id 'stack id' stack
+    accountId accountID account_id account-id 'account id' account
+    serviceAccountId serviceAccountID service_account_id service-account-id
+    'service account id' service-account service_account serviceAccount
+  )
+
+  fixture_dir=$(mktemp -d)
+  allowed_dir=$(mktemp -d)
+  trap 'rm -rf -- "$fixture_dir" "$allowed_dir"' EXIT
+  case "$fixture_dir" in
+    "$repo_root"|"$repo_root"/*)
+      echo "public-release scan: negative-control fixture resolved inside the repository" >&2
+      exit 2
+      ;;
+  esac
+  case "$allowed_dir" in
+    "$repo_root"|"$repo_root"/*)
+      echo "public-release scan: permitted-boundary fixture resolved inside the repository" >&2
+      exit 2
+      ;;
+  esac
+
+  mkdir "$fixture_dir/numeric"
+  for numeric_label in "${numeric_labels[@]}"; do
+    numeric_case="$fixture_dir/numeric/case-$numeric_index"
+    mkdir "$numeric_case"
+    printf '%s: %s\n' "$numeric_label" "$synthetic_number" \
+      >"$numeric_case/negative-control.md"
+    numeric_index=$((numeric_index + 1))
+    synthetic_number=$((synthetic_number + 1))
+  done
+
+  printf '%s\n' \
+    "$(printf '%s/%s-%s\n' "$org_identifier" private repository)" \
+    "$(printf '%s-%s\n' sample awsinfra)" \
+    "$(printf '%s %s workshop estate\n' Example Analytics)" \
+    >"$fixture_dir/negative-control.md"
+
+  printf '%s\n' \
+    'stack slug: sample-stack' \
+    'region: prod-us-central-0' \
+    'https://sample.grafana.net' \
+    >"$allowed_dir/permitted-boundary.md"
+  printf 'release: %s\n' "$synthetic_number" >>"$allowed_dir/permitted-boundary.md"
+
+  if output=$(scan_working_tree_only \
+    "refused numeric organization, stack or account identifier (negative control)" \
+    "$numeric_identifier_pattern" "" "$fixture_dir/numeric/case-0" 1 2>&1); then
+    echo "public-release scan: numeric identifier negative control unexpectedly passed" >&2
+    exit 2
+  else
+    status=$?
+  fi
+  (( status == 1 )) || {
+    echo "public-release scan: numeric identifier negative control returned status $status" >&2
+    exit 2
+  }
+  printf '%s\n' "$output"
+
+  for numeric_case in "$fixture_dir"/numeric/case-*; do
+    if [[ $numeric_case == "$fixture_dir/numeric/case-0" ]]; then
+      continue
+    fi
+    if scan_working_tree_only \
+      "refused numeric organization, stack or account identifier (negative control)" \
+      "$numeric_identifier_pattern" "" "$numeric_case" 1 >/dev/null 2>&1; then
+      echo "public-release scan: numeric identifier form negative control unexpectedly passed" >&2
+      exit 2
+    else
+      status=$?
+    fi
+    (( status == 1 )) || {
+      echo "public-release scan: numeric identifier form negative control returned status $status" >&2
+      exit 2
+    }
+  done
+
+  if output=$(scan_working_tree_only \
+    "refused non-allowlisted private repository name (negative control)" \
+    "$private_repository_pattern" "$allowed_source_repositories" "$fixture_dir" 1 2>&1); then
+    echo "public-release scan: private repository negative control unexpectedly passed" >&2
+    exit 2
+  else
+    status=$?
+  fi
+  (( status == 1 )) || {
+    echo "public-release scan: private repository negative control returned status $status" >&2
+    exit 2
+  }
+  printf '%s\n' "$output"
+
+  if output=$(scan_working_tree_only \
+    "refused internal project or estate name (negative control)" \
+    "$internal_project_pattern" "" "$fixture_dir" 1 1 2>&1); then
+    echo "public-release scan: project or estate negative control unexpectedly passed" >&2
+    exit 2
+  else
+    status=$?
+  fi
+  (( status == 1 )) || {
+    echo "public-release scan: project or estate negative control returned status $status" >&2
+    exit 2
+  }
+  printf '%s\n' "$output"
+
+  if scan_working_tree_only \
+    "permitted stack slug, region or grafana.net hostname" \
+    "$numeric_identifier_pattern" "" "$allowed_dir" &&
+    scan_working_tree_only \
+      "permitted stack slug, region or grafana.net hostname" \
+      "$private_repository_pattern" "$allowed_source_repositories" "$allowed_dir" &&
+    scan_working_tree_only \
+      "permitted stack slug, region or grafana.net hostname" \
+      "$internal_project_pattern" "" "$allowed_dir" 0 1; then
+    echo "public-release scan: permitted slug, region and grafana.net boundary controls passed."
+  else
+    echo "public-release scan: permitted-boundary control unexpectedly failed" >&2
+    exit 2
+  fi
+
+  echo "public-release scan: refused-identifier negative controls passed."
+)
+
 scan_fixed_allowing() {
   local label=$1
   local pattern=$2
@@ -216,9 +416,41 @@ fi
 # The description itself was reworded to drop the qualifier, so the phrase does
 # not recur. This entry exists only to cover the history that cannot be changed.
 org_identifier="m7kni"
+allowed_source_repositories="$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs|$org_identifier/ci-tools|$org_identifier/renovate-config|$org_identifier/portina-iac|$org_identifier self-hosted|rknightion/$org_identifier"
 scan_fixed_allowing "source API/domain identifier" "$org_identifier" \
-  "$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs|$org_identifier/ci-tools|$org_identifier/renovate-config|$org_identifier/portina-iac|$org_identifier self-hosted|rknightion/$org_identifier"
+  "$allowed_source_repositories"
 scan_fixed "source account identifier" "robknight"
+
+# This is deliberately a separate working-tree-only control. The patterns use
+# shapes rather than the three historical values: organization numbers, stack
+# or account numbers in an identity-labelled form, repository paths in the
+# private organisation after the enumerated public references are removed, and
+# proper-name phrases attached to an internal project or estate. Stack slugs,
+# regions and grafana.net hostnames do not match these expressions.
+# A suffix-bearing label may use camel, underscore, hyphen or spaces. A bare
+# label requires punctuation, which keeps ordinary display names out while
+# still catching serialized labels such as `stack: <number>`.
+numeric_identifier_suffix='[[:space:]_-]?(id|identifier|number|uid)'
+numeric_identifier_label='(org(anization)?|stack|account|service([_-]|[[:space:]])?account)'
+numeric_identifier_pattern="(^|[^[:alnum:]_])((org(anization)?${numeric_identifier_suffix}|stack${numeric_identifier_suffix}|account${numeric_identifier_suffix}|service([_-]|[[:space:]])?account${numeric_identifier_suffix})[[:space:]]*[:#=]?[[:space:]]*[0-9]+|${numeric_identifier_label}[[:space:]]*[:#=][[:space:]]*[0-9]+)([^0-9]|$)"
+private_repository_pattern="(^|[^[:alnum:]_])${org_identifier}/[[:alnum:]_.-]+([^[:alnum:]_.-]|$)|(^|[^[:alnum:]_])[a-z][a-z0-9-]*-awsinfra([^[:alnum:]_-]|$)"
+internal_project_pattern='(^|[^[:alnum:]_])[[:upper:]][[:alnum:]_.-]*([[:space:]]+[[:upper:]][[:alnum:]_.-]*){1,3}[[:space:]]+((workshop[[:space:]]+)?(project|estate))([^[:alnum:]_]|$)'
+
+if ! scan_working_tree_only \
+  "refused numeric organization, stack or account identifier" \
+  "$numeric_identifier_pattern" "" "$repo_root"; then
+  failed=1
+fi
+if ! scan_working_tree_only \
+  "refused non-allowlisted private repository name" \
+  "$private_repository_pattern" "$allowed_source_repositories" "$repo_root"; then
+  failed=1
+fi
+if ! scan_working_tree_only \
+  "refused internal project or estate name" \
+  "$internal_project_pattern" "" "$repo_root" 0 1; then
+  failed=1
+fi
 
 # Architecture and proof-of-concept vocabulary from the originating engagement.
 # Not customer names and not in the pattern set, so hardcoded. Splitting them
@@ -263,6 +495,11 @@ if git log --all --format= --name-only | \
   echo "public-release scan: found a tracked archive, binary, key container, or local database in reachable Git history" >&2
   failed=1
 fi
+
+# Keep this live-control assertion in the gate. It is intentionally
+# unconditional, including when --allow-missing-patterns skips the external
+# identity pattern above.
+run_refused_identifier_negative_control
 
 if (( failed != 0 )); then
   exit 1

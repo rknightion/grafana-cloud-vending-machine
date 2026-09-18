@@ -93,17 +93,19 @@ spec:
             name: grafana-vending-secrets
             kind: SecretStore
           stackConsumerProfiles:
-            - name: example-reader
-              namespace: consumer-platform
-              providerConfigName: grafana-cloud-org-example-primary
+            - name: robk-telemetry-writer
+              namespace: telemetry-consumers
+              providerConfigName: grafana-cloud-org-robk
               targets:
-                - slug: exampleobservedstack
-                  region: prod-us-central-0
+                - slug: robk
+                  region: prod-gb-south-1
               consumer:
-                name: example-consumer-a
-                outputSecretPath: /platform/grafana-cloud/consumers/example-consumer-a
+                name: robk-telemetry
+                outputSecretPath: /platform/grafana-cloud/consumers/robk-telemetry
               scopes:
-                - metrics:read
+                - metrics:write
+                - logs:write
+                - traces:write
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy

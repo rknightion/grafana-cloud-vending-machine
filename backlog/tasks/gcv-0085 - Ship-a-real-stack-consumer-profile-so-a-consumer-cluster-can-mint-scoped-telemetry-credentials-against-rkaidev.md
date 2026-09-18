@@ -3,10 +3,10 @@ id: GCV-0085
 title: >-
   Ship a real stack consumer profile so a consumer cluster can mint scoped
   telemetry credentials
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-18 10:13'
-updated_date: '2026-09-18 10:55'
+updated_date: '2026-09-18 14:16'
 labels: []
 dependencies:
   - GCV-0075
@@ -44,3 +44,15 @@ IDENTIFIER SCRUB 2026-09-18: this description previously carried a numeric org i
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 14: replace the placeholder consumer profile, prove admission and renderer output against the pinned ephemeral API server, document the bounded telemetry scopes, and record the rotation interaction.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Rotation decision (2026-09-18): platform/function/stackconsumer.go is a rotating-token site because it emits AccessPolicyRotatingToken. The consumer profile may ship before GCV-0075 lands, but its credential must be treated as non-renewing until that repair is deployed. If it ships first, the operator must perform an explicit approved credential replacement and publication before the 2026-10-09 early-rotation window, verify the consuming estate has reloaded the replacement, and must not rely on automatic rotation; if that handover cannot be performed, remove the request before the token expiry window.
+<!-- SECTION:NOTES:END -->

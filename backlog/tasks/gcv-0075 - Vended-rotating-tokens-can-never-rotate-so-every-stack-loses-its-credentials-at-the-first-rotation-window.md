@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 10:22'
+updated_date: '2026-09-18 15:08'
 labels: []
 dependencies: []
 references:
@@ -57,6 +57,8 @@ This needs a decision, not a patch, and every option is unattractive: delete and
 Wave 13: security design packet first; root acceptance gates renderer implementation across all three rotating-token kinds, followed by adversarial security review and integrated evidence.
 
 Root accepted Lane A packet: overlapping token generations with create-observe-publish-consumer-handover-retire ordering. Goal ownership repaired to include additive active-secret status refs and bootstrap consumers; root retains shared RunFunction, status-condition, RBAC, and validation wiring.
+
+Wave 14: repair the accepted rotation design against security findings 1-5, implement the replayed handover across all five emit sites, integrate root-owned wiring, and obtain adversarial review before the gate.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -98,10 +100,14 @@ Lane A verified the third ServiceAccountRotatingToken has the same Computed Forc
 Wave 13 security review found material safe-ordering defects in the attempted A2 implementation: publication deadlock, candidate withdrawal, unsafe lineage fallback, wrong consumer ProviderConfig identity, and dishonest unknown-expiry handling. The A2 code was removed. Resume by correcting the accepted design packet against lane-f-review.md, then reimplement and replay the complete desired-to-observed lifecycle before any publish. AC2 applies to all three emitted rotating-token kinds, including ServiceAccountRotatingToken.
 
 Wave 13 terminal reconciliation: the A2 implementation was rejected and removed after lane-f-review.md found material safe-ordering defects. Resume only after repairing the design for publication ordering, observed candidate retention, lineage, consumer identity, unknown expiry, and root wiring across all three token kinds.
+
+Wave 14 exhausted all four authorized implementation attempts: wave 13 attempt 1, lane B attempts 2 and 3, and root attempt 4. The fresh adversarial review still found seven high-impact defects: second-window completion is blocked; the standalone consumer rejects the selected successor before wiring; ambiguous evidence can arm deletion; publication acknowledgement is not bound to the authorized output; deletion readiness accepts unknown timing and bypassed handover; status can advance before materialized consumer handover; and health accounting omits unrendered families. The rejected rotation source and documentation were restored to the integration base and are absent from the landing slice. Resume only with explicit authorization for another attempt and implement the exact owner corrections in codex/wave14/lane-f-review.md.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Parked after design and adversarial review. Provider replacement behavior, all three emitted token kinds, the overlapping-generation decision, and the upstream Upjet boundary are recorded. No rotation implementation remains in the tree. Resume from codex/wave13/lane-f-review.md. The integrated repository passed just check locally and hosted Validate run 35333659147 at b47831ddddfd5ec10e1e699d4d8608886261becd, but AC3 through AC5 remain unproven.
+
+Parked after four of four authorized attempts. No rotation implementation landed. The accepted design packet, implementation evidence and two-phase adversarial review preserve the precise seven-edit resume boundary.
 <!-- SECTION:FINAL_SUMMARY:END -->

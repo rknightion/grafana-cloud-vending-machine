@@ -1,9 +1,10 @@
 ---
 id: GCV-0086
 title: Close the real-identifier leak class the tracker reproduced three times
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-18 10:55'
+updated_date: '2026-09-18 14:11'
 labels: []
 dependencies: []
 priority: high
@@ -39,3 +40,9 @@ The working-tree scrub of GCV-0074 and GCV-0085 was already applied by the wave 
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 14: add a working-tree-only identifier-class control with a failing negative fixture, correct the repository policy documents, and preserve the existing history scan.
+<!-- SECTION:PLAN:END -->

@@ -23,6 +23,16 @@ The 403 is recorded as a suspected Grafana Cloud defect in GCV-0074 and is expec
 
 Removing this claim removes the ExternalSecret and its owner-managed Kubernetes Secret, but the common non-destructive management policies retain the external Grafana Connection and Securevalue. Ordered external decommission is a separate, platform-authorized lifecycle decision; do not switch these children to `Delete` independently.
 
+## Decommissioning a Git Sync credential
+
+`spec.lifecycle.externalResources` defaults to `Retain`: the external Connection and Securevalue stay in Grafana when the claim is removed. `Delete` is an exceptional, platform-authorized path. The Composition's platform-owned `deletionAuthorizations` must bind the request namespace, name and UID to the fixed provisioning-connection profile before a claim can select it. A claim cannot select that profile itself.
+
+The deletion path remains two reviewable changes. First, set `spec.lifecycle.externalResources: Delete` and wait for `status.decommission.phase: Armed`. `Armed` requires the observed Connection to carry Delete management policy, its deterministic external name, and the Crossplane managed-resource finalizer. Then remove the claim. The function first persists `ConnectionDeleting`, then withdraws the Connection on the next reconciliation. It follows the same two-step witness for the Securevalue: `SecurevalueArming`, then `SecurevalueDeleting`, then withdrawal. Deleting the Connection first stops Git Sync from using the credential before the Securevalue copy is revoked.
+
+`status.decommission.phase` is the durable completion signal. It progresses through `PreparingConnection`, `Armed`, `ConnectionDeleting`, `SecurevalueArming`, `SecurevalueDeleting`, and `Complete`; `status.decommission.complete: true` is emitted only after reconciliation has observed neither external child and the preceding `SecurevalueDeleting` status witness. A missing child without its witness is reported as unproven, not complete. Use this status rather than inferring completion from the disappearance of composed objects.
+
+The ExternalSecret's target has `creationPolicy: Owner` and `deletionPolicy: Retain`. Its owner lifecycle removes the Kubernetes Secret when the ExternalSecret is removed with the claim. `deletionPolicy: Retain` only preserves the last synced Secret if the remote source disappears during normal reconciliation. The source secret-store value has its own lifecycle: this API does not delete or revoke it. Revoke or rotate that source under the secret-store owner's process; the ordered path revokes the two Grafana copies and their Git Sync use.
+
 ## Repository secure-value migration
 
 Version 2.0.0 accepted `spec.repository.secure.token`, `webhookSecret`, and `commitSigningKey` on a

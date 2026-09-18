@@ -132,6 +132,32 @@ spec:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                   description: Rejected compatibility guard. Provider secure maps are built only from the managed secure value.
+                lifecycle:
+                  type: object
+                  default:
+                    externalResources: Retain
+                  properties:
+                    externalResources:
+                      type: string
+                      default: Retain
+                      enum:
+                        - Retain
+                        - Delete
+                      description: Retains the external Connection and Securevalue by default. Delete requires a platform authorization bound to this request identity.
+            status:
+              type: object
+              properties:
+                decommission:
+                  type: object
+                  properties:
+                    mode:
+                      type: string
+                    authorized:
+                      type: boolean
+                    phase:
+                      type: string
+                    complete:
+                      type: boolean
 ---
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
@@ -155,3 +181,4 @@ spec:
           secretStoreRef:
             name: grafana-vending-secrets
             kind: SecretStore
+          deletionAuthorizations: []

@@ -177,6 +177,8 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		switch kind {
 		case "GrafanaCloudStackRequest":
 			status = desiredStackStatus(content, observed, config)
+		case "GrafanaProvisioningConnection":
+			status = desiredProvisioningConnectionStatus(content, observed, resolvedConfig)
 		case "GrafanaOnCall":
 			status, productContextReady = onCallReceiverStatus(content, observed, desired)
 		case "GrafanaStackInventory":

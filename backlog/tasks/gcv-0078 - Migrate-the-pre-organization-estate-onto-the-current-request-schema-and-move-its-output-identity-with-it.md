@@ -3,10 +3,10 @@ id: GCV-0078
 title: >-
   Migrate the pre-organization estate onto the current request schema and move
   its output identity with it
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-16 17:10'
-updated_date: '2026-09-18 11:11'
+updated_date: '2026-09-18 14:11'
 labels: []
 dependencies: []
 documentation:
@@ -44,6 +44,12 @@ The version gap will be larger by the time this is picked up, and the schema may
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 14: settle in-place organization migration on the pinned ephemeral API server and produce the AC1-AC5 cutover plan; keep AC6 open for the human-operated live cutover.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

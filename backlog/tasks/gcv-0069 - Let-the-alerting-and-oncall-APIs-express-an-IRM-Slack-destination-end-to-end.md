@@ -5,7 +5,7 @@ status: Parked
 assignee:
   - '@codex'
 created_date: '2026-09-11 13:22'
-updated_date: '2026-09-12 13:08'
+updated_date: '2026-09-18 14:45'
 labels: []
 dependencies: []
 ordinal: 69000
@@ -62,6 +62,8 @@ SCOPE NOTE. Items 1 to 3 are one coherent change: an integration type, a route-l
 2026-09-12 AC2 amendment: the route accepts exactly one of channelRef.name, resolved through an observe-only SlackChannel, or channelId as an opaque-id escape hatch. The pinned provider supports slackChannelRef with Required resolution; passing a display name as channelId was observed to succeed while silently dropping the destination, so a reference-by-name path is required.
 
 Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+
+2026-09-18 wave 14 R1 re-triage: the wave-10 fixture-provenance blocker is refuted. The pinned v2.14.0 provider artifact and fixture use source revision dc795606df97a72dce81a0c953e0ec0750e0b489; the prior mismatch was only the deliberately optional empty top-level status stanza, present in 12 of 42 pre-existing CRDs and absent in 30. The old neighbour byte-equality control was unsatisfiable by construction. All five acceptance criteria are implementable. The packet codex/wave14/r1-triage.md derives Integration, EscalationChain, Route, SlackChannel, ContactPoint and NotificationPolicy GVKs from the artifact, records the AC2 exactly-one channelRef.name or opaque channelId amendment, and gives the remaining implementation fit brief. No task status change.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

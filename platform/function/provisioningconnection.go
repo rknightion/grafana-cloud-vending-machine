@@ -5,15 +5,17 @@ import (
 	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/request"
 	"github.com/crossplane/function-sdk-go/resource"
+	"github.com/crossplane/function-sdk-go/resource/composite"
 )
 
 const provisioningConnectionRendererImplemented = true
 
 const (
-	provisioningConnectionCredentialKey  = "privateKey"
-	provisioningConnectionExternalSecret = "credential"
-	provisioningConnectionSecureValue    = "secure-value"
-	provisioningConnectionConnection     = "connection"
+	provisioningConnectionCredentialKey   = "privateKey"
+	provisioningConnectionExternalSecret  = "credential"
+	provisioningConnectionSecureValue     = "secure-value"
+	provisioningConnectionConnection      = "connection"
+	provisioningConnectionDeletionProfile = "provisioning-connection"
 )
 
 // The credential requirement and the config key it resolves into. This is the
@@ -131,6 +133,11 @@ func renderProvisioningConnection(xr map[string]any, observed map[resource.Name]
 	if _, found := credential["create"]; found {
 		return nil, errors.New("provisioning connection forbids secure-map create values; use credential.remoteRef")
 	}
+	decommission, err := provisioningConnectionDecommissionProgressFor(xr, observed, config)
+	if err != nil {
+		return nil, err
+	}
+	lifecycle := decommission.lifecycle
 
 	credentialSecret := name + "-credential"
 	secureValueUID := name + "-secure-value"
@@ -138,6 +145,18 @@ func renderProvisioningConnection(xr map[string]any, observed map[resource.Name]
 	settings := configuredPlatformSettings(config)
 	annotations := func(externalName string) map[string]any {
 		return map[string]any{"crossplane.io/external-name": externalName}
+	}
+	secureValueSpec := map[string]any{
+		"managementPolicies": managementPolicies,
+		"forProvider": map[string]any{
+			"metadata": map[string]any{"uid": secureValueUID},
+			"spec": map[string]any{
+				"description":    "Git Sync credential for " + title,
+				"decrypters":     decrypters,
+				"valueSecretRef": map[string]any{"name": credentialSecret, "key": provisioningConnectionCredentialKey},
+			},
+		},
+		"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": stackName},
 	}
 	desired := map[resource.Name]*resource.DesiredComposed{
 		provisioningConnectionExternalSecret: newDesired("external-secrets.io/v1", "ExternalSecret", namespace, credentialSecret, annotations(credentialSecret), map[string]any{
@@ -152,23 +171,31 @@ func renderProvisioningConnection(xr map[string]any, observed map[resource.Name]
 			},
 			"data": []any{map[string]any{"secretKey": provisioningConnectionCredentialKey, "remoteRef": map[string]any{"key": remoteKey, "property": remoteProperty}}},
 		}),
-		provisioningConnectionSecureValue: newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "SecurevalueV1Beta1", namespace, secureValueUID, annotations(secureValueUID), map[string]any{
-			"managementPolicies": managementPolicies,
-			"forProvider": map[string]any{
-				"metadata": map[string]any{"uid": secureValueUID},
-				"spec": map[string]any{
-					"description":    "Git Sync credential for " + title,
-					"decrypters":     decrypters,
-					"valueSecretRef": map[string]any{"name": credentialSecret, "key": provisioningConnectionCredentialKey},
-				},
-			},
-			"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": stackName},
-		}),
+		provisioningConnectionSecureValue: newDesired("enterprise.grafana.m.crossplane.io/v1alpha1", "SecurevalueV1Beta1", namespace, secureValueUID, annotations(secureValueUID), secureValueSpec),
+	}
+	if decommission.terminating && !observedExists(observed, provisioningConnectionConnection) {
+		// Each withdrawal is preceded by a persisted parent-status witness and
+		// an observed Crossplane deletion policy/finalizer on that exact child.
+		// This avoids treating a missing composed object as deletion evidence.
+		if decommission.withdrawSecureValue {
+			return map[resource.Name]*resource.DesiredComposed{}, nil
+		}
+		if decommission.withdrawConnection {
+			delete(desired, provisioningConnectionConnection)
+			return desired, nil
+		}
+		if decommission.prepareSecureValue || decommission.phase == "SecurevalueDeleting" {
+			secureValueSpec["managementPolicies"] = []any{"*"}
+		}
+		return desired, nil
 	}
 
 	// The provider only accepts the connection after the secure value exists.
 	// Its UID is claim-derived, so no provider-assigned identifier is guessed.
 	if !observedExists(observed, provisioningConnectionSecureValue) {
+		if decommission.terminating {
+			return nil, errors.New("provisioning credential is not materialised; refusing to withdraw the existing connection")
+		}
 		return desired, nil
 	}
 	// Emit nothing rather than a Connection with no credential. The
@@ -187,8 +214,12 @@ func renderProvisioningConnection(xr map[string]any, observed map[resource.Name]
 		}
 		return desired, nil
 	}
+	connectionPolicies := managementPolicies
+	if lifecycle == "Delete" {
+		connectionPolicies = []any{"*"}
+	}
 	desired[provisioningConnectionConnection] = newDesired("oss.grafana.m.crossplane.io/v1alpha1", "ConnectionV0Alpha1", namespace, connectionUID, annotations(connectionUID), map[string]any{
-		"managementPolicies": managementPolicies,
+		"managementPolicies": connectionPolicies,
 		"forProvider": map[string]any{
 			"metadata": map[string]any{"uid": connectionUID},
 			// The create form, base64 as the Secret already stores it. The
@@ -203,5 +234,157 @@ func renderProvisioningConnection(xr map[string]any, observed map[resource.Name]
 		},
 		"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": stackName},
 	})
+	if decommission.terminating {
+		if decommission.withdrawConnection {
+			delete(desired, provisioningConnectionConnection)
+		}
+		return desired, nil
+	}
 	return desired, nil
+}
+
+// provisioningConnectionExternalResourcesLifecycle reuses the stack's
+// platform-owned authorization list. The profile is constant for this API, so
+// a consumer cannot select a profile that happens to be authorized.
+func provisioningConnectionExternalResourcesLifecycle(xr, config map[string]any) (string, error) {
+	spec, _ := xr["spec"].(map[string]any)
+	lifecycle, err := externalResourcesLifecycle(spec)
+	if err != nil || lifecycle != "Delete" {
+		return lifecycle, err
+	}
+	metadata, _ := xr["metadata"].(map[string]any)
+	namespace, _ := metadata["namespace"].(string)
+	name, _ := metadata["name"].(string)
+	uid, _ := metadata["uid"].(string)
+	if !configuredPlatformSettings(config).deletionAuthorized(namespace, name, uid, provisioningConnectionDeletionProfile) {
+		return "", errors.Errorf("provisioning connection %s/%s is not authorized to delete external resources", namespace, name)
+	}
+	return lifecycle, nil
+}
+
+func provisioningConnectionTerminating(xr map[string]any) bool {
+	metadata, _ := xr["metadata"].(map[string]any)
+	return metadata["deletionTimestamp"] != nil
+}
+
+func provisioningConnectionDeletePrepared(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, name resource.Name) bool {
+	r, ok := observed[name]
+	if !ok || r.Resource == nil {
+		return false
+	}
+	object := r.Resource.UnstructuredContent()
+	metadata, _ := object["metadata"].(map[string]any)
+	xrMetadata, _ := xr["metadata"].(map[string]any)
+	xrName, _ := xrMetadata["name"].(string)
+	xrNamespace, _ := xrMetadata["namespace"].(string)
+	childName := xrName
+	childKind := "ConnectionV0Alpha1"
+	childAPI := "oss.grafana.m.crossplane.io/v1alpha1"
+	if name == provisioningConnectionSecureValue {
+		childName += "-secure-value"
+		childKind = "SecurevalueV1Beta1"
+		childAPI = "enterprise.grafana.m.crossplane.io/v1alpha1"
+	}
+	annotations, _ := metadata["annotations"].(map[string]any)
+	finalizers, _ := metadata["finalizers"].([]any)
+	if object["apiVersion"] != childAPI || object["kind"] != childKind || metadata["name"] != childName || metadata["namespace"] != xrNamespace || annotations["crossplane.io/external-name"] != childName || !oneOf("finalizer.managedresource.crossplane.io", stringValues(finalizers)...) {
+		return false
+	}
+	spec, _ := object["spec"].(map[string]any)
+	policies, _ := spec["managementPolicies"].([]any)
+	return len(policies) == 1 && policies[0] == "*"
+}
+
+type provisioningConnectionDecommissionProgress struct {
+	lifecycle           string
+	phase               string
+	complete            bool
+	terminating         bool
+	withdrawConnection  bool
+	prepareSecureValue  bool
+	withdrawSecureValue bool
+}
+
+func provisioningConnectionDecommissionProgressFor(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) (provisioningConnectionDecommissionProgress, error) {
+	lifecycle, err := provisioningConnectionExternalResourcesLifecycle(xr, config)
+	if err != nil {
+		return provisioningConnectionDecommissionProgress{}, err
+	}
+	state := provisioningConnectionDecommissionProgress{lifecycle: lifecycle, phase: "Retained", terminating: provisioningConnectionTerminating(xr)}
+	if lifecycle != "Delete" {
+		return state, nil
+	}
+	connectionPrepared := provisioningConnectionDeletePrepared(xr, observed, provisioningConnectionConnection)
+	secureValuePrepared := provisioningConnectionDeletePrepared(xr, observed, provisioningConnectionSecureValue)
+	if !state.terminating {
+		if connectionPrepared {
+			state.phase = "Armed"
+		} else {
+			state.phase = "PreparingConnection"
+		}
+		return state, nil
+	}
+	priorPhase := provisioningConnectionObservedDecommissionPhase(xr)
+	if observedExists(observed, provisioningConnectionConnection) {
+		if !connectionPrepared {
+			state.phase = "PreparingConnection"
+			return state, nil
+		}
+		state.phase = "ConnectionDeleting"
+		state.withdrawConnection = priorPhase == "ConnectionDeleting"
+		return state, nil
+	}
+	connectionWitness := oneOf(priorPhase, "ConnectionDeleting", "SecurevalueArming", "SecurevalueDeleting")
+	if !connectionWitness {
+		state.phase = "ConnectionDeletionUnproven"
+		return state, nil
+	}
+	if !observedExists(observed, provisioningConnectionSecureValue) {
+		if priorPhase == "SecurevalueDeleting" {
+			state.phase = "Complete"
+			state.complete = true
+		} else {
+			state.phase = "SecurevalueDeletionUnproven"
+		}
+		return state, nil
+	}
+	switch priorPhase {
+	case "ConnectionDeleting":
+		state.phase = "SecurevalueArming"
+		state.prepareSecureValue = true
+	case "SecurevalueArming":
+		if secureValuePrepared {
+			state.phase = "SecurevalueDeleting"
+		} else {
+			state.phase = "SecurevalueArming"
+			state.prepareSecureValue = true
+		}
+	case "SecurevalueDeleting":
+		if secureValuePrepared {
+			state.phase = "SecurevalueDeleting"
+			state.withdrawSecureValue = true
+		} else {
+			state.phase = "SecurevalueArming"
+			state.prepareSecureValue = true
+		}
+	}
+	return state, nil
+}
+
+func provisioningConnectionObservedDecommissionPhase(xr map[string]any) string {
+	status, _ := xr["status"].(map[string]any)
+	decommission, _ := status["decommission"].(map[string]any)
+	phase, _ := decommission["phase"].(string)
+	return phase
+}
+
+// desiredProvisioningConnectionStatus records the decommission phase on the
+// claim itself. It distinguishes an observed ordered completion from the
+// absence of a child in a rendered desired set.
+func desiredProvisioningConnectionStatus(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) *resource.Composite {
+	state, _ := provisioningConnectionDecommissionProgressFor(xr, observed, config)
+	decommission := map[string]any{"mode": state.lifecycle, "authorized": state.lifecycle == "Delete", "phase": state.phase, "complete": state.complete}
+	desired := &resource.Composite{Resource: composite.New()}
+	desired.Resource.SetUnstructuredContent(map[string]any{"status": map[string]any{"decommission": decommission}})
+	return desired
 }

@@ -116,6 +116,199 @@ func TestProvisioningConnectionStagesCredentialBridgeAndConnection(t *testing.T)
 	}
 }
 
+func TestProvisioningConnectionAuthorizedDeleteOrdersConnectionBeforeSecurevalue(t *testing.T) {
+	claim := provisioningConnectionClaim("dashboards-github")
+	claim["metadata"].(map[string]any)["uid"] = "connection-request-uid"
+	claim["spec"].(map[string]any)["lifecycle"] = map[string]any{"externalResources": "Delete"}
+	config := provisioningConnectionConfig()
+	config["spec"].(map[string]any)["deletionAuthorizations"] = []any{map[string]any{
+		"namespace": "grafana-vending", "name": "dashboards-github", "uid": "connection-request-uid", "profile": provisioningConnectionDeletionProfile,
+	}}
+
+	observed := map[resource.Name]resource.ObservedComposed{
+		provisioningConnectionConnection:  provisioningConnectionDeletePreparedObserved("dashboards-github", "oss.grafana.m.crossplane.io/v1alpha1", "ConnectionV0Alpha1"),
+		provisioningConnectionSecureValue: observedComposed(`{"metadata":{"name":"dashboards-github-secure-value"}}`),
+	}
+	armed, err := renderProvisioningConnection(claim, observed, config)
+	if err != nil {
+		t.Fatalf("render authorized deletion arm: %v", err)
+	}
+	if got := nestedMap(t, armed[provisioningConnectionConnection].Resource.UnstructuredContent(), "spec")["managementPolicies"]; mustJSON(got) != `["*"]` {
+		t.Fatalf("armed Connection management policies = %s, want Delete enabled before request removal", mustJSON(got))
+	}
+	if got := nestedMap(t, armed[provisioningConnectionSecureValue].Resource.UnstructuredContent(), "spec")["managementPolicies"]; mustJSON(got) != mustJSON(managementPolicies) {
+		t.Fatalf("armed Securevalue management policies = %s, want retain until Connection deletion is observed", mustJSON(got))
+	}
+	armedStatus := nestedMap(t, desiredProvisioningConnectionStatus(claim, observed, config).Resource.UnstructuredContent(), "status", "decommission")
+	if armedStatus["phase"] != "Armed" || armedStatus["complete"] != false {
+		t.Fatalf("armed decommission status = %#v, want persisted Armed and incomplete signal", armedStatus)
+	}
+
+	claim["metadata"].(map[string]any)["deletionTimestamp"] = "2030-01-01T00:00:00Z"
+	preparingConnectionDeletion, err := renderProvisioningConnection(claim, observed, config)
+	if err != nil {
+		t.Fatalf("render Connection deletion witness stage: %v", err)
+	}
+	if _, found := preparingConnectionDeletion[provisioningConnectionConnection]; !found {
+		t.Fatal("Connection was withdrawn before the parent recorded its deleting witness")
+	}
+	if phase := nestedMap(t, desiredProvisioningConnectionStatus(claim, observed, config).Resource.UnstructuredContent(), "status", "decommission")["phase"]; phase != "ConnectionDeleting" {
+		t.Fatalf("Connection deletion witness phase = %v, want ConnectionDeleting", phase)
+	}
+	claim["status"] = map[string]any{"decommission": map[string]any{"phase": "ConnectionDeleting"}}
+	connectionDeleting, err := renderProvisioningConnection(claim, observed, config)
+	if err != nil {
+		t.Fatalf("render Connection deletion stage: %v", err)
+	}
+	if _, found := connectionDeleting[provisioningConnectionConnection]; found {
+		t.Fatal("Connection remained desired after its durable deleting witness")
+	}
+	if _, found := connectionDeleting[provisioningConnectionSecureValue]; !found {
+		t.Fatal("Securevalue was withdrawn before Connection deletion was observed")
+	}
+
+	securevalueArming, err := renderProvisioningConnection(claim, map[resource.Name]resource.ObservedComposed{
+		provisioningConnectionSecureValue: observed[provisioningConnectionSecureValue],
+	}, config)
+	if err != nil {
+		t.Fatalf("render Securevalue arming stage: %v", err)
+	}
+	if got := nestedMap(t, securevalueArming[provisioningConnectionSecureValue].Resource.UnstructuredContent(), "spec")["managementPolicies"]; mustJSON(got) != `["*"]` {
+		t.Fatalf("Securevalue management policies after Connection deletion = %s, want Delete enabled", mustJSON(got))
+	}
+	if phase := nestedMap(t, desiredProvisioningConnectionStatus(claim, map[resource.Name]resource.ObservedComposed{
+		provisioningConnectionSecureValue: observed[provisioningConnectionSecureValue],
+	}, config).Resource.UnstructuredContent(), "status", "decommission")["phase"]; phase != "SecurevalueArming" {
+		t.Fatalf("Securevalue arming phase = %v, want SecurevalueArming", phase)
+	}
+	claim["status"] = map[string]any{"decommission": map[string]any{"phase": "SecurevalueArming"}}
+
+	preparedSecurevalue := map[resource.Name]resource.ObservedComposed{
+		provisioningConnectionSecureValue: provisioningConnectionDeletePreparedObserved("dashboards-github-secure-value", "enterprise.grafana.m.crossplane.io/v1alpha1", "SecurevalueV1Beta1"),
+	}
+	securevalueDeleting, err := renderProvisioningConnection(claim, preparedSecurevalue, config)
+	if err != nil {
+		t.Fatalf("render Securevalue deletion witness stage: %v", err)
+	}
+	if _, found := securevalueDeleting[provisioningConnectionSecureValue]; !found {
+		t.Fatal("Securevalue was withdrawn before its durable deleting witness")
+	}
+	if got := nestedMap(t, securevalueDeleting[provisioningConnectionSecureValue].Resource.UnstructuredContent(), "spec")["managementPolicies"]; mustJSON(got) != `["*"]` {
+		t.Fatalf("Securevalue deletion witness regressed management policies = %s, want Delete to remain armed", mustJSON(got))
+	}
+	if phase := nestedMap(t, desiredProvisioningConnectionStatus(claim, preparedSecurevalue, config).Resource.UnstructuredContent(), "status", "decommission")["phase"]; phase != "SecurevalueDeleting" {
+		t.Fatalf("Securevalue deletion witness phase = %v, want SecurevalueDeleting", phase)
+	}
+	claim["status"] = map[string]any{"decommission": map[string]any{"phase": "SecurevalueDeleting"}}
+	securevalueDeleting, err = renderProvisioningConnection(claim, preparedSecurevalue, config)
+	if err != nil {
+		t.Fatalf("render Securevalue deletion stage: %v", err)
+	}
+	if len(securevalueDeleting) != 0 {
+		t.Fatalf("Securevalue remained desired after its durable deleting witness: %d resources", len(securevalueDeleting))
+	}
+	completeStatus := nestedMap(t, desiredProvisioningConnectionStatus(claim, nil, config).Resource.UnstructuredContent(), "status", "decommission")
+	if completeStatus["phase"] != "Complete" || completeStatus["complete"] != true {
+		t.Fatalf("completion status = %#v, want persisted Complete signal after both observed children are gone", completeStatus)
+	}
+}
+
+func TestProvisioningConnectionDeleteLifecycleRequiresObservedPhaseWitnesses(t *testing.T) {
+	claim := provisioningConnectionClaim("dashboards-github")
+	claim["metadata"].(map[string]any)["uid"] = "connection-request-uid"
+	claim["metadata"].(map[string]any)["deletionTimestamp"] = "2030-01-01T00:00:00Z"
+	claim["spec"].(map[string]any)["lifecycle"] = map[string]any{"externalResources": "Delete"}
+	config := provisioningConnectionConfig()
+	config["spec"].(map[string]any)["deletionAuthorizations"] = []any{map[string]any{
+		"namespace": "grafana-vending", "name": "dashboards-github", "uid": "connection-request-uid", "profile": provisioningConnectionDeletionProfile,
+	}}
+
+	t.Run("early removal preserves unprepared Connection", func(t *testing.T) {
+		observed := map[resource.Name]resource.ObservedComposed{
+			provisioningConnectionConnection:  observedComposed(`{"metadata":{"name":"dashboards-github"}}`),
+			provisioningConnectionSecureValue: observedComposed(`{"metadata":{"name":"dashboards-github-secure-value"}}`),
+		}
+		desired, err := renderProvisioningConnection(claim, observed, config)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, found := desired[provisioningConnectionConnection]; !found {
+			t.Fatal("early removal withdrew an unprepared Connection")
+		}
+		if _, found := desired[provisioningConnectionSecureValue]; !found {
+			t.Fatal("early removal withdrew Securevalue before Connection preparation")
+		}
+		status := nestedMap(t, desiredProvisioningConnectionStatus(claim, observed, config).Resource.UnstructuredContent(), "status", "decommission")
+		if status["phase"] != "PreparingConnection" || status["complete"] != false {
+			t.Fatalf("early removal status = %#v, want PreparingConnection and incomplete", status)
+		}
+	})
+
+	t.Run("missing Connection without its prior deletion witness does not arm Securevalue", func(t *testing.T) {
+		observed := map[resource.Name]resource.ObservedComposed{
+			provisioningConnectionSecureValue: observedComposed(`{"metadata":{"name":"dashboards-github-secure-value"}}`),
+		}
+		desired, err := renderProvisioningConnection(claim, observed, config)
+		if err != nil {
+			t.Fatal(err)
+		}
+		securevalue := desired[provisioningConnectionSecureValue]
+		if securevalue == nil {
+			t.Fatal("missing Connection without a witness withdrew Securevalue")
+		}
+		if got := nestedMap(t, securevalue.Resource.UnstructuredContent(), "spec")["managementPolicies"]; mustJSON(got) != mustJSON(managementPolicies) {
+			t.Fatalf("unwitnessed Connection absence armed Securevalue policies = %s", mustJSON(got))
+		}
+		status := nestedMap(t, desiredProvisioningConnectionStatus(claim, observed, config).Resource.UnstructuredContent(), "status", "decommission")
+		if status["phase"] != "ConnectionDeletionUnproven" || status["complete"] != false {
+			t.Fatalf("unwitnessed Connection absence status = %#v", status)
+		}
+	})
+
+	t.Run("missing Securevalue without its prior deletion witness is not complete", func(t *testing.T) {
+		claim["status"] = map[string]any{"decommission": map[string]any{"phase": "ConnectionDeleting"}}
+		status := nestedMap(t, desiredProvisioningConnectionStatus(claim, nil, config).Resource.UnstructuredContent(), "status", "decommission")
+		if status["complete"] != false || status["phase"] != "SecurevalueDeletionUnproven" {
+			t.Fatalf("unwitnessed Securevalue absence status = %#v", status)
+		}
+	})
+}
+
+func TestProvisioningConnectionRejectsUnauthorizedDeleteLifecycle(t *testing.T) {
+	claim := provisioningConnectionClaim("dashboards-github")
+	claim["metadata"].(map[string]any)["uid"] = "connection-request-uid"
+	claim["spec"].(map[string]any)["lifecycle"] = map[string]any{"externalResources": "Delete"}
+	if desired, err := renderProvisioningConnection(claim, nil, provisioningConnectionConfig()); err == nil || !strings.Contains(err.Error(), "not authorized") || desired != nil {
+		t.Fatalf("unauthorized delete = desired %v, error %v", desired, err)
+	}
+}
+
+func TestProvisioningConnectionEmitsDecommissionCompletionStatus(t *testing.T) {
+	claim := provisioningConnectionClaim("dashboards-github")
+	claim["metadata"].(map[string]any)["uid"] = "connection-request-uid"
+	claim["metadata"].(map[string]any)["deletionTimestamp"] = "2030-01-01T00:00:00Z"
+	claim["status"] = map[string]any{"decommission": map[string]any{"phase": "SecurevalueDeleting"}}
+	claim["spec"].(map[string]any)["lifecycle"] = map[string]any{"externalResources": "Delete"}
+	config := provisioningConnectionConfig()
+	config["spec"].(map[string]any)["deletionAuthorizations"] = []any{map[string]any{
+		"namespace": "grafana-vending", "name": "dashboards-github", "uid": "connection-request-uid", "profile": provisioningConnectionDeletionProfile,
+	}}
+	requiredStack := &fnv1.Resources{Items: []*fnv1.Resource{{Resource: resource.MustStructJSON(`{
+		"apiVersion":"platform.example.org/v1beta1",
+		"kind":"GrafanaCloudStackRequest",
+		"metadata":{"name":"teamdemo01","namespace":"grafana-vending"},
+		"status":{"conditions":[{"type":"Ready","status":"True"}],"stack":{"id":"observed-stack"}}
+	}`)}}}
+	rsp := callFunctionWithRequiredResourcesAndInput(t, mustJSON(claim), nil, requiredStack, requiredResourceCapabilities(), mustJSON(config))
+	if fatal := fatalResult(rsp); fatal != "" {
+		t.Fatalf("RunFunction returned a fatal result: %s", fatal)
+	}
+	status := nestedMap(t, rsp.GetDesired().GetComposite().GetResource().AsMap(), "status", "decommission")
+	if status["phase"] != "Complete" || status["complete"] != true {
+		t.Fatalf("RunFunction decommission status = %#v, want persisted Complete signal", status)
+	}
+}
+
 func TestProvisioningConnectionClaimsHaveDistinctStableExternalNames(t *testing.T) {
 	seen := map[string]string{}
 	for _, name := range []string{"dashboards-github", "alerts-github"} {
@@ -399,6 +592,20 @@ func provisioningConnectionConfig() map[string]any {
 
 func provisioningConnectionConfigWithoutCredential() map[string]any {
 	return map[string]any{"spec": map[string]any{"secretStoreRef": map[string]any{"name": "platform-secrets", "kind": "ClusterSecretStore"}}}
+}
+
+func provisioningConnectionDeletePreparedObserved(name, apiVersion, kind string) resource.ObservedComposed {
+	return observedComposed(mustJSON(map[string]any{
+		"apiVersion": apiVersion,
+		"kind":       kind,
+		"metadata": map[string]any{
+			"name":        name,
+			"namespace":   "grafana-vending",
+			"annotations": map[string]any{"crossplane.io/external-name": name},
+			"finalizers":  []any{"finalizer.managedresource.crossplane.io"},
+		},
+		"spec": map[string]any{"managementPolicies": []any{"*"}},
+	}))
 }
 
 func provisioningConnectionAdmissionRequest(name string) *unstructured.Unstructured {

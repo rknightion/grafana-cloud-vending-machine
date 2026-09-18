@@ -1,9 +1,10 @@
 ---
 id: GCV-0073
 title: Define ordered decommission for Git Sync credentials
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-12 17:31'
+updated_date: '2026-09-18 14:11'
 labels:
   - needs-triage
 dependencies: []
@@ -30,3 +31,9 @@ GrafanaProvisioningConnection uses the common non-destructive management policie
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 14: define and implement retain-by-default Git Sync credential lifecycle, platform-authorized ordered deletion, and an observable completion signal without changing a released API incompatibly.
+<!-- SECTION:PLAN:END -->

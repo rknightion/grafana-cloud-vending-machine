@@ -3,7 +3,7 @@ id: doc-0002
 title: Wave operating model
 type: guide
 created_date: '2026-08-14 16:36'
-updated_date: '2026-09-15 12:10'
+updated_date: '2026-09-18 14:44'
 ---
 This document carries **only** what is specific to this repository. The campaign model itself —
 run contract and run modes, the routing contract, authority and the thread pool, child lane briefs,
@@ -18,8 +18,8 @@ another project unchanged belongs here.
 
 **This repository is a portable public reference. It never touches a live Grafana Cloud stack, a
 live cluster, or any source environment.** No lane may create, adopt, import, mutate or delete a
-real resource, and no lane may introduce an identifier belonging to one. Examples are inert by
-construction and stay that way.
+real resource, and no lane may introduce a refused source-environment identifier. Permitted
+public shapes are stated below. Examples are inert by construction and stay that way.
 
 The enforcement is `scripts/public-release-scan.sh`, and its blast radius is what makes this a
 standing constraint rather than a lint rule: **it scans the working tree *and every reachable Git
@@ -34,6 +34,20 @@ hostnames, the local macOS home-directory path prefix, private-key PEM headers, 
 an account ID, JWT-shaped values, `kind: Secret` documents, private-range IPv4 HTTP endpoints, the
 forbidden filenames (`terraform.tfvars`, `.env`, `.envrc`, `config.json`), and tracked archive, key
 container or database file extensions.
+
+The frozen identifier boundary is deliberately narrower than a blanket slug prohibition. Stack
+slugs, regions and `grafana.net` hostnames are permitted. Bare numeric organisation, stack and
+account identifiers, private repository names outside the existing enumerated allowlist, and
+internal project or estate names are refused. The control for this class is unconditional and
+working-tree-only; it never iterates reachable history.
+
+Three prior leak classes led to this boundary: GCV-0068 named a private repository outside that
+allowlist; GCV-0074 carried numeric stack and service-account identifiers; and GCV-0085 carried
+numeric organisation and stack identifiers, another private repository name and an internal project
+name. Those instances are already reachable in published history. History was not rewritten because
+rewriting a public repository to remove the prior instances was disproportionate; a history-reading
+pattern would otherwise leave the gate permanently red. The working tree was scrubbed, and this
+control rejects future instances while the existing history checks remain unchanged.
 
 **The trap that catches agents specifically: absolute local paths.** Tooling instructions, hook
 tests, scratch notes and pasted command lines carry them by default, and the scan rejects the home
