@@ -1,5 +1,62 @@
 # Changelog
 
+## [3.0.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v2.0.0...v3.0.0) (2026-09-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* GrafanaProvisioningRepository rejects all repository secure-value fields until vendor reference support is restored.
+
+### Features
+
+* add consumer profile and ordered credential decommission ([7b3598e](https://github.com/rknightion/grafana-cloud-vending-machine/commit/7b3598efa68d980947e63cc01bc233ed74cafc7a))
+* refuse unsafe provider shapes and stabilize renders ([42333e1](https://github.com/rknightion/grafana-cloud-vending-machine/commit/42333e1e18b7234141a65813561be6513d53fb38))
+
+
+### Bug Fixes
+
+* compile refused-shape guard into runtime ([1658516](https://github.com/rknightion/grafana-cloud-vending-machine/commit/165851675ac8e56be1f3065c4609c12e2edef05e))
+* **deps:** update module github.com/crossplane/crossplane/apis/v2 to v2.4.1 ([#38](https://github.com/rknightion/grafana-cloud-vending-machine/issues/38)) ([c0a8fae](https://github.com/rknightion/grafana-cloud-vending-machine/commit/c0a8faeaa42eed6532f592a794859ee18da01b40))
+* **deps:** update module sigs.k8s.io/controller-runtime to v0.25.1 ([#36](https://github.com/rknightion/grafana-cloud-vending-machine/issues/36)) ([04dcdef](https://github.com/rknightion/grafana-cloud-vending-machine/commit/04dcdef0bbc35418426637dec447913bc93b194b))
+
+
+### Documentation
+
+* add decommission lifecycle diagram ([cfc586f](https://github.com/rknightion/grafana-cloud-vending-machine/commit/cfc586f92e7f0da24aa3625502a93a6bc4eb08ab))
+* adopt canonical routing and bounded root rescue ([fb8c122](https://github.com/rknightion/grafana-cloud-vending-machine/commit/fb8c122aba5ea7b855afb4b46667f9610b6945cb))
+* align published function digest ([9c99069](https://github.com/rknightion/grafana-cloud-vending-machine/commit/9c990699815482572abafe32b2a3b30a1ca655f7))
+* **backlog:** close wave 13 outcomes ([d6e3563](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d6e3563bbaa5217c32de5e723540177cc8f8f9ea))
+* **backlog:** correct GCV-0078 deferral reasoning and split it ([9a5adfa](https://github.com/rknightion/grafana-cloud-vending-machine/commit/9a5adfa8757c9b6376b2fb09d477984f6bba77cc))
+* **backlog:** track shipping a real stack consumer profile ([b47831d](https://github.com/rknightion/grafana-cloud-vending-machine/commit/b47831ddddfd5ec10e1e699d4d8608886261becd))
+* **backlog:** write tracker identifiers as shapes ([fda3566](https://github.com/rknightion/grafana-cloud-vending-machine/commit/fda3566e023040dfab86fb3cd4eab79efc6d98b1))
+* close documentation audit ([e91d3fe](https://github.com/rknightion/grafana-cloud-vending-machine/commit/e91d3fe2d7600aa1369593ddec349495014272d6))
+* correct the live reconciliation findings against both estates ([44d8bef](https://github.com/rknightion/grafana-cloud-vending-machine/commit/44d8bef558d25174437d5566a17180b75e0c6c14))
+* improve onboarding architecture ([cb663ef](https://github.com/rknightion/grafana-cloud-vending-machine/commit/cb663efc86e82242df9b2c80783d977ee13329d5))
+* publish canonical agent documents ([8d9d465](https://github.com/rknightion/grafana-cloud-vending-machine/commit/8d9d465922561b34619719a7942b3f576c15904b))
+* publish canonical agent documents ([6163d66](https://github.com/rknightion/grafana-cloud-vending-machine/commit/6163d6607055a40c520912df94b4707dc9ce6301))
+* publish public Backlog workspace ([f910bc6](https://github.com/rknightion/grafana-cloud-vending-machine/commit/f910bc6a11bbd374e95ef400b1195f48daef3355))
+* reconcile local fan-out overrides with root resolution authority ([5af54aa](https://github.com/rknightion/grafana-cloud-vending-machine/commit/5af54aaaca7557e1868d53367bad0908cbb76b09))
+* sync approved fan-out scheduling and route verification ([d92486f](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d92486ff3681aa5b362e133b118e10f47b2c7df3))
+* sync cost-aware fan-out routing and prompt guidance ([d014174](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d014174e87b30ba123813cd3d760779e44d58110))
+* sync fan-out async decision-only guidance ([9324eaf](https://github.com/rknightion/grafana-cloud-vending-machine/commit/9324eaf3d7097505632f831abe6f2835bacc1160))
+* sync fixed Astra low orchestration and rescue routing ([7ed1f58](https://github.com/rknightion/grafana-cloud-vending-machine/commit/7ed1f58d3f5581b4f9d3ac366175b7655ebc1505))
+* sync polling and integration contracts ([09a9064](https://github.com/rknightion/grafana-cloud-vending-machine/commit/09a90648c9861836f7cd29539e95d41e17de282d))
+* sync wave orchestration and existing-root contracts ([97d7a40](https://github.com/rknightion/grafana-cloud-vending-machine/commit/97d7a407745dddaaffc8b01f1e830deb78c876fe))
+* sync wave reliability and worktree contracts ([b585f40](https://github.com/rknightion/grafana-cloud-vending-machine/commit/b585f40574f6be72b7a5282d6a4ea98556913600))
+* track the pre-organization estate migration ([7f0be8b](https://github.com/rknightion/grafana-cloud-vending-machine/commit/7f0be8bcc9eec3705b8c08dbaa05fde3168ad230))
+* track the Rancher project integration and the refused-vendor-shape class ([95d4e83](https://github.com/rknightion/grafana-cloud-vending-machine/commit/95d4e83344ddf3ba522498a206c8d95bbca32066))
+* track the three live reconciliation failures found on both estates ([2f96868](https://github.com/rknightion/grafana-cloud-vending-machine/commit/2f968680b76c356249b53708ba3259b7054840c7))
+
+
+### Miscellaneous Chores
+
+* **ci:** bump ghcr-cleanup reusable to v1.22.0 ([5230804](https://github.com/rknightion/grafana-cloud-vending-machine/commit/52308041d25f465e21e711add0dfcf7578f94866))
+* **deps:** update rknightion/.github action to v1.21.1 ([#37](https://github.com/rknightion/grafana-cloud-vending-machine/issues/37)) ([d7368ad](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d7368ad5a43fc1871ba514e3134bca8590561e24))
+* pin published function digest ([1f2af4a](https://github.com/rknightion/grafana-cloud-vending-machine/commit/1f2af4a0b37c244a799e1fe0cdfcea2fa5abd82e))
+* pin published vending function ([c557240](https://github.com/rknightion/grafana-cloud-vending-machine/commit/c5572403cd1267b1823575d7d933a1b712ca755a))
+* reconcile wave 14 tracker ([d292129](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d292129409bf2fe3deb83932b6455de9724ee078))
+* **reviews:** declare linked repositories for cross-repo review context ([acfa5c8](https://github.com/rknightion/grafana-cloud-vending-machine/commit/acfa5c8e78a3e7b6f2e0ab148700690a3432660e))
+
 ## [2.0.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v1.0.1...v2.0.0) (2026-09-12)
 
 
