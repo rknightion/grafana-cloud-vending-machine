@@ -3,10 +3,10 @@ id: GCV-0077
 title: >-
   Composed resources churn hard enough to hold the composite watch circuit
   breaker open on every stack
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 07:59'
+updated_date: '2026-09-18 08:26'
 labels: []
 dependencies: []
 references:
@@ -43,6 +43,12 @@ Impact today looks bounded: event-driven composite reconciles are throttled to o
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 13: derive candidate churn fields from the renderer and pinned CRD without live contact, test-first the permission-kind correction if evidenced, and return any AccessPolicy edit as a wiring packet.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

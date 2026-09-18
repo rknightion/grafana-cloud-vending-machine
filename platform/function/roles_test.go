@@ -115,3 +115,77 @@ func TestPublicDashboardWriteIsPreservedOnlyForAnAllowedPlatformProfile(t *testi
 		t.Fatalf("allowed profile did not preserve team access permissions (-want +got):\n%s", diff)
 	}
 }
+
+func TestContentAccessPolicyPreservesProviderNormalizedFields(t *testing.T) {
+	xr := map[string]any{
+		"metadata": map[string]any{"name": "billing-access", "namespace": "grafana-vending"},
+		"spec": map[string]any{
+			"stackRef": map[string]any{"name": "teamdemo01"},
+			"target":   map[string]any{"kind": "Folder", "ref": map[string]any{"name": "teamdemo01-billing"}},
+			"permissions": []any{
+				map[string]any{"basicRole": "Viewer", "permission": "View"},
+				map[string]any{"teamRef": map[string]any{"name": "example-editors-team"}, "permission": "Edit"},
+				map[string]any{"userId": "user-123", "permission": "Admin"},
+			},
+		},
+	}
+	observed := map[resource.Name]resource.ObservedComposed{
+		"access-policy": observedComposed(`{
+			"apiVersion":"oss.grafana.m.crossplane.io/v1alpha1",
+			"kind":"FolderPermission",
+			"spec":{"forProvider":{
+				"folderRef":{"name":"teamdemo01-billing"},
+				"folderUid":"billing-folder",
+				"orgId":"1",
+				"permissions":[
+					{"permission":"View","role":"Viewer"},
+					{"permission":"Edit","teamId":"42","teamRef":{"name":"example-editors-team"}},
+					{"permission":"Admin","userId":"user-123"}
+				]
+			}}
+		}`),
+	}
+
+	desired, err := renderContentAccessPolicy(xr, observed)
+	if err != nil {
+		t.Fatalf("render content access policy: %v", err)
+	}
+	got := nestedMap(t, desired["access-policy"].Resource.UnstructuredContent(), "spec", "forProvider")
+	want := nestedMap(t, observed["access-policy"].Resource.UnstructuredContent(), "spec", "forProvider")
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Fatalf("provider-normalized content access fields differ (-want +got):\n%s", diff)
+	}
+}
+
+func TestDashboardContentAccessPolicyPreservesResolvedTargetIdentity(t *testing.T) {
+	xr := map[string]any{
+		"metadata": map[string]any{"name": "home-access", "namespace": "grafana-vending"},
+		"spec": map[string]any{
+			"stackRef":    map[string]any{"name": "teamdemo01"},
+			"target":      map[string]any{"kind": "Dashboard", "ref": map[string]any{"name": "teamdemo01-home"}},
+			"permissions": []any{map[string]any{"basicRole": "Viewer", "permission": "View"}},
+		},
+	}
+	observed := map[resource.Name]resource.ObservedComposed{
+		"access-policy": observedComposed(`{
+			"apiVersion":"oss.grafana.m.crossplane.io/v1alpha1",
+			"kind":"DashboardPermission",
+			"spec":{"forProvider":{
+				"dashboardRef":{"name":"teamdemo01-home"},
+				"dashboardUid":"home-dashboard",
+				"orgId":"1",
+				"permissions":[{"permission":"View","role":"Viewer"}]
+			}}
+		}`),
+	}
+
+	desired, err := renderContentAccessPolicy(xr, observed)
+	if err != nil {
+		t.Fatalf("render dashboard content access policy: %v", err)
+	}
+	got := nestedMap(t, desired["access-policy"].Resource.UnstructuredContent(), "spec", "forProvider")
+	want := nestedMap(t, observed["access-policy"].Resource.UnstructuredContent(), "spec", "forProvider")
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Fatalf("provider-normalized dashboard fields differ (-want +got):\n%s", diff)
+	}
+}

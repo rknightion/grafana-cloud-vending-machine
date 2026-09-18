@@ -212,7 +212,7 @@ func filterPublicDashboardPermissions(permissions []any, stackProfile string, pu
 	return filtered
 }
 
-func renderContentAccessPolicy(xr map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+func renderContentAccessPolicy(xr map[string]any, observed map[resource.Name]resource.ObservedComposed) (map[resource.Name]*resource.DesiredComposed, error) {
 	metadata, _ := xr["metadata"].(map[string]any)
 	spec, _ := xr["spec"].(map[string]any)
 	name, _ := metadata["name"].(string)
@@ -229,6 +229,8 @@ func renderContentAccessPolicy(xr map[string]any) (map[resource.Name]*resource.D
 		return nil, errors.New("content access policy must set metadata name and namespace, stackRef.name, a Folder or Dashboard target with exactly one ref name or uid, and permissions")
 	}
 
+	resourceKind := targetKind + "Permission"
+	observedParameters := observedContentAccessParameters(observed, resourceKind)
 	renderedPermissions := make([]any, 0, len(permissions))
 	for index, item := range permissions {
 		permission, _ := item.(map[string]any)
@@ -256,6 +258,9 @@ func renderContentAccessPolicy(xr map[string]any) (map[resource.Name]*resource.D
 		}
 		if teamName != "" {
 			entry["teamRef"] = map[string]any{"name": teamName}
+			if teamID := observedContentAccessTeamID(observedParameters, teamName, level); teamID != "" {
+				entry["teamId"] = teamID
+			}
 		}
 		if userID != "" {
 			entry["userId"] = userID
@@ -263,7 +268,6 @@ func renderContentAccessPolicy(xr map[string]any) (map[resource.Name]*resource.D
 		renderedPermissions = append(renderedPermissions, entry)
 	}
 
-	resourceKind := targetKind + "Permission"
 	targetKey := "folderRef"
 	uidKey := "folderUid"
 	if targetKind == "Dashboard" {
@@ -274,10 +278,14 @@ func renderContentAccessPolicy(xr map[string]any) (map[resource.Name]*resource.D
 	annotations := map[string]any(nil)
 	if refName != "" {
 		parameters[targetKey] = map[string]any{"name": refName}
+		if observedContentAccessRefName(observedParameters, targetKey) == refName {
+			copyObservedContentAccessField(parameters, observedParameters, uidKey)
+		}
 	} else {
 		parameters[uidKey] = targetUID
 		annotations = map[string]any{"crossplane.io/external-name": targetUID}
 	}
+	copyObservedContentAccessField(parameters, observedParameters, "orgId")
 
 	return map[resource.Name]*resource.DesiredComposed{
 		"access-policy": newDesired("oss.grafana.m.crossplane.io/v1alpha1", resourceKind, namespace, name, annotations,
@@ -287,6 +295,45 @@ func renderContentAccessPolicy(xr map[string]any) (map[resource.Name]*resource.D
 				"providerConfigRef":  map[string]any{"kind": "ProviderConfig", "name": stackName},
 			}),
 	}, nil
+}
+
+func observedContentAccessParameters(observed map[resource.Name]resource.ObservedComposed, kind string) map[string]any {
+	current, ok := observed["access-policy"]
+	if !ok || current.Resource == nil {
+		return nil
+	}
+	content := current.Resource.UnstructuredContent()
+	if content["apiVersion"] != "oss.grafana.m.crossplane.io/v1alpha1" || content["kind"] != kind {
+		return nil
+	}
+	spec, _ := content["spec"].(map[string]any)
+	parameters, _ := spec["forProvider"].(map[string]any)
+	return parameters
+}
+
+func observedContentAccessRefName(parameters map[string]any, key string) string {
+	ref, _ := parameters[key].(map[string]any)
+	name, _ := ref["name"].(string)
+	return name
+}
+
+func observedContentAccessTeamID(parameters map[string]any, teamName, permission string) string {
+	permissions, _ := parameters["permissions"].([]any)
+	for _, item := range permissions {
+		entry, _ := item.(map[string]any)
+		if stringValue(entry, "permission", "") != permission || observedContentAccessRefName(entry, "teamRef") != teamName {
+			continue
+		}
+		teamID := stringValue(entry, "teamId", "")
+		return teamID
+	}
+	return ""
+}
+
+func copyObservedContentAccessField(destination, source map[string]any, field string) {
+	if value, ok := source[field]; ok {
+		destination[field] = value
+	}
 }
 
 func copyOptionalFields(destination, source map[string]any, fields ...string) {

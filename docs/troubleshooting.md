@@ -193,6 +193,25 @@ The unit tests pin the desired-resource contracts, deterministic external identi
 Before making the repository public, also review repository settings, issues, workflow logs, releases, packages, and commit-author metadata. The automated history scan covers reachable local Git objects, but it cannot inspect deleted remote refs or external artifacts that are no longer present in a checkout.
 ## Known limitations
 
+### Permanently refused provider request shapes
+
+A provider child rejected permanently with a 4xx does not become valid on a later reconcile.
+Crossplane keeps reconciling the child, so the refusal repeats indefinitely and creates continuous
+load on the vendor tenant. Inspect the child's `Synced` and `Ready` conditions and its events. A
+composite can still look healthy while one child is being retried.
+
+Do not wait for retries to repair a known invalid shape. Correct the claim and reapply it. For
+`GrafanaProvisioningRepository`, remove `spec.repository.secure.token`, `webhookSecret`, and
+`commitSigningKey`; the normal Retain lifecycle leaves the external repository and connection in
+place. If correction cannot withdraw the child, use the platform's reviewed controlled-deletion
+path rather than deleting the claim as a shortcut. Confirm that the refused child is gone before
+expecting provider calls to stop.
+
+Never probe a vendor request shape on a stack that anything depends on. The vendor secret API
+ignores `dryRun`; two objects submitted with `dryRun=All` persisted and had to be removed. Assume
+every vendor API call mutates. Use a disposable stack, record each object created by the probe, and
+remove all residue afterwards. Kubernetes server-side dry run does not make a vendor API call safe.
+
 - The upstream Synthetic Monitoring Installation resource can report Ready/Synced without configuring the product. This module therefore requires an independently observed disabled Check through the derived credential. The full bootstrap chain and the disabled verifier's zero-execution behavior still require deployed validation; no live verification is claimed here.
 
 - The Grafana provider is experimental and may lag the Terraform provider.

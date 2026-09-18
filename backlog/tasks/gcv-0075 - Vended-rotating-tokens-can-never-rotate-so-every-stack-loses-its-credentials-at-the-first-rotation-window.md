@@ -3,10 +3,10 @@ id: GCV-0075
 title: >-
   Vended rotating tokens can never rotate, so every stack loses its credentials
   at the first rotation window
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 07:59'
+updated_date: '2026-09-18 09:24'
 labels: []
 dependencies: []
 references:
@@ -51,6 +51,14 @@ This needs a decision, not a patch, and every option is unattractive: delete and
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 13: security design packet first; root acceptance gates renderer implementation across all three rotating-token kinds, followed by adversarial security review and integrated evidence.
+
+Root accepted Lane A packet: overlapping token generations with create-observe-publish-consumer-handover-retire ordering. Goal ownership repaired to include additive active-secret status refs and bootstrap consumers; root retains shared RunFunction, status-condition, RBAC, and validation wiring.
+<!-- SECTION:PLAN:END -->
+
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
@@ -84,4 +92,8 @@ So the next failure is roughly two weeks out, not days. There is room to do this
 AC4 IS HARDER THAN IT LOOKS for one of the three kinds. StackServiceAccountRotatingToken publishes expiration, hasExpired, secondsToLive and earlyRotationWindowSeconds in status.atProvider. AccessPolicyRotatingToken publishes NONE of them - all read null on live objects - so there is nothing on the resource from which to compute how close it is to its window. Whatever satisfies AC4 has to work without that field, or has to get it published.
 
 Provider versions differ across the two estates, v2.14.0 on one and a v2.13.0 build on the other, and the behaviour and CRD schema were identical on both, so this is not version-specific.
+
+Lane A verified the third ServiceAccountRotatingToken has the same Computed ForceNew ready_for_rotation mechanism at the provider pin. Design packet: codex/wave13/lane-a-packet.md.
+
+Wave 13 security review found material safe-ordering defects in the attempted A2 implementation: publication deadlock, candidate withdrawal, unsafe lineage fallback, wrong consumer ProviderConfig identity, and dishonest unknown-expiry handling. The A2 code was removed. Resume by correcting the accepted design packet against lane-f-review.md, then reimplement and replay the complete desired-to-observed lifecycle before any publish. AC2 applies to all three emitted rotating-token kinds, including ServiceAccountRotatingToken.
 <!-- SECTION:NOTES:END -->

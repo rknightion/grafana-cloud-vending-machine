@@ -68,8 +68,8 @@ var compositeRenderers = map[string]compositeRenderer{
 		}, gateOnStack: true, implemented: true,
 	},
 	"GrafanaContentAccessPolicy": {
-		render: func(xr map[string]any, _ map[resource.Name]resource.ObservedComposed, _ map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
-			return renderContentAccessPolicy(xr)
+		render: func(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, _ map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+			return renderContentAccessPolicy(xr, observed)
 		}, gateOnStack: true, implemented: true,
 	},
 	"GrafanaStackInventory":         {render: renderStackInventory, gateOnStack: true, implemented: inventoryRendererImplemented},
@@ -163,6 +163,9 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		}
 	}
 	desired, err := renderer.render(content, observed, resolvedConfig)
+	if err == nil {
+		err = refusedVendorShapeError(desired)
+	}
 	if err == nil {
 		err = productWithdrawalError(kind, content, desired, observed)
 	}
@@ -744,7 +747,7 @@ func renderStack(xr map[string]any, observed map[resource.Name]resource.Observed
 	if err := addTelemetryAccess(desired, observed, namespace, slug, region, telemetryOutputPath, spec, settings, organizationProviderConfigName, deletingExternalResources); err != nil {
 		return nil, err
 	}
-	if err := addPluginInstallations(whenStackServes, namespace, slug, spec, organizationProviderConfigName); err != nil {
+	if err := addPluginInstallations(whenStackServes, namespace, slug, spec, organizationProviderConfigName, observed); err != nil {
 		return nil, err
 	}
 	if err := addObservabilityProducts(whenCredentialsPublished, namespace, providerConfig, spec); err != nil {

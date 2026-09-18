@@ -78,10 +78,6 @@ func TestProvisioningRepositoryRendersFullProviderSurfaceAndKeepsEmptyWorkflows(
 		"singleResourceMessageTemplate": "Update {{ .Name }}", "enforceTemplate": true,
 	}
 	repository["webhook"] = map[string]any{"baseUrl": "https://hooks.example.invalid/grafana"}
-	repository["secure"] = map[string]any{
-		"token": map[string]any{"name": "repository-token"}, "webhookSecret": map[string]any{"name": "repository-webhook"},
-		"commitSigningKey": map[string]any{"name": "repository-signing-key"},
-	}
 	repository["secureVersion"] = float64(2)
 
 	desired, err := renderProvisioningRepository(claim, nil, nil)
@@ -105,14 +101,29 @@ func TestProvisioningRepositoryRendersFullProviderSurfaceAndKeepsEmptyWorkflows(
 	if got := nestedMap(t, providerSpec, "commit")["smimeCertificate"]; got != "-----BEGIN CERTIFICATE----- public -----END CERTIFICATE-----" {
 		t.Fatalf("commit.smimeCertificate = %v", got)
 	}
-	if got := nestedMap(t, forProvider, "secure"); !provisioningEqual(got, map[string]any{
-		"token": map[string]any{"name": "repository-token"}, "webhookSecret": map[string]any{"name": "repository-webhook"},
-		"commitSigningKey": map[string]any{"name": "repository-signing-key"},
-	}) {
-		t.Fatalf("secure = %#v, want stable name references", got)
-	}
 	if got := forProvider["secureVersion"]; got != float64(2) {
 		t.Fatalf("secureVersion = %v, want 2", got)
+	}
+}
+
+func TestProvisioningRepositoryRendererRefusesEverySecureValuePath(t *testing.T) {
+	for _, field := range []string{"token", "webhookSecret", "commitSigningKey"} {
+		t.Run(field, func(t *testing.T) {
+			secure := map[string]any{field: map[string]any{"name": "existing-secure-value"}}
+			if rendered, err := provisioningSecureValues(secure); err == nil || rendered != nil ||
+				!strings.Contains(err.Error(), "vendor defect") ||
+				!strings.Contains(err.Error(), "sibling Connection kind") ||
+				!strings.Contains(err.Error(), "not observed on Repository") {
+				t.Fatalf("secure %s rendered=%#v, error=%v; want independent vendor-defect refusal", field, rendered, err)
+			}
+
+			claim := provisioningRepositoryClaim("secure-"+field, provisioningRepositorySpec("github"))
+			claim["spec"].(map[string]any)["repository"].(map[string]any)["secure"] = secure
+			if rendered, err := renderProvisioningRepository(claim, nil, nil); err == nil || rendered != nil ||
+				!strings.Contains(err.Error(), "vendor defect") {
+				t.Fatalf("repository secure %s rendered=%#v, error=%v; want renderer refusal", field, rendered, err)
+			}
+		})
 	}
 }
 
@@ -271,6 +282,8 @@ func TestProvisioningRepositoryAdmissionRejectsMismatchesInstanceAndInsecureShap
 	const (
 		xrdPath      = "../apis/provisioning-v1beta1.yaml"
 		originalRule = "- rule: '!has(self.create)'"
+		refusalRule  = "- rule: 'false'"
+		transition   = "- rule: '(oldSelf.hasValue() || !oldSelf.hasValue()) && (!has(self.secure) || (!has(self.secure.token) && !has(self.secure.webhookSecret) && !has(self.secure.commitSigningKey)))'\n                      optionalOldSelf: true"
 		weakenedRule = "- rule: 'true'"
 		denial       = "secure values must reference an existing secure value by name; create is forbidden"
 	)
@@ -282,6 +295,14 @@ func TestProvisioningRepositoryAdmissionRejectsMismatchesInstanceAndInsecureShap
 		t.Fatalf("secure create guard count = %d, want 1", got)
 	}
 	weakened := bytes.Replace(original, []byte(originalRule), []byte(weakenedRule), 1)
+	if got := bytes.Count(weakened, []byte(refusalRule)); got != 1 {
+		t.Fatalf("secure value refusal rule count = %d, want 1", got)
+	}
+	weakened = bytes.Replace(weakened, []byte(refusalRule), []byte(weakenedRule), 1)
+	if got := bytes.Count(weakened, []byte(transition)); got != 1 {
+		t.Fatalf("secure value transition refusal count = %d, want 1", got)
+	}
+	weakened = bytes.Replace(weakened, []byte(transition), []byte(weakenedRule), 1)
 	scratch := filepath.Join(t.TempDir(), "provisioning-v1beta1.yaml")
 	if err := os.WriteFile(scratch, weakened, 0o600); err != nil {
 		t.Fatal(err)
@@ -310,6 +331,98 @@ func TestProvisioningRepositoryAdmissionRejectsMismatchesInstanceAndInsecureShap
 	restored.Object["spec"].(map[string]any)["repository"].(map[string]any)["secure"] = map[string]any{"token": map[string]any{"name": "existing-secure-value", "create": map[string]any{"value": "not-a-reference"}}}
 	if err := env.Apply(ctx, restored); err == nil || !strings.Contains(err.Error(), denial) {
 		t.Fatalf("restored secure create guard = %v, want own denial", err)
+	}
+}
+
+func TestProvisioningRepositoryAdmissionRejectsEverySecureValueFieldOnCreateAndUpdate(t *testing.T) {
+	env := &admissionEnv{paths: []string{"../apis/provisioning-v1beta1.yaml"}}
+	if err := env.Start(t); err != nil {
+		t.Fatalf("start provisioning admission environment: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := env.Stop(); err != nil {
+			t.Errorf("stop provisioning admission environment: %v", err)
+		}
+	})
+	ctx := context.Background()
+	allowed := provisioningRepositoryAdmissionRequest("provisioning-secure-allowed")
+	if err := env.Apply(ctx, allowed); err != nil {
+		t.Fatalf("allowed provisioning repository was refused: %v", err)
+	}
+
+	const denial = "vendor defect: secure-value name references are refused; inferred from sibling Connection kind, not observed on Repository"
+	for _, field := range []string{"token", "webhookSecret", "commitSigningKey"} {
+		for _, operation := range []string{"create", "update"} {
+			t.Run(field+" "+operation, func(t *testing.T) {
+				var candidate *unstructured.Unstructured
+				if operation == "create" {
+					candidate = provisioningRepositoryAdmissionRequest("provisioning-secure-" + strings.ToLower(field) + "-create")
+				} else {
+					candidate = allowed.DeepCopy()
+				}
+				repository := candidate.Object["spec"].(map[string]any)["repository"].(map[string]any)
+				repository["secure"] = map[string]any{field: map[string]any{"name": "existing-secure-value"}}
+				if err := env.Apply(ctx, candidate); err == nil || !strings.Contains(err.Error(), denial) {
+					t.Fatalf("%s secure field %s error = %v, want %q", operation, field, err, denial)
+				}
+			})
+		}
+	}
+
+	const (
+		xrdPath        = "../apis/provisioning-v1beta1.yaml"
+		refusal        = "- rule: 'false'"
+		transition     = "- rule: '(oldSelf.hasValue() || !oldSelf.hasValue()) && (!has(self.secure) || (!has(self.secure.token) && !has(self.secure.webhookSecret) && !has(self.secure.commitSigningKey)))'\n                      optionalOldSelf: true"
+		weakened       = "- rule: 'true'"
+		legacyNameRef  = "existing-secure-value"
+		retainedDenial = "vendor defect: repository secure-value name references are refused; inferred from sibling Connection kind, not observed on Repository"
+	)
+	original, err := os.ReadFile(xrdPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := bytes.Count(original, []byte(transition)); got != 1 {
+		t.Fatalf("ratchet-proof refusal rule count = %d, want 1", got)
+	}
+	legacySchema := bytes.Replace(original, []byte(transition), []byte(weakened), 1)
+	if got := bytes.Count(legacySchema, []byte(refusal)); got != 1 {
+		t.Fatalf("field refusal rule count = %d, want 1", got)
+	}
+	legacySchema = bytes.Replace(legacySchema, []byte(refusal), []byte(weakened), 1)
+	scratch := filepath.Join(t.TempDir(), "provisioning-v1beta1.yaml")
+	if err := os.WriteFile(scratch, legacySchema, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	legacyCRD, err := crdFromXRD(scratch)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, field := range []string{"token", "webhookSecret", "commitSigningKey"} {
+		if err := env.Apply(ctx, legacyCRD); err != nil {
+			t.Fatalf("apply legacy schema for %s: %v", field, err)
+		}
+		legacy := provisioningRepositoryAdmissionRequest("provisioning-secure-legacy-" + strings.ToLower(field))
+		repository := legacy.Object["spec"].(map[string]any)["repository"].(map[string]any)
+		repository["secure"] = map[string]any{field: map[string]any{"name": legacyNameRef}}
+		if err := env.Apply(ctx, legacy); err != nil {
+			t.Fatalf("legacy schema did not admit %s name reference: %v", field, err)
+		}
+		originalCRD, err := crdFromXRD(xrdPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := env.Apply(ctx, originalCRD); err != nil {
+			t.Fatalf("restore ratchet-proof refusal for %s: %v", field, err)
+		}
+		repository["secureVersion"] = int64(2)
+		if err := env.Apply(ctx, legacy); err == nil || !strings.Contains(err.Error(), retainedDenial) {
+			t.Fatalf("unchanged legacy %s update error = %v, want %q", field, err, retainedDenial)
+		}
+		clean := provisioningRepositoryAdmissionRequest(legacy.GetName())
+		clean.Object["spec"].(map[string]any)["repository"].(map[string]any)["secureVersion"] = int64(2)
+		if err := env.Apply(ctx, clean); err != nil {
+			t.Fatalf("remove legacy %s reference: %v", field, err)
+		}
 	}
 }
 

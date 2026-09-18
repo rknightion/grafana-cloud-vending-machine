@@ -16,6 +16,7 @@ if [[ ! -x "${KUBEBUILDER_ASSETS:-}/kube-apiserver" || ! -x "${KUBEBUILDER_ASSET
 fi
 
 ./scripts/public-release-scan.sh
+./scripts/refused-shapes.sh
 
 ruby -ryaml -e '
   # platform/kustomization.yaml is the deployment registry for the platform

@@ -5,7 +5,10 @@ import (
 	"github.com/crossplane/function-sdk-go/resource"
 )
 
-func addPluginInstallations(desired map[resource.Name]*resource.DesiredComposed, namespace, slug string, spec map[string]any, organizationProviderConfigName string) error {
+// addPluginInstallations preserves an observed concrete version for newest-version
+// requests. The provider makes version ForceNew, so an existing resource stuck with
+// a latest-to-concrete diff cannot repair itself; delete and recreate it.
+func addPluginInstallations(desired map[resource.Name]*resource.DesiredComposed, namespace, slug string, spec map[string]any, organizationProviderConfigName string, observed map[resource.Name]resource.ObservedComposed) error {
 	plugins, _ := spec["plugins"].([]any)
 	for _, item := range plugins {
 		plugin, _ := item.(map[string]any)
@@ -13,8 +16,13 @@ func addPluginInstallations(desired map[resource.Name]*resource.DesiredComposed,
 		if pluginSlug == "" {
 			return errors.New("each plugin must set slug")
 		}
-		version := stringValue(plugin, "version", "latest")
 		name := "plugin-" + pluginSlug
+		version := stringValue(plugin, "version", "latest")
+		if version == "latest" {
+			if installed := observedString(observed, resource.Name(name), "status.atProvider.version"); installed != "" && installed != "latest" {
+				version = installed
+			}
+		}
 		desired[resource.Name(name)] = newDesired(
 			"cloud.grafana.m.crossplane.io/v1alpha1",
 			"PluginInstallation",

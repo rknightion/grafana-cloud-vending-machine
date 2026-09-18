@@ -23,6 +23,23 @@ The 403 is recorded as a suspected Grafana Cloud defect in GCV-0074 and is expec
 
 Removing this claim removes the ExternalSecret and its owner-managed Kubernetes Secret, but the common non-destructive management policies retain the external Grafana Connection and Securevalue. Ordered external decommission is a separate, platform-authorized lifecycle decision; do not switch these children to `Delete` independently.
 
+## Repository secure-value migration
+
+Version 2.0.0 accepted `spec.repository.secure.token`, `webhookSecret`, and `commitSigningKey` on a
+`GrafanaProvisioningRepository`. The current API keeps those field definitions but rejects each
+field at admission and in the renderer. An update that still contains one is rejected, including a
+name reference that version 2.0.0 accepted.
+
+This refusal is based on the `GrafanaProvisioningConnection` result above. The sibling kind uses the
+same vendor API group, but the repository path has not been exercised. Probing it would create live
+resources because the vendor secret API ignores `dryRun`.
+
+Remove all three fields from the repository claim and keep
+`spec.repository.connectionRef.name` pointing at the existing connection. Do not replace them with
+a `create` form, credential literal, or another secure-value reference. Reapply the claim after
+removing the fields; the repository and its connection do not need to be deleted. Leave webhook and
+commit-signing material unset until a later release explicitly re-enables the reference form.
+
 ## Files
 
 - `connection.yaml` is a deliberately inert request shape.

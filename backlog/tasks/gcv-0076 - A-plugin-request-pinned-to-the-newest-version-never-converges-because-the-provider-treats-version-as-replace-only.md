@@ -3,10 +3,10 @@ id: GCV-0076
 title: >-
   A plugin request pinned to the newest version never converges, because the
   provider treats version as replace-only
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 07:59'
+updated_date: '2026-09-18 09:24'
 labels: []
 dependencies: []
 type: bug
@@ -36,6 +36,14 @@ This is the default path rather than an unusual request, because a caller who na
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 13: write a failing version-defaulting test, choose the additive convergence behavior against the pinned CRD and released API, implement it, and record existing-object remediation.
+
+Selected additive convergence path: omitted or explicit latest adopts the observed concrete installed version after first installation; an explicit numeric version remains pinned. The released API is not tightened. An already-stuck PluginInstallation must be deleted and recreated because its ForceNew diff cannot self-repair.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

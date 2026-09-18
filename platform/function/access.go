@@ -13,6 +13,17 @@ const (
 	requestedTokenEarlyRotationWindow = 168 * time.Hour
 )
 
+func stackAccessPolicyRealm(observed map[resource.Name]resource.ObservedComposed, policy resource.Name, stackName string) []any {
+	identifier := observedString(observed, "stack", "status.atProvider.id")
+	if identifier == "" {
+		identifier = observedString(observed, policy, "spec.forProvider.realm[0].identifier")
+	}
+	if identifier != "" {
+		return []any{map[string]any{"identifier": identifier, "type": "stack"}}
+	}
+	return []any{map[string]any{"stackRef": map[string]any{"name": stackName}, "type": "stack"}}
+}
+
 func addTelemetryAccess(
 	desired map[resource.Name]*resource.DesiredComposed,
 	observed map[resource.Name]resource.ObservedComposed,
@@ -53,12 +64,9 @@ func addTelemetryAccess(
 	policyForProvider := map[string]any{
 		"displayName": "Telemetry publisher for " + slug,
 		"name":        policyName,
-		"realm": []any{map[string]any{
-			"stackRef": map[string]any{"name": slug},
-			"type":     "stack",
-		}},
-		"region": region,
-		"scopes": []any{"stacks:read", "metrics:write", "logs:write", "traces:write"},
+		"realm":       stackAccessPolicyRealm(observed, "telemetry-access-policy", slug),
+		"region":      region,
+		"scopes":      []any{"stacks:read", "metrics:write", "logs:write", "traces:write"},
 	}
 	if len(allowedSubnets) > 0 {
 		policyForProvider["conditions"] = []any{map[string]any{"allowedSubnets": allowedSubnets}}

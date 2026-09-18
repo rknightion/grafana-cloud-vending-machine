@@ -61,6 +61,9 @@ spec:
                   x-kubernetes-validations:
                     - rule: "(self.type == 'local' && has(self.local) && !has(self.github) && !has(self.githubEnterprise) && !has(self.git) && !has(self.bitbucket) && !has(self.gitlab)) || (self.type == 'github' && has(self.github) && !has(self.local) && !has(self.githubEnterprise) && !has(self.git) && !has(self.bitbucket) && !has(self.gitlab)) || (self.type == 'githubEnterprise' && has(self.githubEnterprise) && !has(self.local) && !has(self.github) && !has(self.git) && !has(self.bitbucket) && !has(self.gitlab)) || (self.type == 'git' && has(self.git) && !has(self.local) && !has(self.github) && !has(self.githubEnterprise) && !has(self.bitbucket) && !has(self.gitlab)) || (self.type == 'bitbucket' && has(self.bitbucket) && !has(self.local) && !has(self.github) && !has(self.githubEnterprise) && !has(self.git) && !has(self.gitlab)) || (self.type == 'gitlab' && has(self.gitlab) && !has(self.local) && !has(self.github) && !has(self.githubEnterprise) && !has(self.git) && !has(self.bitbucket))"
                       message: repository type requires exactly its matching provider block
+                    - rule: '(oldSelf.hasValue() || !oldSelf.hasValue()) && (!has(self.secure) || (!has(self.secure.token) && !has(self.secure.webhookSecret) && !has(self.secure.commitSigningKey)))'
+                      optionalOldSelf: true
+                      message: 'vendor defect: repository secure-value name references are refused; inferred from sibling Connection kind, not observed on Repository'
                   properties:
                     uid:
                       type: string
@@ -224,7 +227,7 @@ spec:
                         baseUrl: *repository-url
                     secure:
                       type: object
-                      description: Stable names of externally vended secure values. Credential literals and creation controls are not part of this API.
+                      description: Rejected compatibility surface. Repository secure-value name references are refused because of the recorded vendor defect; credential literals and creation controls remain excluded.
                       properties:
                         token: &secure-value-name
                           type: object
@@ -232,6 +235,8 @@ spec:
                           x-kubernetes-validations:
                             - rule: '!has(self.create)'
                               message: secure values must reference an existing secure value by name; create is forbidden
+                            - rule: 'false'
+                              message: 'vendor defect: secure-value name references are refused; inferred from sibling Connection kind, not observed on Repository'
                           properties:
                             name:
                               type: string
@@ -247,7 +252,7 @@ spec:
                     secureVersion:
                       type: integer
                       minimum: 1
-                      description: Increment to request the provider to reapply unchanged secure-value names after rotation.
+                      description: Retained for schema compatibility only. It cannot reapply a refused repository secure-value reference.
                 dashboard:
                   type: object
                   description: Rejected compatibility guard. Classic dashboard ownership belongs to GrafanaCloudStackRequest, never to this Git-provisioned subtree.

@@ -3,9 +3,10 @@ id: GCV-0082
 title: >-
   Make the refused-vendor-shape class unrepeatable, instead of fixed one kind at
   a time
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-18 07:46'
+updated_date: '2026-09-18 09:24'
 labels:
   - needs-triage
   - vendor-defect
@@ -48,3 +49,11 @@ Scope boundary: this task builds the control and records the class. Fixing the i
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 13: create a machine-readable refused-shape record and all-emitted-kind assertion, prove the assertion with a deliberate failing fixture, and prepare the consumer documentation packet.
+
+AC4 evidence uses each composed child standard Synced and Ready conditions plus events; the public troubleshooting text states that the composite can remain healthy and directs operators to the child. AC6 keeps the connection standalone secure value under the frozen decision because GCV-0084 tracks restoration of reference-form support; the duplicated vendor credential is the explicit trade-off and no migration occurs in this wave.
+<!-- SECTION:PLAN:END -->

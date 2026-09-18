@@ -145,7 +145,7 @@ func addFleetAccess(
 	policyForProvider := map[string]any{
 		"displayName": "Fleet Management for " + slug,
 		"name":        policyName,
-		"realm":       []any{map[string]any{"stackRef": map[string]any{"name": slug}, "type": "stack"}},
+		"realm":       stackAccessPolicyRealm(observed, "fleet-management-access-policy", slug),
 		"region":      region,
 		"scopes":      []any{"fleet-management:read", "fleet-management:write"},
 	}

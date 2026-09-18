@@ -533,6 +533,9 @@ publishes `status.outputSecretPath`, `status.telemetrySecretPath` when enabled,
 classification. These status values are observations, not credentials or a substitute for an
 inventory/adoption review.
 
+Composite conditions do not replace each composed child's conditions. Diagnose a provider refusal
+on the child and its events because the composite can remain healthy while the child is retried.
+
 ## Next steps
 
 - [Configuration](../configuration.md) - platform policy, profiles, and the organization registry.

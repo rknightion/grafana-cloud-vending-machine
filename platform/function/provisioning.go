@@ -219,7 +219,15 @@ func provisioningWorkflows(repository map[string]any) ([]any, error) {
 	return workflows, nil
 }
 
+const provisioningSecureValueRefusal = "vendor defect: secure-value name references are refused; inferred from sibling Connection kind, not observed on Repository"
+
 func provisioningSecureValues(secure map[string]any) (map[string]any, error) {
+	for _, key := range []string{"token", "webhookSecret", "commitSigningKey"} {
+		if _, found := secure[key]; found {
+			return nil, errors.New("provisioning repository secure values are refused: " + provisioningSecureValueRefusal)
+		}
+	}
+
 	rendered := map[string]any{}
 	for _, key := range []string{"token", "webhookSecret", "commitSigningKey"} {
 		value, found := secure[key]

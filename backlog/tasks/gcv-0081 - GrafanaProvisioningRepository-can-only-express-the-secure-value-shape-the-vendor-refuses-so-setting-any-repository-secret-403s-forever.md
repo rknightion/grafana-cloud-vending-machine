@@ -3,10 +3,10 @@ id: GCV-0081
 title: >-
   GrafanaProvisioningRepository can only express the secure-value shape the
   vendor refuses, so setting any repository secret 403s forever
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-18 07:45'
-updated_date: '2026-09-18 08:00'
+updated_date: '2026-09-18 09:24'
 labels:
   - needs-triage
   - vendor-defect
@@ -55,6 +55,14 @@ Doing nothing is also an option worth costing: mark the three fields unusable, s
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 13: test-first refusal of all three repository secure fields at admission and render time, preserve field definitions, and prepare the breaking migration documentation packet.
+
+Admission migration coverage includes all three secure aliases on create and field-addition update, a CRD-upgrade case where each formerly accepted name reference is retained during an unrelated update and refused, and successful removal of each legacy field after the upgrade. Renderer refusal remains independent of admission.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

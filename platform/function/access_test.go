@@ -123,6 +123,44 @@ func TestTokenSecurityPublishesObservedExpiries(t *testing.T) {
 	}
 }
 
+func TestStackAccessPoliciesPreserveResolvedStackIdentity(t *testing.T) {
+	observed := map[resource.Name]resource.ObservedComposed{
+		"stack": accessObserved(`{"status":{"atProvider":{"id":"resolved-stack-id"}}}`),
+	}
+	settings := platformSettings{maximumTokenLifetime: "720h"}
+	want := []any{map[string]any{"identifier": "resolved-stack-id", "type": "stack"}}
+
+	telemetry := map[resource.Name]*resource.DesiredComposed{}
+	if err := addTelemetryAccess(telemetry, observed, "grafana-vending", "teamdemo01", "prod-us-central-0", "/platform/example/telemetry", map[string]any{"profile": "standard"}, settings, "organization-provider", false); err != nil {
+		t.Fatalf("add telemetry access: %v", err)
+	}
+	telemetryRealm := nestedMap(t, telemetry["telemetry-access-policy"].Resource.UnstructuredContent(), "spec", "forProvider")["realm"]
+	if diff := cmp.Diff(want, telemetryRealm); diff != "" {
+		t.Fatalf("telemetry realm differs (-want +got):\n%s", diff)
+	}
+
+	fleet := map[resource.Name]*resource.DesiredComposed{}
+	if err := addFleetAccess(fleet, observed, "grafana-vending", "teamdemo01", "prod-us-central-0", "/platform/example", "standard", settings, "organization-provider", false); err != nil {
+		t.Fatalf("add fleet access: %v", err)
+	}
+	fleetRealm := nestedMap(t, fleet["fleet-management-access-policy"].Resource.UnstructuredContent(), "spec", "forProvider")["realm"]
+	if diff := cmp.Diff(want, fleetRealm); diff != "" {
+		t.Fatalf("fleet realm differs (-want +got):\n%s", diff)
+	}
+}
+
+func TestStackAccessPolicyRealmFallsBackWithoutDroppingResolvedIdentity(t *testing.T) {
+	observed := map[resource.Name]resource.ObservedComposed{
+		"policy": accessObserved(`{"spec":{"forProvider":{"realm":[{"identifier":"previous-stack-id","type":"stack"}]}}}`),
+	}
+	if got, want := stackAccessPolicyRealm(observed, "policy", "teamdemo01"), []any{map[string]any{"identifier": "previous-stack-id", "type": "stack"}}; !cmp.Equal(got, want) {
+		t.Fatalf("observed realm = %s, want %s", mustJSON(got), mustJSON(want))
+	}
+	if got, want := stackAccessPolicyRealm(nil, "policy", "teamdemo01"), []any{map[string]any{"stackRef": map[string]any{"name": "teamdemo01"}, "type": "stack"}}; !cmp.Equal(got, want) {
+		t.Fatalf("initial realm = %s, want %s", mustJSON(got), mustJSON(want))
+	}
+}
+
 func accessObserved(document string) resource.ObservedComposed {
 	value := composed.New()
 	value.SetUnstructuredContent(resource.MustStructJSON(document).AsMap())
