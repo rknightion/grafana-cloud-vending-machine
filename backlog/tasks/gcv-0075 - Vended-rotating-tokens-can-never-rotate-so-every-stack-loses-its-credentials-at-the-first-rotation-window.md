@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 16:46'
+updated_date: '2026-09-18 19:02'
 labels: []
 dependencies: []
 references:
@@ -117,6 +117,8 @@ THE DIRECTION TO EVALUATE FIRST, and it is already evidenced in this task rather
 The seven Lane F findings in codex/wave14/lane-f-review.md are no longer a repair checklist. They are the test any candidate direction must survive, and a direction that cannot produce them as non-problems is a better answer than one that answers them individually.
 
 Timing, so no plan assumes a cliff: the windows reopen on the thirty-day cycle the 2026-09-16 recreation restarted. Manual delete-and-recreate remains the proven fallback and needs no code.
+
+Wave 15 design packet recommends controlled replacement only where the owner explicitly accepts interruption for that consumer and token type. Keep operator-controlled replacement as the proven fallback. Where uninterrupted authentication is mandatory, pursue provider-owned renewal instead. Do not automate universally and do not retry the rejected overlapping-generation design. Owner decision still required: which consumers accept interruption, the maximum acceptable interruption or telemetry loss, and the recovery evidence required before automation. GCV-0075 remains Parked and no acceptance criterion was satisfied.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -125,4 +127,6 @@ Timing, so no plan assumes a cliff: the windows reopen on the thirty-day cycle t
 Parked after design and adversarial review. Provider replacement behavior, all three emitted token kinds, the overlapping-generation decision, and the upstream Upjet boundary are recorded. No rotation implementation remains in the tree. Resume from codex/wave13/lane-f-review.md. The integrated repository passed just check locally and hosted Validate run 35333659147 at b47831ddddfd5ec10e1e699d4d8608886261becd, but AC3 through AC5 remain unproven.
 
 Parked after four of four authorized attempts. No rotation implementation landed. The accepted design packet, implementation evidence and two-phase adversarial review preserve the precise seven-edit resume boundary.
+
+Wave 15 reopened the rotation direction without an implementation attempt. Recommendation: controlled replacement with explicit per-consumer interruption acceptance; operator-controlled fallback; provider-owned renewal when interruption is unacceptable.
 <!-- SECTION:FINAL_SUMMARY:END -->

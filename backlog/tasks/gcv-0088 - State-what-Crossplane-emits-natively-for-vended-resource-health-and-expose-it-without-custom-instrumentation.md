@@ -3,12 +3,12 @@ id: GCV-0088
 title: >-
   State what Crossplane emits natively for vended resource health and expose it
   without custom instrumentation
-status: To Do
-assignee: []
+status: Done
+assignee:
+  - '@codex'
 created_date: '2026-09-18 16:45'
-updated_date: '2026-09-18 16:47'
-labels:
-  - needs-triage
+updated_date: '2026-09-18 19:02'
+labels: []
 dependencies: []
 ordinal: 88000
 ---
@@ -31,15 +31,33 @@ This repository is a portable public reference and must not assume a monitoring 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The managed-resource metric families the pinned crossplane-runtime emits are enumerated from the pinned module source with their labels, and the fleet questions they can and cannot answer are stated
-- [ ] #2 Whether the pinned provider starts the state-metrics recorder is settled from the pinned provider package rather than assumed, and the answer is recorded either way
-- [ ] #3 The provider metrics endpoint has a scrape path a consumer can enable, inert by default in this reference and requiring no monitoring stack to be present for the gate to pass
-- [ ] #4 What an operator cannot learn from native telemetry alone is recorded, naming the per-object and expiry questions it cannot answer and where they are answered instead
-- [ ] #5 No instrumentation is added to the composition function and no metric is invented by this repository
+- [x] #1 The managed-resource metric families the pinned crossplane-runtime emits are enumerated from the pinned module source with their labels, and the fleet questions they can and cannot answer are stated
+- [x] #2 Whether the pinned provider starts the state-metrics recorder is settled from the pinned provider package rather than assumed, and the answer is recorded either way
+- [x] #3 The provider metrics endpoint has a scrape path a consumer can enable, inert by default in this reference and requiring no monitoring stack to be present for the gate to pass
+- [x] #4 What an operator cannot learn from native telemetry alone is recorded, naming the per-object and expiry questions it cannot answer and where they are answered instead
+- [x] #5 No instrumentation is added to the composition function and no metric is invented by this repository
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 15 lane C: verify native Crossplane metric availability from pinned artifacts, add an inert consumer-enabled provider scrape path and boundary documentation, then pass the integrated gate.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 15 verified from pinned artifacts that the provider starts the managed reconciler histograms and state-metrics gauges. Documentation enumerates all seven native families and their sole gvk label, and states that native telemetry cannot identify an object or token-window proximity. An opt-in overlay annotates the provider native HTTP metrics endpoint while the default install stays inert and monitoring-stack-neutral. No function instrumentation or repository-defined metric was added. Local just check passed with 85.3 percent statement coverage; source SHA fda11ea36184af9c7ebfdd1899db136738fedc4f and completing pin SHA 1c13c27039068f4eacede61f6664dd498cff0d9a both passed hosted validation.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Completed the native Crossplane telemetry boundary and opt-in provider scrape surface. Verified from pinned artifacts, local just check, and hosted Validate run 35382961277 at 1c13c27039068f4eacede61f6664dd498cff0d9a.
+<!-- SECTION:FINAL_SUMMARY:END -->

@@ -4,7 +4,7 @@ title: The vended Git Sync connection cannot be created on Grafana Cloud
 status: Parked
 assignee: []
 created_date: '2026-09-12 19:11'
-updated_date: '2026-09-18 10:54'
+updated_date: '2026-09-18 19:02'
 labels:
   - needs-triage
 dependencies: []
@@ -112,4 +112,6 @@ RESUME BOUNDARY, in order, and each step is an estate action rather than reposit
 Parked rather than Done because AC3 asks for one of two things and neither has happened: it has not reached Ready against a real stack, and it is not being marked unusable, since the source-level fix is correct and unit-proven. AC1, AC2 and AC4 remain satisfied as recorded above.
 
 Do NOT close this by declaring live proof out of scope. That disposition is right for behaviour this repository can never reach, and this is not that: the estates exist, the authorisation exists, and the only missing step is a pin roll.
+
+Wave 15 corrected the repository function pin after exact-SHA publication. The current signed package digest is sha256:cc7498e086ceb6bee7a51386076bfabacdc6cd7c65009c9f2aef9c36ad1046d3, verified against the publish-function workflow identity. No estate action was taken, so the estate rollout criterion remains open.
 <!-- SECTION:NOTES:END -->

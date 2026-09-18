@@ -1,12 +1,12 @@
 ---
 id: GCV-0087
 title: Make a stuck rotating token visible from composite conditions alone
-status: To Do
-assignee: []
+status: Done
+assignee:
+  - '@codex'
 created_date: '2026-09-18 16:44'
-updated_date: '2026-09-18 16:47'
-labels:
-  - needs-triage
+updated_date: '2026-09-18 19:02'
+labels: []
 dependencies: []
 ordinal: 87000
 ---
@@ -27,15 +27,33 @@ The composition emits three rotating-token kinds, not two: StackServiceAccountRo
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A composite owning a rotating token that cannot rotate does not report Ready=True, or the exact reason it still does is recorded
-- [ ] #2 A stuck token is distinguishable from a healthy one from resource conditions alone, with no access to provider logs
-- [ ] #3 The signal works for AccessPolicyRotatingToken, which publishes no expiration, secondsToLive or earlyRotationWindowSeconds in status.atProvider
-- [ ] #4 All three emitted rotating-token kinds are covered, and a configured family that renders no token is accounted for rather than dropping out of the health roll-up
-- [ ] #5 The signal is derived only from observed child conditions and status this repository already receives, with no new provider field and no instrumentation added to the composition function
+- [x] #1 A composite owning a rotating token that cannot rotate does not report Ready=True, or the exact reason it still does is recorded
+- [x] #2 A stuck token is distinguishable from a healthy one from resource conditions alone, with no access to provider logs
+- [x] #3 The signal works for AccessPolicyRotatingToken, which publishes no expiration, secondsToLive or earlyRotationWindowSeconds in status.atProvider
+- [x] #4 All three emitted rotating-token kinds are covered, and a configured family that renders no token is accounted for rather than dropping out of the health roll-up
+- [x] #5 The signal is derived only from observed child conditions and status this repository already receives, with no new provider field and no instrumentation added to the composition function
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 15 lane B: implement condition-only rotating-token health in two new feature files; root applies the fn.go registration; security review and integrated gate follow.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 15 implemented exact-current-child credential health by GVK and identity. Missing children, missing Synced conditions and Synced values other than True now make the owning composite not Ready. AccessPolicyRotatingToken needs no expiry fields. All three emitted rotating-token kinds and configured-but-unrendered families are covered from observed child conditions only. CodeRabbit and Lane E security findings were corrected before landing. Local just check passed with 85.3 percent statement coverage; source SHA fda11ea36184af9c7ebfdd1899db136738fedc4f and completing pin SHA 1c13c27039068f4eacede61f6664dd498cff0d9a both passed hosted validation.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Completed condition-only rotating-token health across all three emitted kinds. Exact current child membership prevents retired or unrelated tokens from masking or poisoning health, and configured missing children fail closed. Verified by local just check and hosted Validate run 35382961277 at 1c13c27039068f4eacede61f6664dd498cff0d9a.
+<!-- SECTION:FINAL_SUMMARY:END -->

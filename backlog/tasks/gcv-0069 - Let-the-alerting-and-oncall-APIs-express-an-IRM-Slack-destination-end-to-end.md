@@ -5,7 +5,7 @@ status: Parked
 assignee:
   - '@codex'
 created_date: '2026-09-11 13:22'
-updated_date: '2026-09-18 14:45'
+updated_date: '2026-09-18 19:02'
 labels: []
 dependencies: []
 ordinal: 69000
@@ -64,10 +64,16 @@ SCOPE NOTE. Items 1 to 3 are one coherent change: an integration type, a route-l
 Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
 
 2026-09-18 wave 14 R1 re-triage: the wave-10 fixture-provenance blocker is refuted. The pinned v2.14.0 provider artifact and fixture use source revision dc795606df97a72dce81a0c953e0ec0750e0b489; the prior mismatch was only the deliberately optional empty top-level status stanza, present in 12 of 42 pre-existing CRDs and absent in 30. The old neighbour byte-equality control was unsatisfiable by construction. All five acceptance criteria are implementable. The packet codex/wave14/r1-triage.md derives Integration, EscalationChain, Route, SlackChannel, ContactPoint and NotificationPolicy GVKs from the artifact, records the AC2 exactly-one channelRef.name or opaque channelId amendment, and gives the remaining implementation fit brief. No task status change.
+
+Wave 15 commissioned from the accepted wave 14 fit packet. Preserve the released default integration identities byte-for-byte; any required field, CEL rule or immutability constraint is a returned breaking-change blocker.
+
+Wave 15 exhausted its two lane attempts and one bounded root repair. Lane E and CodeRabbit both rejected the identity transition: one logical composed-resource key cannot retain the old Integration while creating the renamed replacement. The second CodeRabbit pass repeated the same failure signature, so the complete candidate was removed under the wave stop rule. Resume only with a reviewed type-specific composed-resource-key migration that retains the old Integration and Route until both replacements are observed, without tightening either released API.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
+
+Wave 15 parked after the second review repeated the integration identity-transition failure. No GCV-0069 source or API change landed. The exact resume boundary is a type-specific dual-key migration retaining old Integration and Route resources until replacement observation proves the new path.
 <!-- SECTION:FINAL_SUMMARY:END -->
