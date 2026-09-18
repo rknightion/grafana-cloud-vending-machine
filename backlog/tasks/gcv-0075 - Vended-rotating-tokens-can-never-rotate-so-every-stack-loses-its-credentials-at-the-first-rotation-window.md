@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 15:08'
+updated_date: '2026-09-18 16:46'
 labels: []
 dependencies: []
 references:
@@ -102,6 +102,21 @@ Wave 13 security review found material safe-ordering defects in the attempted A2
 Wave 13 terminal reconciliation: the A2 implementation was rejected and removed after lane-f-review.md found material safe-ordering defects. Resume only after repairing the design for publication ordering, observed candidate retention, lineage, consumer identity, unknown expiry, and root wiring across all three token kinds.
 
 Wave 14 exhausted all four authorized implementation attempts: wave 13 attempt 1, lane B attempts 2 and 3, and root attempt 4. The fresh adversarial review still found seven high-impact defects: second-window completion is blocked; the standalone consumer rejects the selected successor before wiring; ambiguous evidence can arm deletion; publication acknowledgement is not bound to the authorized output; deletion readiness accepts unknown timing and bypassed handover; status can advance before materialized consumer handover; and health accounting omits unrendered families. The rejected rotation source and documentation were restored to the integration base and are absent from the landing slice. Resume only with explicit authorization for another attempt and implement the exact owner corrections in codex/wave14/lane-f-review.md.
+
+2026-09-18 OWNER DECISION after wave 14: the task is SPLIT and the rotation direction is RE-OPENED FOR DESIGN. No fifth implementation attempt is authorised against the accepted overlapping-generation packet.
+
+WHY, because this is the expensive finding and it must not be re-litigated. Three attempts were made against that packet: lane B twice and the root once. Lane F's prior-finding disposition table records the outcome precisely - all seven of its first-review findings came back 'Partially corrected, still FAIL', and all five wave-13 hard boundaries remained unsatisfied after each attempt. That is a repeating failure signature against the DESIGN, not three independent implementation failures. A fifth attempt at the same zero-gap overlapping-generation handover is expected to fail the same way.
+
+THE SPLIT.
+- The operator-visibility half, formerly AC4 and AC5, moves to GCV-0087. It carries no credential-safety invariant, does not depend on how rotation is eventually performed, and is the only thing that would have caught the original incident. It lands first.
+- Fleet-level health through Crossplane's own telemetry surfaces becomes GCV-0088, scoped by the owner to what Crossplane provides out of the box and nothing this repository invents.
+- AC3, rotation that works for an estate already past its window, stays here and is design-only until a direction is accepted.
+
+THE DIRECTION TO EVALUATE FIRST, and it is already evidenced in this task rather than speculative: delete-and-recreate of the managed resource DOES rotate the token, observed live on 2026-09-16 at the pinned provider, when the stuck tokens on both estates were remediated that way and every one now reports Synced=True with no CannotUpdateExternalResource events. Controlled replacement accepts a brief credential gap. The overlapping-generation design existed to eliminate that gap, and eliminating it is what has failed three times. Whether the gap is acceptable is the decision, and it has not been taken.
+
+The seven Lane F findings in codex/wave14/lane-f-review.md are no longer a repair checklist. They are the test any candidate direction must survive, and a direction that cannot produce them as non-problems is a better answer than one that answers them individually.
+
+Timing, so no plan assumes a cliff: the windows reopen on the thirty-day cycle the 2026-09-16 recreation restarted. Manual delete-and-recreate remains the proven fallback and needs no code.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
