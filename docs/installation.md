@@ -31,7 +31,7 @@ before requests can be admitted.
 | ESO Helm chart | 2.6.0 | `deploy/argocd/external-secrets.yaml` (`targetRevision: 2.6.0`) | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
 | Cosign verification image | 3.1.2, immutable digest | `platform/function/install.yaml`, `platform/provider/provider-grafana.yaml` (`cosign/cosign:v3.1.2`) | Verifies the Grafana provider and this repository's function package |
 | Composition function SDK | 0.7.1 | `platform/function/go.mod` (`github.com/crossplane/function-sdk-go v0.7.1`) | Pinned by the function Go module |
-| Vending composition function | sha256:b59b3cded495d40983869fd926c04f776fe0b9e77d0312338529336627d0a41c | `platform/function/install.yaml` (`function-grafana-vending@sha256:b59b3cded495d40983869fd926c04f776fe0b9e77d0312338529336627d0a41c`) | Signed amd64/arm64 package |
+| Vending composition function | sha256:cc7498e086ceb6bee7a51386076bfabacdc6cd7c65009c9f2aef9c36ad1046d3 | `platform/function/install.yaml` (`function-grafana-vending@sha256:cc7498e086ceb6bee7a51386076bfabacdc6cd7c65009c9f2aef9c36ad1046d3`) | Signed amd64/arm64 package |
 
 The Grafana Crossplane provider describes itself as experimental and unsupported. The v2.14.0 tag is
 generated from Terraform provider 4.45.1 and carries the resource surface used by this reference. It
