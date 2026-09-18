@@ -1,6 +1,6 @@
 # Wave 14 current state
 
-- Revision: 11
+- Revision: 12
 - Run owner: receiving Codex session, canonical task `/root`
 - Recovery mechanism: unknown; use the goal's same-session recovery contract
 - Goal: `codex/goal-2026-09-18-wave14.md`
@@ -14,12 +14,15 @@
 - Ready: accepted documentation packets applied; focused lifecycle, consumer-profile and migration tests green
 - Review: first CodeRabbit pass returned five findings; root fixed the scan search-error propagation defect and the repeated non-renewing credential guidance, retained the deliberately real profile, and confirmed the lifecycle is implemented; second pass completed with zero findings
 - Gate: the first command stopped before validation because `KUBEBUILDER_ASSETS` was unset; the one allowed causal correction set the pinned envtest assets with `KUBECONFIG=/dev/null`; `just check` then passed, including the public scan, pinned Kubernetes 1.37 admission suite, full Go tests and 85.2% coverage
-- Waiting: source commit, hosted validation/function publication, digest pin, G AC5 and final tracker reconciliation
+- Publication: source `7b3598efa68d980947e63cc01bc233ed74cafc7a` passed validation run `35363219843` and publish run `35363219707`; signed digest `sha256:b59b3cded495d40983869fd926c04f776fe0b9e77d0312338529336627d0a41c` verified against the exact main-branch workflow identity
+- Pin: `1f2af4a0b37c244a799e1fe0cdfcea2fa5abd82e` moves all three digest references and passed hosted validation run `35364595851`
+- Tracker: GCV-0073, GCV-0085 and GCV-0086 are Done; GCV-0075 is Parked at four of four attempts; GCV-0078 has AC1-AC5 checked, AC6 open and remains In Progress; GCV-0069 remains Parked with its refreshed fit brief
+- Waiting: commit and validate tracker reconciliation, collect the final workflow census, then write the terminal report
 - Attempt ledger: GCV-0075 has consumed all 4 authorized attempts: wave 13 attempt 1, Lane B attempts 2-3, root repair attempt 4
 - Tracker: GCV-0075, GCV-0085, GCV-0086, GCV-0073 and GCV-0078 are In Progress with wave-14 plans appended
 - Gate/publication pre-state: census window starts `2026-09-18T14:14:35Z`; outgoing function digest and three replacement sites recorded in `codex/wave14/root-evidence.md`; release PR 35 observed open and untouched
 - Root wiring: retained only the Lane E status dispatch. The rejected rotation helper, five-site wiring, schema, bootstrap, expiry and documentation changes were restored to the integration base and are absent from the landing slice.
 - Accepted with root rescue: Lane E corrected early removal, managed-resource finalizer evidence, parent-status phase continuity, and absence-without-witness refusal. Root then transferred ownership and fixed one retained-policy regression exposed by a new failing assertion: the observed SecurevalueDeleting witness now keeps `managementPolicies:["*"]` until withdrawal. Focused ProvisioningConnection tests pass with pinned envtest assets. The first root command without `KUBEBUILDER_ASSETS` was an environment failure, not an implementation attempt.
 - GCV-0075 disposition: park after four of four attempts. Required resume work is the seven exact owner corrections in `codex/wave14/lane-f-review.md`; no fifth attempt is authorized in this run.
-- Next action: commit and push the accepted source slice, then watch exact-SHA hosted validation and function publication
+- Next action: commit and push the reconciled tracker and AC5 evidence, then watch exact-SHA hosted validation
 - Terminal action: write `codex/report-2026-09-18-wave14.md` after tracker reconciliation; no tool action follows

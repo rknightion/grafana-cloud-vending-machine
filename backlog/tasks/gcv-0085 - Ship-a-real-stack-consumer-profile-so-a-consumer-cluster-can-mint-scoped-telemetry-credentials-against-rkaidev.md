@@ -3,10 +3,10 @@ id: GCV-0085
 title: >-
   Ship a real stack consumer profile so a consumer cluster can mint scoped
   telemetry credentials
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-18 10:13'
-updated_date: '2026-09-18 14:16'
+updated_date: '2026-09-18 15:54'
 labels: []
 dependencies:
   - GCV-0075
@@ -31,18 +31,18 @@ IDENTIFIER SCRUB 2026-09-18: this description previously carried a numeric org i
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A named non-placeholder stack consumer profile authorizes the robk stack in prod-gb-south-1 by slug and region and is served by the shipped Composition
-- [ ] #2 The profile carries the scopes a telemetry consumer needs, and every scope is justified against what such a consumer actually writes rather than copied from the fleet-wide publisher list
-- [ ] #3 The profile names an organization ProviderConfig and a consumer namespace that are not example placeholders, and a GrafanaStackConsumer created in that namespace for that slug and region is admitted rather than denied by the ValidatingAdmissionPolicy, proven at the pinned API server
-- [ ] #4 The emitted credential path and PushSecret render the documented telemetry.json shape at the profile's outputSecretPath, proven by renderer test; live read-back of the secret store is recorded as not exercisable in this repository and left to the consuming estate
-- [ ] #5 The example-reader placeholder's fate is recorded: kept as documentation, renamed, or removed, with the reason
-- [ ] #6 The interaction with GCV-0075 is stated on this task: whether a consumer profile may ship before rotation is fixed, and what an operator does at the 2026-10-09 window if it ships first
+- [x] #1 A named non-placeholder stack consumer profile authorizes the robk stack in prod-gb-south-1 by slug and region and is served by the shipped Composition
+- [x] #2 The profile carries the scopes a telemetry consumer needs, and every scope is justified against what such a consumer actually writes rather than copied from the fleet-wide publisher list
+- [x] #3 The profile names an organization ProviderConfig and a consumer namespace that are not example placeholders, and a GrafanaStackConsumer created in that namespace for that slug and region is admitted rather than denied by the ValidatingAdmissionPolicy, proven at the pinned API server
+- [x] #4 The emitted credential path and PushSecret render the documented telemetry.json shape at the profile's outputSecretPath, proven by renderer test; live read-back of the secret store is recorded as not exercisable in this repository and left to the consuming estate
+- [x] #5 The example-reader placeholder's fate is recorded: kept as documentation, renamed, or removed, with the reason
+- [x] #6 The interaction with GCV-0075 is stated on this task: whether a consumer profile may ship before rotation is fixed, and what an operator does at the 2026-10-09 window if it ships first
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -55,4 +55,12 @@ Wave 14: replace the placeholder consumer profile, prove admission and renderer 
 
 <!-- SECTION:NOTES:BEGIN -->
 Rotation decision (2026-09-18): platform/function/stackconsumer.go is a rotating-token site because it emits AccessPolicyRotatingToken. The consumer profile may ship before GCV-0075 lands, but its credential must be treated as non-renewing until that repair is deployed. If it ships first, the operator must perform an explicit approved credential replacement and publication before the 2026-10-09 early-rotation window, verify the consuming estate has reloaded the replacement, and must not rely on automatic rotation; if that handover cannot be performed, remove the request before the token expiry window.
+
+Wave 14 shipped the named telemetry-writer profile, admitted its inert request on the pinned API server, proved the exact telemetry.json publication shape and fixed output path, removed the unusable placeholder, and documented the non-renewing credential handover. Live secret-store read-back was not exercised, and not exercisable here.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Completed at 1f2af4a0b37c244a799e1fe0cdfcea2fa5abd82e; hosted Validate public reference run 35364595851 passed at that exact SHA. The bounded write-only profile is usable as an inert public reference, with automatic rotation explicitly unavailable while GCV-0075 remains Parked.
+<!-- SECTION:FINAL_SUMMARY:END -->

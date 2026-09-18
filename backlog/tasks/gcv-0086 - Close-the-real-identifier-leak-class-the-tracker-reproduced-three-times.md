@@ -1,10 +1,10 @@
 ---
 id: GCV-0086
 title: Close the real-identifier leak class the tracker reproduced three times
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-18 10:55'
-updated_date: '2026-09-18 14:11'
+updated_date: '2026-09-18 15:54'
 labels: []
 dependencies: []
 priority: high
@@ -28,17 +28,17 @@ The working-tree scrub of GCV-0074 and GCV-0085 was already applied by the wave 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 public-release-scan.sh gains a working-tree-only check that rejects bare numeric org, stack and account ids, private repository names outside the enumerated allowlist, and internal project or estate names, and that check does not consult reachable history
-- [ ] #2 The check is proven live by a deliberate negative fixture that fails with the recorded message, in the manner of scripts/refused-shapes.sh, and the control is invoked by the gate rather than only runnable by hand
-- [ ] #3 The working tree passes the new check at the completing SHA, and the existing history-reading checks still pass, so the gate is green end to end
-- [ ] #4 AGENTS.md and the Wave operating model document are corrected to state the frozen boundary: slugs, regions and grafana.net hostnames permitted; bare numeric ids and private repository or project names refused
-- [ ] #5 The three prior leaks are recorded in one place with the reason history was not rewritten, so a later agent does not re-open the rewrite question without new evidence
+- [x] #1 public-release-scan.sh gains a working-tree-only check that rejects bare numeric org, stack and account ids, private repository names outside the enumerated allowlist, and internal project or estate names, and that check does not consult reachable history
+- [x] #2 The check is proven live by a deliberate negative fixture that fails with the recorded message, in the manner of scripts/refused-shapes.sh, and the control is invoked by the gate rather than only runnable by hand
+- [x] #3 The working tree passes the new check at the completing SHA, and the existing history-reading checks still pass, so the gate is green end to end
+- [x] #4 AGENTS.md and the Wave operating model document are corrected to state the frozen boundary: slugs, regions and grafana.net hostnames permitted; bare numeric ids and private repository or project names refused
+- [x] #5 The three prior leaks are recorded in one place with the reason history was not rewritten, so a later agent does not re-open the rewrite question without new evidence
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -46,3 +46,15 @@ The working-tree scrub of GCV-0074 and GCV-0085 was already applied by the wave 
 <!-- SECTION:PLAN:BEGIN -->
 Wave 14: add a working-tree-only identifier-class control with a failing negative fixture, correct the repository policy documents, and preserve the existing history scan.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wave 14 added the unconditional working-tree identifier control, external failing fixtures, permitted-boundary controls and loud search-failure propagation. The repository policy and Wave operating model now match the frozen boundary. The integrated local gate and exact-SHA hosted validation passed.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Completed at 1f2af4a0b37c244a799e1fe0cdfcea2fa5abd82e; hosted Validate public reference run 35364595851 passed at that exact SHA. Refused numeric identifiers, non-allowlisted private names and internal project or estate names now fail the gate without rewriting history.
+<!-- SECTION:FINAL_SUMMARY:END -->

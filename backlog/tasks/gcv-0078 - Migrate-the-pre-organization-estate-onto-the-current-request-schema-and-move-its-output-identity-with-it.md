@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-09-16 17:10'
-updated_date: '2026-09-18 14:11'
+updated_date: '2026-09-18 15:54'
 labels: []
 dependencies: []
 documentation:
@@ -31,18 +31,18 @@ The version gap will be larger by the time this is picked up, and the schema may
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Whether an already-stored stack request can gain spec.organization in place is settled against a real API server using this repository's admission fixture, with the evidence recorded
-- [ ] #2 If it cannot be migrated in place, the replacement path is recorded, stating what happens to the vended stack, its service account and its tokens, and whether the external stack survives the replacement
-- [ ] #3 The output-identity move names every consumer of the old remote path and states the cutover order, including when the old path stops being read
-- [ ] #4 The estate's non-standard usage value is preserved, or the migration records why it can change given usage is immutable and forms part of the output identity
-- [ ] #5 The schema delta is re-derived against the platform revision current at pickup rather than any delta recorded in this task
+- [x] #1 Whether an already-stored stack request can gain spec.organization in place is settled against a real API server using this repository's admission fixture, with the evidence recorded
+- [x] #2 If it cannot be migrated in place, the replacement path is recorded, stating what happens to the vended stack, its service account and its tokens, and whether the external stack survives the replacement
+- [x] #3 The output-identity move names every consumer of the old remote path and states the cutover order, including when the old path stops being read
+- [x] #4 The estate's non-standard usage value is preserved, or the migration records why it can change given usage is immutable and forms part of the output identity
+- [x] #5 The schema delta is re-derived against the platform revision current at pickup rather than any delta recorded in this task
 - [ ] #6 The estate reaches the current request schema with its composite Synced and Ready, no in-stack resource orphaned by the move, and its delivery patches applying cleanly against the example they rewrite
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -93,4 +93,12 @@ spec.organization transition rule or making the field optional again, that is a 
 platform/apis/stack-v1beta1.yaml, which shipped in v1.0.0, v1.0.1 and v2.0.0. Return the exact edit
 and let the owner decide; a fail-closed loosening on a released API is a breaking change however
 safe it looks.
+
+Wave 14 AC1-AC5 evidence is in codex/wave14/lane-g-plan.md and codex/wave14/lane-g-ac5.md. The pinned API server refused both organization-only and organization-plus-mutable-sibling updates, so replacement is required. Before AC6: wait for GCV-0075 to land safely; freeze promotion; capture the source revision and generator revision; record the stored request, output path, UID, conditions and immutable fields; inventory every composed object, external identity, management policy, credential generation, remote writer and reader; render the replacement against the completing catalogue while preserving usage and both allowed-usage layers. During AC6: verify Retain and non-deleting policies; remove the old request through its delivery mechanism; prove the external stack survives with unchanged identity; apply the replacement and stop on any Create or identity change; wait for the replacement core graph and dependent requests; move every remote-path consumer one at a time and prove reload onto replacement credentials; retire source tokens before policies or service accounts; delete only source-only documents; resume promotion only after the orphan, duplicate and stale-reader census is empty. AC6 remains open because no live estate, cluster, credential, consumer or generator was contacted.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+AC1-AC5 completed against pinning revision 1f2af4a0b37c244a799e1fe0cdfcea2fa5abd82e and hosted validation run 35364595851. AC6 remains open for the human-operated replacement cutover; status remains In Progress.
+<!-- SECTION:FINAL_SUMMARY:END -->
