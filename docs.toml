@@ -41,6 +41,7 @@ Home = "index.md"
 [[site.nav]]
 "How It Works" = [
     { Architecture = "architecture.md" },
+    { "Native Crossplane telemetry" = "crossplane-telemetry.md" },
     { Secrets = "secrets.md" },
     { SSO = "sso.md" },
     { Governance = "governance.md" },

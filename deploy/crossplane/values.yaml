@@ -9,6 +9,9 @@ provider:
   # resource kinds used by this reference.
   defaultActivations: []
 
+# The Crossplane 2.3.4 chart's metrics flag covers only the Crossplane and
+# RBAC Manager pods. The provider pod uses its own native endpoint; consumers
+# can opt into its scrape annotations with deploy/monitoring.
 metrics:
   enabled: true
 

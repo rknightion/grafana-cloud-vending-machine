@@ -1,0 +1,13 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: grafana-provider-runtime
+spec:
+  deploymentTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            prometheus.io/path: /metrics
+            prometheus.io/port: "8080"
+            prometheus.io/scrape: "true"

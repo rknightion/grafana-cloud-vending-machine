@@ -169,6 +169,9 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 	if err == nil {
 		err = productWithdrawalError(kind, content, desired, observed)
 	}
+	if err == nil {
+		addCredentialHealth(content, observed, config)
+	}
 	if kind == "GrafanaK6Project" && k6CapReconciliationPending(desired, observed) {
 		productContextReady = false
 	}
@@ -224,6 +227,10 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		delete(rsp.Desired.Resources, "expiry-warning")
 	}
 	markObservedResourcesReady(desired, observed)
+	if err := applyCredentialHealthReadiness(rsp, config); err != nil {
+		response.Fatal(rsp, errors.Wrap(err, "cannot set credential health readiness"))
+		return rsp, nil
+	}
 	if err := response.SetDesiredComposedResources(rsp, desired); err != nil {
 		response.Fatal(rsp, errors.Wrap(err, "cannot set desired composed resources"))
 	}
