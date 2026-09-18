@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-18 07:45'
+updated_date: '2026-09-18 08:00'
 labels:
   - needs-triage
   - vendor-defect
@@ -54,3 +55,17 @@ Doing nothing is also an option worth costing: mark the three fields unusable, s
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-18 DIRECTION SET BY THE OWNER. Refuse the three fields at admission and document the vendor defect. Do not adopt the create form here.
+
+The reasoning, so it is not re-litigated: the create form would put three credential literals into forProvider where the connection API puts one, and the vendor is expected to fix the reference form, at which point the create-form machinery would be dead weight on a released API. Refusing is the smaller and more reversible change. Adopting the reference form once the vendor fixes it is tracked as its own task.
+
+So the shape of the work is: reject token, webhookSecret and commitSigningKey at admission with a message that names the vendor defect, document it where a consumer of this API reads, and leave the field definitions in place so that re-enabling them later is a rule removal rather than a schema change.
+
+This is a fail-closed tightening on an API released in 2.0.0, so the wave operating model's rule applies in full: the commit carries a breaking marker and the change gets a migration section. An update that 2.0.0 accepted will be rejected.
+
+AC1 CAVEAT, and it is load-bearing for how the refusal is worded. The 403 on Repository is INFERRED from Connection, a sibling kind in the same vendor API group whose secure-value resolution path is where the refusal was traced. It has not been observed on Repository. Nothing on either live estate has ever created a RepositoryV0Alpha1 with a secure value, so there is no live evidence either way, and probing for it would mean creating a secure value and a repository on a real stack - the same action that raised the vendor's alert last time, and the vendor's secret API ignores dryRun, so the probe would be a real mutation. Do not probe as part of this wave. Word the documentation as inferred, name the sibling evidence, and say so plainly rather than asserting an observation that was never made.
+<!-- SECTION:NOTES:END -->

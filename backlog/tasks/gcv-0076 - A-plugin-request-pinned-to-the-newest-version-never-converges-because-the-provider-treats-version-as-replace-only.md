@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-16 16:48'
+updated_date: '2026-09-18 07:59'
 labels: []
 dependencies: []
 type: bug
@@ -35,3 +36,19 @@ This is the default path rather than an unusual request, because a caller who na
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-18 live re-confirmation. Still failing, still accumulating, and it is now the only rotating-or-ForceNew failure actually firing on either estate.
+
+One PluginInstallation on the estate that vends plugins carries 7988 CannotUpdateExternalResource events, most recent at 2026-09-18T07:49:15Z, minutes before this note. The rotating-token failures that this task was filed alongside have been remediated by recreation and produce no events now, so this is the live instance of the ForceNew class rather than a historical one.
+
+The defaulting line is platform/function/plugins.go:16, stringValue(plugin, 'version', 'latest'). Confirmed present at the current pin.
+
+Same upstream mechanism as GCV-0075, verified from source: Upjet's Update path calls assertNoForceNew() in pkg/controller/external_tfpluginsdk.go and refuses before applying, so a ForceNew field whose stored value can never equal the requested one holds a permanent diff. Here 'latest' is the requested value and a concrete version is what the provider records, so the two can never converge and no reconcile will fix it.
+
+AC3's remediation is already evidenced by the neighbouring task: deleting and recreating the managed resource is what cleared the equivalent state on the rotating tokens. State it explicitly as the operator step, because the object will not repair itself.
+
+AC2 is the real decision: whether asking for the newest version is rejected at admission, or resolved to a concrete version at render time, or accepted with the churn documented. Rejecting it is the smallest change and the one that cannot be wrong later, but it removes a convenience a caller currently has - note that spec.repository style version pinning is not comparable here because this API is not released under the same constraint. Check whether the plugin API is already released before adding a rule that refuses an input it previously accepted.
+<!-- SECTION:NOTES:END -->

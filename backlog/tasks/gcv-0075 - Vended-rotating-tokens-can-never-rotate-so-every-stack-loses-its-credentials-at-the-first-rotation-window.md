@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-16 16:48'
+updated_date: '2026-09-18 07:59'
 labels: []
 dependencies: []
 references:
@@ -49,3 +50,38 @@ This needs a decision, not a patch, and every option is unattractive: delete and
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-18 live re-verification and three corrections. Read this before starting.
+
+THE UPSTREAM MECHANISM IS CONFIRMED, from source rather than from inference.
+
+In the provider's Terraform resource, ready_for_rotation is Computed AND ForceNew, and CustomizeDiff calls SetNew('ready_for_rotation', true) once either has_expired is true or Now() is after expiration minus early_rotation_window. UpdateContext is wired to the READ function, so an update changes only Terraform state and never touches Grafana. Rotation is therefore expressible ONLY as a Terraform replacement.
+
+Upjet refuses exactly that. In pkg/controller/external_tfpluginsdk.go the Update path calls assertNoForceNew() and returns 'refuse to update the external resource because the following update requires replacing it' before it ever applies. That is a deliberate design position, not a bug: a Crossplane managed resource's external lifecycle belongs to Crossplane, and Upjet will not delete an external resource from inside Update.
+
+So 'it cannot rotate under Crossplane' is precise about the UPDATE path and misleading as a general statement. Replacement is available one layer up: deleting and recreating the managed resource creates a new token, which is what Terraform's destroy-and-create does. That is the shape of the fix, and it is already proven - see below.
+
+CORRECTION 1: THREE KINDS, NOT TWO. The description says 'both rotating token kinds'. The composition emits three:
+  StackServiceAccountRotatingToken   platform/function/fn.go:632, the administrator token
+  AccessPolicyRotatingToken          platform/function/access.go:86, fleet.go:172, stackconsumer.go:213
+  ServiceAccountRotatingToken        platform/function/serviceaccounts.go:111, the in-stack tokens from GCV-0051
+The third is in the oss group rather than cloud and was missed entirely. Whether its upstream resource carries the same ForceNew ready_for_rotation field has NOT been verified - check it rather than assuming, in either direction.
+
+CORRECTION 2: THE STUCK TOKENS WERE ALREADY REMEDIATED, BY RECREATION, AND IT WORKED. Every rotating token on both estates now reports Synced=True with ReconcileSuccess and Ready=True, and there is not one CannotUpdateExternalResource event against any token kind on either cluster. The administrator token on the estate that was stuck has a creationTimestamp of 2026-09-16T16:56:43Z, which is the same minute this task was filed, so it was deleted and recreated as the immediate remediation. The 5610 accumulated events are gone with the object that produced them.
+
+This is the single most useful fact available for choosing a direction: delete-and-recreate of the managed resource DOES rotate the token, observed, on a live estate, at the pinned provider. The question is no longer whether Crossplane can do it but whether the platform does it deliberately or an operator keeps doing it by hand.
+
+CORRECTION 3: THE DEADLINE IS NOT IMMINENT, and any plan that assumes it is will be wrong. Live values, both estates, read 2026-09-18:
+  secondsToLive 2592000, thirty days
+  earlyRotationWindowSeconds 604800, seven days
+  estate A administrator token expires 2026-10-10, window opens 2026-10-03
+  estate B administrator token expires 2026-10-16, window opens 2026-10-09
+So the next failure is roughly two weeks out, not days. There is room to do this properly. The recreation on 2026-09-16 bought that room and it will run out again on the same thirty-day cycle.
+
+AC4 IS HARDER THAN IT LOOKS for one of the three kinds. StackServiceAccountRotatingToken publishes expiration, hasExpired, secondsToLive and earlyRotationWindowSeconds in status.atProvider. AccessPolicyRotatingToken publishes NONE of them - all read null on live objects - so there is nothing on the resource from which to compute how close it is to its window. Whatever satisfies AC4 has to work without that field, or has to get it published.
+
+Provider versions differ across the two estates, v2.14.0 on one and a v2.13.0 build on the other, and the behaviour and CRD schema were identical on both, so this is not version-specific.
+<!-- SECTION:NOTES:END -->

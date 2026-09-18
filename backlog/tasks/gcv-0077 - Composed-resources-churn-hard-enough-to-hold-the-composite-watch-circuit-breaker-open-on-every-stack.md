@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-16 16:48'
+updated_date: '2026-09-18 07:59'
 labels: []
 dependencies: []
 references:
@@ -42,3 +43,39 @@ Impact today looks bounded: event-driven composite reconciles are throttled to o
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-18 live re-verification against both estates. Two claims in the description are WRONG and one is confirmed. Read this before starting.
+
+CONFIRMED: every composite on both estates still reports Responsive=False with reason WatchCircuitOpen, and the affected kinds are exactly the three named. Evidence is metadata.generation, which increments only on a SPEC write, so it counts spec rewrites directly and is a far better instrument than sampling resourceVersion.
+
+Estate with in-stack content, one object of each kind:
+  DashboardPermission  generation 518499
+  FolderPermission     generation 517384
+  AccessPolicy         generation 202187
+  Folder 2, Dashboard 3, Team 2 and 3, OrganizationPreferences 2, Stack 3
+
+Estate without in-stack content, seven access policies and two stacks:
+  AccessPolicy         generation 191, 191, 191, 79963, 81197, 82591, 85959
+  Stack                generation 3
+
+So the quiet kinds sit at 2 or 3 generations and the churning kinds sit between 80 thousand and half a million. The ratio is roughly 170000 to 1, and the permission kinds do churn about 2.6 times as much as AccessPolicy, which the description's 'seven times' overstates but gets the direction right.
+
+WRONG 1: 'metadata.generation was stable, so this is not the composition re-applying a changed spec.' Generation is not stable, it is enormous. The 25-second window it was sampled in was too short, and at least one object is quiet for 20 seconds at a time, so the churn is bursty per object rather than continuous. Something IS rewriting the spec, tens of thousands of times. A composed resource's spec is written by the composite controller from what the composition function renders, so the description's own AC2 question now leans hard toward this repository rather than the provider - but which field is still open.
+
+WRONG 2: the list-ordering hypothesis is FALSIFIED for AccessPolicy. Scope ordering does not correlate with churn, and it runs the wrong way:
+  generation 85959 - spec scopes NOT sorted, atProvider sorted
+  generation 82591 - spec scopes ALREADY sorted, atProvider identical
+  generation 81197 - spec scopes NOT sorted
+  generation 79963 - spec scopes ALREADY sorted, atProvider identical
+  generation 191   - spec scopes NOT sorted
+Two of the four highest-churn policies already emit their scopes in exactly the order the API returns, and the lowest-churn object emits them unsorted. Sorting the scopes list will therefore not fix this. Do not start there, and do not re-derive the hypothesis: it has been tested and it is dead.
+
+THE DISCRIMINATOR TO START FROM instead. On the estate with no in-stack content, four AccessPolicy objects churn and three do not, same kind, same cluster, same provider. The three quiet ones sit at exactly 191 generations each, which is suspiciously equal and suggests they stopped rather than never started. Diff a churning object against a quiet one field by field - spec, status.atProvider, managedFields ownership - and the differing field is the cause. That comparison is cheap and it is the whole job.
+
+One more structural clue worth testing: all three churning kinds are WHOLE-SET replace resources, the ones the wave operating model already singles out as needing exactly one declarative owner. The quiet kinds are not. Two writers fighting over a whole-set field would produce exactly this signature.
+
+Also observed, and separately relevant to GCV-0075 AC4: AccessPolicyRotatingToken exposes NO expiration, secondsToLive or earlyRotationWindowSeconds in status.atProvider at all - all three read null - while StackServiceAccountRotatingToken exposes every one of them. An operator cannot see when an access policy token expires from the resource.
+<!-- SECTION:NOTES:END -->

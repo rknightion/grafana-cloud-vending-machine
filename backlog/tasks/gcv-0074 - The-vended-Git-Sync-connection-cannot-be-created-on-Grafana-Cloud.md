@@ -1,10 +1,10 @@
 ---
 id: GCV-0074
 title: The vended Git Sync connection cannot be created on Grafana Cloud
-status: In Progress
+status: Parked
 assignee: []
 created_date: '2026-09-12 19:11'
-updated_date: '2026-09-12 19:47'
+updated_date: '2026-09-18 08:00'
 labels:
   - needs-triage
 dependencies: []
@@ -88,4 +88,26 @@ AC3 NOT DONE and not blocking: whether the composed Connection now reaches Ready
 Recorded instead, and this is what AC1 now means: the reference form's 403 is documented in this repository as a vendor defect, with the full live evidence and the exact error string, at three places - this task's description, examples/catalog/provisioning-connection/README.md under 'Git Sync credential exposure', and the GrafanaProvisioningConnection entry in docs/reference/request-schema.md. The renderer itself carries the evidence in the doc comment on provisioningConnectionCredentialConfig, so the next person to touch that code finds out why the create form is there before they try to 'simplify' it back to a reference.
 
 Consequence to carry forward: the create-form narrowing is now the permanent design, not a temporary workaround awaiting an upstream fix. The SecurevalueV1Beta1 is still rendered and still duplicates the credential inside Grafana. Revisit that only if Grafana's behaviour changes on its own, and re-verify live before removing anything - nothing in this repository will learn of such a change.
+
+2026-09-18 AC3 researched against both live estates, as authorised. IT CANNOT BE SETTLED BY OBSERVATION YET, and the reason is concrete rather than a boundary argument: the fix is not deployed anywhere, and no Git Sync resource of any kind exists to observe.
+
+WHAT WAS CHECKED, both clusters:
+  ConnectionV0Alpha1          zero objects
+  RepositoryV0Alpha1          zero objects
+  SecurevalueV1Beta1          zero objects
+So nothing has exercised this API since the throwaway probes were deleted on 2026-09-12.
+
+AND THE DEPLOYED FUNCTION PREDATES THE FIX ON BOTH. platform/function/install.yaml pins digest sha256:50168c25dc02e98da3c16603919959f4a025f00aca685baa58e9616c566a29a8, which is the pin moved after the create-form fix landed. The estates run sha256:f4acdd026bed01b82e94e54e05411aabdba78258e7bac87a22fe7980aa817f8d and sha256:fb5e86a7a664572ef3383da16e85f1468c6d13ac8fd9abff61268daeb5bc44b8, the wave 11 digest and an older one. Neither contains the renderer that emits the create form, so even if a claim were applied today it would compose the refused reference shape again - and would resume the three-minute retry loop against the vendor that raised their alert the first time. Do not apply a Git Sync claim to either estate before the pin moves.
+
+Provider versions also differ across the estates, v2.14.0 on one and a v2.13.0 build on the other, and only the former matches the repository pin.
+
+RESUME BOUNDARY, in order, and each step is an estate action rather than repository work:
+  1. roll the function package on the estate running provider v2.14.0 to the pinned digest sha256:50168c25dc02e98da3c16603919959f4a025f00aca685baa58e9616c566a29a8 and confirm the Function package reports Installed and Healthy at that digest
+  2. apply one GrafanaProvisioningConnection claim with its ExternalSecret credential present
+  3. report whether ConnectionV0Alpha1 reaches Ready, and whether status.health.healthy and status.token.expiration are set, which is what the working create-form probe produced within eight seconds on 2026-09-12
+  4. if it does not reach Ready, capture the provider's message verbatim before deleting anything, because the object is the only evidence and deleting it to stop a vendor alert is what cost the verbatim record last time
+
+Parked rather than Done because AC3 asks for one of two things and neither has happened: it has not reached Ready against a real stack, and it is not being marked unusable, since the source-level fix is correct and unit-proven. AC1, AC2 and AC4 remain satisfied as recorded above.
+
+Do NOT close this by declaring live proof out of scope. That disposition is right for behaviour this repository can never reach, and this is not that: the estates exist, the authorisation exists, and the only missing step is a pin roll.
 <!-- SECTION:NOTES:END -->
