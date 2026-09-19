@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.1.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.0.0...v3.1.0) (2026-09-18)
+
+
+### Features
+
+* expose credential health and native telemetry ([fda11ea](https://github.com/rknightion/grafana-cloud-vending-machine/commit/fda11ea36184af9c7ebfdd1899db136738fedc4f))
+
+
+### Documentation
+
+* **backlog:** split GCV-0075 and re-open the rotation direction ([bc3e99a](https://github.com/rknightion/grafana-cloud-vending-machine/commit/bc3e99a41e031e5c9a10b824cbc2ef21cdd9e779))
+* clarify wave 15 resume boundaries ([114c7e0](https://github.com/rknightion/grafana-cloud-vending-machine/commit/114c7e07e036047062f70585be4cd41235d7e820))
+* record wave 15 evidence ([080e87c](https://github.com/rknightion/grafana-cloud-vending-machine/commit/080e87cd26ed32d94def6c1635046d5e3bf2bf4e))
+
+
+### Miscellaneous Chores
+
+* pin published vending function ([1c13c27](https://github.com/rknightion/grafana-cloud-vending-machine/commit/1c13c27039068f4eacede61f6664dd498cff0d9a))
+
 ## [3.0.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v2.0.0...v3.0.0) (2026-09-18)
 
 
