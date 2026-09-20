@@ -80,9 +80,3 @@ GitOps = "gitops"
 Secrets = "secrets"
 SSO = "sso"
 Security = "security"
-[backlog]
-enabled = true
-title = "Backlog"
-include_completed = true
-include_docs = true
-include_decisions = true
