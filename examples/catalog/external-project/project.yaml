@@ -1,0 +1,9 @@
+apiVersion: tenancy.example.org/v1alpha1
+kind: Project
+metadata:
+  name: demo
+  namespace: platform-projects
+spec:
+  displayName: Example development project
+  environment: development
+  organization: example-primary

@@ -1,0 +1,37 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaCloudStackRequest
+metadata:
+  name: exampleprimarydevelopmentdemo
+  namespace: grafana-vending
+spec:
+  organization: example-primary
+  displayName: Example development project
+  slug: exampleprimarydevelopmentdemo
+  region: prod-us-central-0
+  usage: development
+  profile: standard
+  products:
+    applicationObservability: false
+    kubernetesObservability: false
+    databaseObservability: false
+  lifecycle:
+    externalResources: Retain
+  baselineDashboards:
+    enabled: true
+  telemetryAccess:
+    enabled: true
+  plugins: []
+  reconciliation:
+    dashboards: createOnly
+    homePreference: createOnly
+  sso:
+    mode: disabled
+    profile: ""
+  monthlyReport:
+    enabled: false
+    recipients: []
+    replyTo: ""
+  incidentIntegration:
+    enabled: false
+    profile: ""
+    templateMode: createOnly

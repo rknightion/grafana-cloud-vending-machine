@@ -45,6 +45,7 @@ Home = "index.md"
     { Secrets = "secrets.md" },
     { SSO = "sso.md" },
     { Governance = "governance.md" },
+    { "External project integration" = "external-project-integration.md" },
 ]
 
 [[site.nav]]
