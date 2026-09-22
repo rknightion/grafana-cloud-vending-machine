@@ -7,7 +7,7 @@ status: Done
 assignee:
   - '@codex'
 created_date: '2026-09-22 15:56'
-updated_date: '2026-09-22 19:18'
+updated_date: '2026-09-22 19:39'
 labels:
   - needs-triage
   - ci
@@ -58,6 +58,8 @@ Wave 16 lane A owns scripts/validate.sh, renovate.json, and docs/installation.md
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 17 independent phase-1 security review replayed all 56 cases: 47 negatives rejected and nine positives passed against validator blob e67f11cdd822678d677900f6329a958f3bc3ef41. The initial base reproduction emitted the exact documented Cosign abort; version-free locators and component/path/per-source negatives cover the class. Unpushed manifest-only proof commit 69740c5 changed only platform/function/install.yaml and platform/provider/provider-grafana.yaml from v3.1.2 to v3.1.3 and passed KUBECONFIG=/dev/null just check with Validation passed and 85.3% coverage. Pull request 46 remained open/red at Renovate head 4dadb6cc5f2fd4366c16653901fcb56e85e28381 and requires Renovate's own rebase; this run made no PR write. Source commit ac465f9a842089d8588259ee72ff8125ba236405 is contained in completing main SHA 5f672c09a9fc162fcfbe28ad42d342475cb2a798; hosted Validate run 35771159008 succeeded.
+
+After the earlier finalization entry, the owner merged pull request 46 at e0e891189adf8d9bc5405a596af69adc5a69eb17. Hosted Validate run 35774084633 succeeded on that exact main SHA with the v3.1.3 manifest-only bump and no documentation edit. This supersedes the earlier resume-state sentence that PR 46 still needed Renovate rebase; the wave itself made no PR write.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -66,4 +68,6 @@ Wave 17 independent phase-1 security review replayed all 56 cases: 47 negatives 
 Wave 16 selected the version-free locator design. Lane A demonstrated a manifest-only Cosign bump passing and a wrong-component version failing after correction. The source remains uncommitted because the mandatory campaign stop occurred before lane E completed the required exhaustive replay of every pre-existing validator negative control. Resume by replaying and recording all historical negative controls against the corrected validator, then run the integrated and hosted gates. Pull request 46 still requires Renovates own scheduled rebase after a landed fix; this run made no pull-request write.
 
 Made pinned-version validation derive explicit versions from each named source while permitting version-free locators, retained fail-closed component/path/per-source drift controls, and proved a real manifest-only Cosign bump in unpushed commit 69740c5. Completed by source commit ac465f9a842089d8588259ee72ff8125ba236405 within main SHA 5f672c09a9fc162fcfbe28ad42d342475cb2a798; hosted Validate run 35771159008 passed. PR 46 still needs Renovate's own rebase.
+
+Owner merge e0e891189adf8d9bc5405a596af69adc5a69eb17 then proved the actual pull-request bump with hosted Validate run 35774084633 success; no hand-written documentation edit or wave-owned PR mutation occurred.
 <!-- SECTION:FINAL_SUMMARY:END -->
