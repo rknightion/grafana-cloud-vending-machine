@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-22 15:57'
+updated_date: '2026-09-22 18:58'
 labels: []
 dependencies: []
 references:
@@ -139,6 +139,14 @@ Settled by the repository owner, answering the three questions wave 15's report 
 **Shape of the opt-in, for whoever implements it.** A new per-family rotation block on the request, additive so it is not a breaking change to a released API, carrying a mode and a lifetime. Default mode reproduces today's behaviour exactly, so the default install is unchanged. The controlled mode is refused by CEL for the administrator family. The existing knobs to build on are the rotating token kinds' secondsToLive and earlyRotationWindowSeconds.
 
 Resume boundary unchanged in one respect: this decision settles direction, not implementation. No implementation attempt has been authorised against it.
+
+## Owner decision 2026-09-22 after wave 16: the provider-owned renewal design lane runs in wave 17
+
+Wave 17 commissions the design-only lane that the 2026-09-22 rotation-model decision deferred to a future wave. It covers provider-owned renewal behind one stable managed identity, for the families where an interruption is unacceptable. It runs on gpt-6-astra at effort high, an explicit operator exception to the Codex profile's rule against launching Astra/high, and it covers this one design lane only. It consumes no implementation attempt, and no acceptance criterion may be checked from it. The rejected overlapping-generation design stays rejected, and the seven wave 14 lane F findings are the test the design must survive. Administrator credentials stay operator-controlled permanently.
+
+The estate windows recorded on 2026-09-18 open on 2026-10-03 and 2026-10-09. Manual delete-and-recreate by an operator is still the proven fallback, and this lane does not change that.
+
+Wave 17 completed the authorized design-only provider-renewal packet at codex/wave17/lane-f-design.md (SHA-256 f9bf60d020a33dd608734b554bcfed4a4834bd42a542bc634fba53add06de015). Independent Lane I review REJECTED it because the packet analyzed upstream Upjet rather than the effective Grafana fork replacement, whose annotation-backed persistence/restart paths materially affect the runtime claim. Same-token lease extension remains a conditional design concept, not key rotation; no implementation was authorized, no criteria changed, and administrator automation remains excluded.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -149,4 +157,6 @@ Parked after design and adversarial review. Provider replacement behavior, all t
 Parked after four of four authorized attempts. No rotation implementation landed. The accepted design packet, implementation evidence and two-phase adversarial review preserve the precise seven-edit resume boundary.
 
 Wave 15 reopened the rotation direction without an implementation attempt. Recommendation: controlled replacement with explicit per-consumer interruption acceptance; operator-controlled fallback; provider-owned renewal when interruption is unacceptable.
+
+Wave 17 design-only exploration identified a conditional same-token expiry-extension seam, but independent review rejected the evidence packet for missing the effective Grafana Upjet fork and its restart persistence paths. Task remains Parked with AC3-AC5 and both DoD items open; no implementation landed.
 <!-- SECTION:FINAL_SUMMARY:END -->

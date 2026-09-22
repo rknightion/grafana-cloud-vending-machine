@@ -3,10 +3,11 @@ id: GCV-0079
 title: >-
   Provision datasources, a folder and Git Sync into a stack the platform does
   not own, driven by an external project CR
-status: To Do
-assignee: []
+status: Parked
+assignee:
+  - '@codex'
 created_date: '2026-09-18 07:44'
-updated_date: '2026-09-22 15:57'
+updated_date: '2026-09-22 18:58'
 labels:
   - needs-triage
   - integration
@@ -51,6 +52,12 @@ The requesting team's own identifiers, cluster names and stack slugs are deliber
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 16 lane D records the credential lifecycle decision before implementing the new API, renderer, tests, and documentation; root owns registry wiring, review, publication, and final gate.
+<!-- SECTION:PLAN:END -->
+
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
@@ -69,4 +76,24 @@ The reasoning, because the alternatives are not obviously worse until stated:
 **Gap found while settling this, and it is not covered by an existing control.** scripts/validate.sh asserts the requests ApplicationSet generator's directories equals exactly enabled/*. That catches a widened glob and a second generator block added to that ApplicationSet. It does not catch a wholly separate ApplicationSet introducing a second input source, which is exactly the shape the rejected generator route would have taken. The assertion should cover the class, not the one object.
 
 **What closing these tasks requires**, per the owner: ship what this repository can, which is the documented claim contract, the field mapping, the usage guidance and the recorded boundary. The trigger's absence is the answer to GCV-0080 AC6, not a deferral of it.
+
+## Owner decision 2026-09-22 after wave 16: one specialist rescue, and the AC5 failure contract
+
+**Attempt accounting.** Two of the four Codex lane attempts are consumed: wave 16 lane D (attempt 1) and the wave 16 root rescue (attempt 2, rejected on rereview with the same signature as the initial review). Wave 17 may take exactly one more, attempt 3, as a specialist rescue. It runs on gpt-6-astra at effort high. That is an explicit operator exception to the Codex profile's rule against launching Astra/high, and it covers this one attempt only: not a retry after it, and not another lane. If attempt 3 is rejected the task parks. Attempt 4 would need a new owner decision.
+
+**Correction to the wave 16 final summary.** 'Resume only with a new owner-authorized attempt' was a condition the wave 16 root added, not one the protocol or its goal imposed. The standing stop rule forbade the root from taking a second repair itself. It did not stop a specialist rescue within the budget, and it did not stop the other lanes.
+
+**AC5 failure contract: refusal only changes status.** The renderer always emits the complete deterministic child set, built from the claim, the profile and the observed provider-assigned IDs. A refusal by either stack is never a renderer error. It sets that side's status.projectContent.<side> to Refused and the composite Ready=False, and adds one warning that carries no provider text. This follows the GCV-0087 credential-health precedent: children are kept and readiness goes false. Fatal is kept for a request that genuinely cannot be rendered, and only after pinned Crossplane core source, read at the exact pinned revision, proves that a Fatal result skips both apply and garbage collection. The rejected alternatives: Fatal-always with the side named in the message, because Ready can stay stale-True and the per-side status is never written; and re-emitting observed children verbatim, because that endorses drift.
+
+**Proof boundary for AC5.** A real RunFunction response with an empty incoming desired state and all 13 children observed must carry all 13 authored identities and specs for central refusal, project refusal and dependency disappearance. A test that pre-populates req.Desired proves nothing about preservation.
+
+Wave 17 attempt 3 produced local candidate c7877b26caa0692586d8599653e38628e4f2e447 and passed the integrated local gate, but independent security review REJECTED it. Lane H reproduced the E3 signature: removing an unused project observer ID or refusing that observer returned zero desired children plus Fatal although all 13 children remained renderable from the claim/profile and observed dependencies. Lane H also proved a mismatched access-policy external-name could be copied into desired state while the token retained the original policy ID and both sides reported Ready. Review artifact codex/wave17/lane-h-review.md SHA-256 dba2290ee1ec2b4ab1efc4cc44a625735cf7dc2fa7320421ba0c84b1b118212d. No candidate was pushed or published; task remains Parked and no acceptance criterion changed.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Wave 16 parked before landing. Lane D implemented the new bounded cross-stack surface and root attempted the AC5 response integration, but the permitted rereview reproduced the same major preservation failure as the initial review: with 13 observed children and empty incoming desired state, central provider refusal returned desired=0. The same rereview also found TestProviderFamilyDocumentation unable to resolve the local renderer dispatch. No candidate was committed, published, deployed, or exercised live. Resume only with a new owner-authorized attempt that proves a fresh single-step pipeline response retains all 13 children on either refusal and dependency disappearance, fixes provider-family documentation coverage, then receives a fresh adversarial review. Do not reuse the prepopulated-desired test as preservation proof.
+
+Wave 17 specialist attempt 3 was rejected by independent security review on the repeated child-withdrawal/Fatal signature and a new policy identity mismatch. The local candidate was not landed or published. Resume only from the two exact Lane H counterexamples; the root is not authorized to repair this code.
+<!-- SECTION:FINAL_SUMMARY:END -->

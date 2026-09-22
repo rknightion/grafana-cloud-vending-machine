@@ -3,10 +3,11 @@ id: GCV-0080
 title: >-
   Vend a whole Grafana Cloud stack in response to an external project CR
   appearing
-status: To Do
-assignee: []
+status: Done
+assignee:
+  - '@codex'
 created_date: '2026-09-18 07:44'
-updated_date: '2026-09-22 15:57'
+updated_date: '2026-09-22 18:30'
 labels:
   - needs-triage
   - integration
@@ -35,19 +36,25 @@ The requesting team's own identifiers, cluster names and stack slugs are deliber
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The mechanism that turns an external project CR into a stack request is chosen and recorded, with the alternatives considered, and it does not widen the ApplicationSet watch path beyond enabled/*
-- [ ] #2 The mapping from project CR to request fields is explicit, states which values the platform fixes, and states what happens to a project whose CR value the request schema refuses
-- [ ] #3 A generated request is reviewable before it reconciles, and a templating error is distinguishable from a vendor refusal without reading provider logs
-- [ ] #4 The blast radius of automatic vending is bounded by an explicit cap or approval seam, not only by the rate projects are created
-- [ ] #5 A project CR disappearing does not delete a vended stack except through the existing owner-authorised decommission path
-- [ ] #6 Whether this component belongs in this repository or in the consuming platform is recorded as a decision, given the public-reference constraint
+- [x] #1 The mechanism that turns an external project CR into a stack request is chosen and recorded, with the alternatives considered, and it does not widen the ApplicationSet watch path beyond enabled/*
+- [x] #2 The mapping from project CR to request fields is explicit, states which values the platform fixes, and states what happens to a project whose CR value the request schema refuses
+- [x] #3 A generated request is reviewable before it reconciles, and a templating error is distinguishable from a vendor refusal without reading provider logs
+- [x] #4 The blast radius of automatic vending is bounded by an explicit cap or approval seam, not only by the rate projects are created
+- [x] #5 A project CR disappearing does not delete a vended stack except through the existing owner-authorised decommission path
+- [x] #6 Whether this component belongs in this repository or in the consuming platform is recorded as a decision, given the public-reference constraint
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Wave 16 lane C documents the frozen consuming-platform trigger boundary and adds an inert renderable catalog example; root owns navigation and final gate.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
@@ -67,4 +74,14 @@ The reasoning, because the alternatives are not obviously worse until stated:
 **Gap found while settling this, and it is not covered by an existing control.** scripts/validate.sh asserts the requests ApplicationSet generator's directories equals exactly enabled/*. That catches a widened glob and a second generator block added to that ApplicationSet. It does not catch a wholly separate ApplicationSet introducing a second input source, which is exactly the shape the rejected generator route would have taken. The assertion should cover the class, not the one object.
 
 **What closing these tasks requires**, per the owner: ship what this repository can, which is the documented claim contract, the field mapping, the usage guidance and the recorded boundary. The trigger's absence is the answer to GCV-0080 AC6, not a deferral of it.
+
+Wave 17 completed the frozen consuming-platform contract and inert external-project example. Exact candidate eccdd7d5e882b8261c802dc0b91f592c892ff9b5 passed KUBECONFIG=/dev/null just check with Validation passed and 85.3% function coverage, then hosted Validate public reference run 35766544613 completed success on that exact SHA. No live Grafana Cloud or cluster contact occurred.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Wave 16 lane C completed the consuming-platform trigger contract and inert renderable catalog example in the working tree, with YAML, Kustomize, mapping and publication-scan evidence. The campaign stop arrived before the root applied the returned catalog-inventory wiring, integrated gate, commit or hosted validation, so no acceptance criterion or Definition of Done item is recorded complete. Resume by applying the exact examples/README.md and docs/reference/catalog.md inventory entries returned by lane C, then run the integrated gate and hosted validation before finalizing.
+
+Documented the consuming-platform-owned external-project trigger contract, explicit field mapping, pull-request approval seam and cap, refusal distinction, retained decommission path, and inert renderable example without widening enabled/*. Completed by eccdd7d5e882b8261c802dc0b91f592c892ff9b5; local just check and hosted Validate run 35766544613 passed.
+<!-- SECTION:FINAL_SUMMARY:END -->
