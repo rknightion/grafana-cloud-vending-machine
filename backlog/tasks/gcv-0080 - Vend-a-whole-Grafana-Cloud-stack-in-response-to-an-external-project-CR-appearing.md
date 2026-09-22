@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-18 07:44'
+updated_date: '2026-09-22 15:57'
 labels:
   - needs-triage
   - integration
@@ -47,3 +48,23 @@ The requesting team's own identifiers, cluster names and stack slugs are deliber
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Owner decision 2026-09-22: the external-CR trigger belongs to the consuming platform
+
+Settled by the repository owner, and it is the shared seam GCV-0079 and GCV-0080 both said the first-built half would own. Recorded once here and on the sibling task.
+
+**The trigger is not built in this repository.** A project CR appearing in someone else's cluster is turned into a claim by that platform's own automation. This repository ships the contract that automation consumes: the claim schema, an explicit field mapping from a project-CR shape, the approval seam, the cap, and a worked inert example. Nothing new runs here and no watch path widens.
+
+The reasoning, because the alternatives are not obviously worse until stated:
+
+- A controller here would have to encode the requesting team's CRD shape, which is their tenancy model, so a portable public reference would be publishing one consumer's internal schema. It also means a new runtime component with its own image, publish workflow, signature, digest pin and RBAC, and a second serialized publishing bottleneck beside the function package.
+- An Argo generator route is a Plugin generator, which is an HTTP service, so it is a runtime component under a different name. Its claim never lands in Git, so there is no reviewable artefact and GCV-0080 AC3 has to be built separately rather than falling out of the design.
+- With a pull request into enabled/ as the seam, GCV-0080 AC3 and AC4 are satisfied by construction: the generated request is reviewable before it reconciles, and the human step is the cap. AC5 inverts too, because nothing deletes a stack unless a person does it, whereas a controller owning claims propagates a disappearing project CR by default.
+
+**Gap found while settling this, and it is not covered by an existing control.** scripts/validate.sh asserts the requests ApplicationSet generator's directories equals exactly enabled/*. That catches a widened glob and a second generator block added to that ApplicationSet. It does not catch a wholly separate ApplicationSet introducing a second input source, which is exactly the shape the rejected generator route would have taken. The assertion should cover the class, not the one object.
+
+**What closing these tasks requires**, per the owner: ship what this repository can, which is the documented claim contract, the field mapping, the usage guidance and the recorded boundary. The trigger's absence is the answer to GCV-0080 AC6, not a deferral of it.
+<!-- SECTION:NOTES:END -->

@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 19:05'
+updated_date: '2026-09-22 15:57'
 labels: []
 dependencies: []
 references:
@@ -121,6 +121,24 @@ Timing, so no plan assumes a cliff: the windows reopen on the thirty-day cycle t
 Wave 15 design packet recommends controlled replacement only where the owner explicitly accepts interruption for that consumer and token type. Keep operator-controlled replacement as the proven fallback. Where uninterrupted authentication is mandatory, pursue provider-owned renewal instead. Do not automate universally and do not retry the rejected overlapping-generation design. Owner decision still required: which consumers accept interruption, the maximum acceptable interruption or telemetry loss, and the recovery evidence required before automation. GCV-0075 remains Parked and no acceptance criterion was satisfied.
 
 The Wave 15 direction packet is codex/wave15/lane-a-direction.md. AC3 remains open pending the owner decision on direction.
+
+## Owner decision 2026-09-22: the rotation model
+
+Settled by the repository owner, answering the three questions wave 15's report left open. This supersedes 'keep replacement operator-controlled' as a blanket position and replaces it with a per-family one. The rejected overlapping-generation design stays rejected: no successor selector, no lineage, no active-generation promotion, no predecessor retirement.
+
+**Administrator credentials stay operator-controlled, permanently.** Not a budget question. The administrator token's first consumer is the per-stack ProviderConfig this platform renders in-cluster, which reads the Crossplane connection secret directly through credentials.secretRef. Every in-stack child reconciles through that ProviderConfig. A gap therefore stops the provider authenticating to the stack, so it cannot reconcile anything in that stack including whatever would close the gap. External secret distribution is not in that path and cannot help. What the platform exposes instead is control over when and how often the administrator credential rotates, with sensible defaults, not automatic replacement.
+
+**Telemetry, fleet and in-stack credentials may accept a controlled interruption, opt-in per family.** Their credentials leave the platform through ESO PushSecrets, so delivery is the consuming tooling's contract. Default stays no automatic gap; a family opts in.
+
+**The interruption floor is the PushSecret refresh, not the mint latency.** Every PushSecret this platform renders is refreshInterval 1h with updatePolicy Replace. A family that opts into controlled replacement without changing that has an interruption of up to an hour by construction, whatever the mint does. Deriving the push interval from the family's own rotation window is a named prerequisite of the opt-in, not an optimisation.
+
+**Delivery is not reload.** ESO republishing a token does not make a running collector pick it up. Per-family collector reload behaviour is the consumer's contract and is recorded as such; this repository cannot prove it and must not claim it.
+
+**Recovery evidence, per family.** For telemetry, fleet and in-stack: the replacement's exact identity is the matched configured member and reports Synced, reusing the exact-identity correlation GCV-0087 landed rather than inventing lineage. For administrator, had it been in scope: the materialized ProviderConfig credentials work again, never that the replacement token reports Ready.
+
+**Shape of the opt-in, for whoever implements it.** A new per-family rotation block on the request, additive so it is not a breaking change to a released API, carrying a mode and a lifetime. Default mode reproduces today's behaviour exactly, so the default install is unchanged. The controlled mode is refused by CEL for the administrator family. The existing knobs to build on are the rotating token kinds' secondsToLive and earlyRotationWindowSeconds.
+
+Resume boundary unchanged in one respect: this decision settles direction, not implementation. No implementation attempt has been authorised against it.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

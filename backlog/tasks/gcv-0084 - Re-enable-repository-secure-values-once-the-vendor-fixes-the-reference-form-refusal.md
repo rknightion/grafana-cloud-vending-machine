@@ -3,9 +3,10 @@ id: GCV-0084
 title: >-
   Re-enable repository secure values once the vendor fixes the reference-form
   refusal
-status: To Do
+status: Parked
 assignee: []
 created_date: '2026-09-18 08:00'
+updated_date: '2026-09-22 15:57'
 labels:
   - needs-triage
   - vendor-defect
@@ -47,3 +48,15 @@ Then decide what happens to the connection API too. Its renderer emits the creat
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Parked 2026-09-22 by owner decision
+
+Moved from To Do to Parked. AC1 requires re-verifying the vendor's secure-value reference form live against a real Grafana Cloud stack, and the standing constraint forbids this repository from any live contact. No wave can satisfy it here, so leaving it in the To Do queue only guarantees a future wave selects it and then discovers it is unexercisable, which is the same class as GCV-0074 AC3, GCV-0077 AC4 and GCV-0078 AC6.
+
+Owner's position: leave it parked until the vendor ships the fix, because the verification would fail anyway.
+
+Resume boundary: an owner-run live check, outside this repository, on a stack nothing depends on, establishing whether the reference form is accepted for both the connection and repository kinds. Remember the vendor's secret API ignores dryRun, so every such call mutates and its residue must be removed and recorded. Only once that evidence exists does the in-repository half become selectable: removing the admission refusal graded against the released-API rule, and resolving the connection renderer's duplicate secure value in the same change.
+<!-- SECTION:NOTES:END -->
