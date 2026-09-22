@@ -16,7 +16,15 @@ production. See [Configuration](configuration.md) for platform policy and profil
 for the per-API fields.
 ## Status and pinned versions
 
-This reference pins versions and immutable artifacts instead of following latest tags.
+This reference pins versions and immutable artifacts instead of following latest tags. The source
+locator is deliberately version-free: it identifies the component field while the Version cell is
+validated against the named source. That lets a manifest-only Renovate update stay internally
+consistent without adding a second mutable version pin to documentation. A custom Renovate manager
+for this table was rejected because it would retain that duplicate pin. The table still guarantees
+each component's authoritative source file and a marker for the field that carries its exact current
+version; the validator discovers that exact version from the manifest. Kubernetes' API floor and
+immutable digests remain explicit public values. The digest-only vending-function row is instead
+covered by the separate discovered-digest check.
 
 The cluster must run **Kubernetes 1.30 or later**. The `platform/` base installs
 `admissionregistration.k8s.io/v1` `ValidatingAdmissionPolicy` resources, which are available as a
@@ -26,11 +34,11 @@ before requests can be admitted.
 | Component | Version | Source | Why |
 | --- | --- | --- | --- |
 | Kubernetes | 1.30+ | `platform/kustomization.yaml` (`apis/cloud-integrations-v1beta1.yaml`) | Minimum version for the `admissionregistration.k8s.io/v1` `ValidatingAdmissionPolicy` resources installed by the platform base |
-| Crossplane | 2.3.4 | `deploy/argocd/crossplane.yaml` (`targetRevision: 2.3.4`) | Required for namespaced composite resources, namespaced managed resources, and ManagedResourceActivationPolicy |
-| Grafana Crossplane provider | v2.14.0, immutable digest | `platform/provider/provider-grafana.yaml` (`refs/tags/v2.14.0`) | Tagged release generated from Grafana Terraform provider 4.45.1 with the complete upstream resource surface used here |
-| ESO Helm chart | 2.6.0 | `deploy/argocd/external-secrets.yaml` (`targetRevision: 2.6.0`) | Last release before the open AWS PushSecret creation regression in 2.7.0 and 2.8.0 |
-| Cosign verification image | 3.1.2, immutable digest | `platform/function/install.yaml`, `platform/provider/provider-grafana.yaml` (`cosign/cosign:v3.1.2`) | Verifies the Grafana provider and this repository's function package |
-| Composition function SDK | 0.7.1 | `platform/function/go.mod` (`github.com/crossplane/function-sdk-go v0.7.1`) | Pinned by the function Go module |
+| Crossplane | Manifest-pinned | `deploy/argocd/crossplane.yaml` (`targetRevision:`) | Required for namespaced composite resources, namespaced managed resources, and ManagedResourceActivationPolicy |
+| Grafana Crossplane provider | Manifest tag, immutable digest | `platform/provider/provider-grafana.yaml` (`refs/tags/`) | Tagged release generated from Grafana Terraform provider with the complete upstream resource surface used here |
+| ESO Helm chart | Manifest-pinned | `deploy/argocd/external-secrets.yaml` (`targetRevision:`) | Last release before the open AWS PushSecret creation regression |
+| Cosign verification image | Manifest tag, immutable digest | `platform/function/install.yaml`, `platform/provider/provider-grafana.yaml` (`cosign/cosign:`) | Verifies the Grafana provider and this repository's function package |
+| Composition function SDK | Go module pin | `platform/function/go.mod` (`github.com/crossplane/function-sdk-go v`) | Pinned by the function Go module |
 | Vending composition function | sha256:cc7498e086ceb6bee7a51386076bfabacdc6cd7c65009c9f2aef9c36ad1046d3 | `platform/function/install.yaml` (`function-grafana-vending@sha256:cc7498e086ceb6bee7a51386076bfabacdc6cd7c65009c9f2aef9c36ad1046d3`) | Signed amd64/arm64 package |
 
 The Grafana Crossplane provider describes itself as experimental and unsupported. The v2.14.0 tag is
@@ -61,7 +69,7 @@ The repository function workflow:
 
 platform/function/install.yaml must pin the resulting signed digest for production. A fork must also change the package repository and the expected Cosign workflow identity. If the package is private, provide a dedicated read-only registry credential through an external secret; do not commit a Docker config or reuse a developer token.
 
-The supplied install manifest verifies the pinned function package against this repository's exact main-branch workflow identity before Crossplane installs it. The verification Job name contains the digest prefix, so changing the digest creates a new gate rather than reusing an old successful Job.
+The supplied install manifest's verification Job is named `verify-function-grafana-vending`; it verifies the pinned function package against this repository's exact main-branch workflow identity before Crossplane installs it. The Job is a `PreSync` hook with `BeforeHookCreation`, so Argo CD deletes the preceding Job before recreating it. Updating the function package pin changes its immutable digest only in the Job verification argument and the Function's `spec.package`.
 
 
 ## Releases

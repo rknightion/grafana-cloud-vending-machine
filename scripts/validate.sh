@@ -180,10 +180,43 @@ ruby -ryaml -e '
     abort "#{path}: expected one package resource and one verification Job" unless packages.length == 1 && verification_jobs.length == 1
 
     installed = packages.fetch(0).dig("spec", "package")
-    verified = verification_jobs.fetch(0).dig("spec", "template", "spec", "containers", 0, "args").grep(/@sha256:/)
     abort "#{path}: package resource has no digest" unless installed.include?("@sha256:")
+    package_digest = installed.split("@sha256:", 2).fetch(1)
+    verification_job = verification_jobs.fetch(0)
+    job_name = verification_job.dig("metadata", "name")
+    abort "#{path}: verification Job must have a stable name" unless job_name.is_a?(String) && !job_name.empty?
+    digest_prefixes = (8..package_digest.length).map { |length| package_digest[0, length] }
+    abort "#{path}: verification Job name must not contain a digest or end with the package digest or a digest prefix" if job_name.match?(/sha256|[0-9a-f]{12,}/) || digest_prefixes.any? { |prefix| job_name.end_with?(prefix) }
+    annotations = verification_job.dig("metadata", "annotations") || {}
+    abort "#{path}: verification Job must be a PreSync hook" unless annotations["argocd.argoproj.io/hook"] == "PreSync"
+    delete_policy = annotations["argocd.argoproj.io/hook-delete-policy"].to_s.split(",")
+    abort "#{path}: verification Job must delete its predecessor before creation" unless delete_policy.include?("BeforeHookCreation")
+
+    if packages.fetch(0)["kind"] == "Function"
+      documentation = File.read(installation_path)
+      documented_job = documentation.match(/The supplied install manifest\x27s verification Job is named `([^`]+)`;/)
+      abort "#{installation_path}: must state the supplied Function verification Job name" if documented_job.nil?
+      abort "#{installation_path}: supplied Function verification Job is #{documented_job[1]}, manifest has #{job_name}" unless documented_job[1] == job_name
+    end
+
+    verified = verification_job.dig("spec", "template", "spec", "containers", 0, "args").grep(/@sha256:/)
     abort "#{path}: verification Job must carry exactly one digest argument" unless verified.length == 1
     abort "#{path}: verifies #{verified.fetch(0)} but installs #{installed}" unless verified.fetch(0) == installed
+
+    package_references = []
+    collect_package_references = nil
+    collect_package_references = lambda do |value|
+      case value
+      when Hash
+        value.each_value { |child| collect_package_references.call(child) }
+      when Array
+        value.each { |child| collect_package_references.call(child) }
+      when String
+        package_references << value if value.include?(installed) || value.include?(package_digest)
+      end
+    end
+    documents.each { |document| collect_package_references.call(document) }
+    abort "#{path}: package digest must occur only in the package resource and verification Job argument" unless package_references.length == 2
   end
 
   # Documentation quotes pinned digests and names platform/ as canonical for
@@ -228,19 +261,65 @@ ruby -ryaml -e '
         end
       end
       abort "#{path}: pinned component #{component} names no exact source locator" if locators.empty?
-      sources.each do |source|
-        source_text = File.read(source)
-        unless locators.any? { |locator| source_text.include?(locator) }
+      scalar_values = lambda do |value|
+        case value
+        when Hash
+          value.flat_map { |key, child| [key.to_s] + scalar_values.call(child) }
+        when Array
+          value.flat_map { |child| scalar_values.call(child) }
+        else
+          [value.to_s]
+        end
+      end
+      values_for_key = nil
+      values_for_key = lambda do |value, key|
+        case value
+        when Hash
+          own = value.key?(key) ? scalar_values.call(value.fetch(key)) : []
+          own + value.values.flat_map { |child| values_for_key.call(child, key) }
+        when Array
+          value.flat_map { |child| values_for_key.call(child, key) }
+        else
+          []
+        end
+      end
+      resolved_locator_values = lambda do |source, locator|
+        if source.end_with?(".yaml", ".yml", ".json")
+          documents = YAML.load_stream(File.read(source)).compact
+          if locator.match?(/\A[A-Za-z0-9_.-]+:\z/)
+            key = locator.delete_suffix(":")
+            documents.flat_map { |document| values_for_key.call(document, key) }
+          else
+            documents.flat_map { |document| scalar_values.call(document) }.
+              select { |value| value.include?(locator) }
+          end
+        else
+          File.readlines(source).each_with_object([]) do |line, values|
+            value = line.sub(%r{\s+//.*$}, "")
+            values << value if value.include?(locator)
+          end
+        end
+      end
+      source_versions = sources.to_h do |source|
+        resolved_values = locators.flat_map do |locator|
+          resolved_locator_values.call(source, locator)
+        end
+        if resolved_values.empty?
           abort "#{path}: pinned component #{component} locator is absent from #{source}"
+        end
+        versions = resolved_values.flat_map do |value|
+          value.scan(/\bv?(\d+\.\d+\.\d+)\b/).flatten
+        end.uniq
+        [source, versions]
+      end
+      version_cell.scan(/\bv?(\d+\.\d+\.\d+)\b/).flatten.each do |version|
+        source_versions.each do |source, versions|
+          unless versions.include?(version)
+            abort "#{path}: documents #{component} version #{version}, #{source} locator pins #{versions.join(", ")}"
+          end
         end
       end
       locator_text = locators.join("\n")
-      source_versions = locator_text.scan(/\bv?(\d+\.\d+\.\d+)\b/).flatten.uniq
-      version_cell.scan(/\bv?(\d+\.\d+\.\d+)\b/).flatten.each do |version|
-        unless source_versions.include?(version)
-          abort "#{path}: documents #{component} version #{version}, source locator pins #{source_versions.join(", ")}"
-        end
-      end
       version_cell.scan(digest_pattern).uniq.each do |digest|
         abort "#{path}: documents #{component} #{digest}, source locator does not pin it" unless locator_text.include?(digest)
       end
@@ -353,9 +432,58 @@ for example_dir in "${catalog_dirs[@]}"; do
 done
 
 ruby -ryaml -e '
-  document = YAML.safe_load(File.read("deploy/argocd/requests-applicationset.yaml"))
-  directories = document.dig("spec", "generators", 0, "git", "directories")
-  abort "ApplicationSet must watch only top-level enabled/*" unless directories == [{"path" => "enabled/*"}]
+  # No non-request ApplicationSet is permitted: every tracked or nonignored
+  # untracked object is a live-request source and must use the one
+  # inert-by-default input shape. Kubernetes List documents can embed objects,
+  # so inspect their items recursively rather than treating the wrapper as a
+  # non-ApplicationSet document.
+  candidate_paths = [
+    ["git", "ls-files", "-z", "--", "*.yaml", "*.yml", "*.json"],
+    ["git", "ls-files", "-z", "--others", "--exclude-standard", "--", "*.yaml", "*.yml", "*.json"],
+  ].flat_map { |command| IO.popen(command, "rb", &:read).split("\0") }.reject(&:empty?).uniq.sort
+  application_sets_in = nil
+  application_sets_in = lambda do |document|
+    next [] unless document.is_a?(Hash)
+    if document["kind"] == "ApplicationSet"
+      [document]
+    elsif document["kind"] == "List"
+      (document["items"] || []).flat_map { |item| application_sets_in.call(item) }
+    else
+      []
+    end
+  end
+  application_sets = candidate_paths.flat_map do |path|
+    YAML.load_stream(File.read(path)).compact.flat_map do |document|
+      application_sets_in.call(document).map do |application_set|
+        [path, application_set.dig("metadata", "name") || "<unnamed>", application_set]
+      end
+    end
+  end
+  abort "ApplicationSet: no tracked ApplicationSet found" if application_sets.empty?
+
+  application_sets.each do |path, name, document|
+    generators = document.dig("spec", "generators")
+    unless generators.is_a?(Array) && generators.length == 1 && generators.fetch(0).is_a?(Hash) && generators.fetch(0).keys == ["git"]
+      abort "#{path}: ApplicationSet #{name} must contain exactly one git generator"
+    end
+    git_generator = generators.fetch(0).fetch("git")
+    unless git_generator.is_a?(Hash)
+      abort "#{path}: ApplicationSet #{name} git generator must use the known directory-only shape"
+    end
+    allowed_fields = %w[directories repoURL revision]
+    unsupported_fields = git_generator.keys - allowed_fields
+    unless unsupported_fields.empty?
+      abort "#{path}: ApplicationSet #{name} git generator has unsupported fields: #{unsupported_fields.sort.join(", ")}"
+    end
+    missing_fields = allowed_fields - git_generator.keys
+    unless missing_fields.empty?
+      abort "#{path}: ApplicationSet #{name} git generator is missing fields from the known shape: #{missing_fields.sort.join(", ")}"
+    end
+    directories = git_generator["directories"]
+    unless directories == [{"path" => "enabled/*"}]
+      abort "#{path}: ApplicationSet #{name} must watch only top-level enabled/*"
+    end
+  end
 '
 
 echo "Validation passed."
