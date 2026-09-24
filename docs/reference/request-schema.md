@@ -40,6 +40,7 @@ and the organization registry are in [Configuration](../configuration.md); worke
 | `GrafanaML` | `grafanamls` | `gcml` | `grafana-ml-v1beta1` | `stackRef`, `profile` |
 | `GrafanaAsserts` | `grafanaasserts` | `gca` | `grafana-asserts-v1beta1` | `stackRef`, `profile` |
 | `GrafanaStackConsumer` | `grafanastackconsumers` | `gcconsumer` | `grafana-stack-consumer-v1beta1` | `stack`, `profile` |
+| `GrafanaProjectContent` | `grafanaprojectcontents` | None | `grafana-project-content-v1beta1` | `profile` |
 
 The XRDs and Compositions are split by API under `platform/apis/`. Every Composition has one
 Pipeline step that calls `function-grafana-vending`; the function, rather than a separate
@@ -90,7 +91,7 @@ same namespace and uses its selected per-stack ProviderConfig:
 | GrafanaAgentObservability | Explicit `guards` and `workload` sections | Does not install a plugin, mint credentials, or infer workload policy |
 | GrafanaAssistantGovernance | Terms-acceptance-gated rule profile and MCP allow-list | Withholds rules/MCP servers until acceptance is observed; headers are write-only Secret data |
 | GrafanaDatasourceAccess | One datasource's connection and authoritative team/LBAC set | Requires basic auth and entitlement; inherited or independent grants can bypass LBAC |
-| GrafanaProvisioningConnection | Secret-store-backed GitHub App connection | Requires a consumer-supplied, reviewed decrypter identity that this package cannot infer. The composed Connection carries the private key as a base64 literal in `forProvider`, a deliberate narrowing scoped to this API because Grafana Cloud refuses the secure-value reference form; no claim field accepts a credential. See the catalog README. |
+| GrafanaProvisioningConnection | Secret-store-backed GitHub App connection | Requires a consumer-supplied, reviewed decrypter identity that this package cannot infer. The composed Connection carries the private key as a base64 literal in `forProvider`, a deliberate narrowing also reused by GrafanaProjectContent because Grafana Cloud refuses the secure-value reference form; no claim field accepts a credential. See the catalog README. |
 | GrafanaProvisioningRepository | Preview Git-provisioned folder subtree | References a separately vended Grafana Connection; classic Dashboards remain the default. Grafana Cloud silently raises `sync.intervalSeconds` below 300 and neither it nor the provider reports the override as drift. |
 
 The XRD uses `defaultCompositionUpdatePolicy: Automatic` and an enforced Composition reference. Existing requests therefore move to the latest Composition revision automatically after a platform update. Treat an XRD or function change like a production API release: render it, inspect the desired-resource diff, and roll it through a non-production request first.
@@ -112,6 +113,7 @@ configuration, not a live cloud transaction or notification delivery.
 | `GrafanaFrontendObservability` | `stackRef`, `profile` | One request per stack; platform profiles own Faro apps and origins. The observed collector endpoint contains a browser-visible app key; request-supplied keys are refused. |
 | `GrafanaML` | `stackRef`, `profile` | One request per stack; the profile's jobs and outlier detectors must fit `maxRunningResources`. Jobs wait for Holiday IDs. A change that withdraws an observed child is refused until explicit decommission. |
 | `GrafanaStackConsumer` | `stack`, `profile` | Mints a platform-bounded credential for an existing stack without requiring a local stack claim. It first observes the provider-assigned stack ID and then creates only the profile-owned access policy, rotating token, and external secret output. |
+| `GrafanaProjectContent` | `profile` | One namespace-bound platform profile authorizes bounded content in an existing project stack and a label-restricted read credential in an existing central stack. Both provider-assigned stack identities must be observed; neither stack is fully adopted. |
 
 Cloud-integration, PDC, service-account and ML admission policies use the actual
 Composition as their parameter resource. Missing parameters deny admission.
@@ -185,6 +187,17 @@ allocate a distinct profile consumer identity and output path for each consuming
 cluster so two clusters never write the same AccessPolicy or credential
 destination; admission requires each selected identity and output path to occur
 only once across the platform profiles.
+
+## `GrafanaProjectContent`
+
+`spec.profile` is required and immutable. It is a lowercase DNS-style name of
+1-40 characters and must equal `metadata.name`. The selected platform profile
+authorizes the namespace, both existing stacks, project label equality, credential
+ownership and fixed content. The shipped Composition authorizes no projects.
+
+See [Cross-stack project content](../cross-stack-datasources.md) for profile
+fields, the 13-child resource bound, external-project mapping, credential lifetime
+and revocation. The claim accepts no credential value or provider-assigned ID.
 
 ## `GrafanaCloudStackRequest`
 
@@ -542,8 +555,13 @@ publishes `status.outputSecretPath`, `status.telemetrySecretPath` when enabled,
 classification. These status values are observations, not credentials or a substitute for an
 inventory/adoption review.
 
+`GrafanaProjectContent` additionally reports `status.projectContent.projectStack`
+and `.centralStack` as `Waiting`, `Provisioning`, `Refused`, or `Ready`, plus
+`.ready` for the complete content set. These distinguish the refusing stack;
+readiness does not prove a successful backend query or dashboard synchronization.
+
 Composite conditions do not replace each composed child's conditions. Diagnose a provider refusal
-on the child and its events because the composite can remain healthy while the child is retried.
+on the child and its events because some composites can remain healthy while the child is retried.
 
 ## Next steps
 

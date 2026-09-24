@@ -1,0 +1,81 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: grafanaprojectcontents.platform.example.org
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: GrafanaProjectContent
+    plural: grafanaprojectcontents
+    singular: grafanaprojectcontent
+  defaultCompositionUpdatePolicy: Automatic
+  enforcedCompositionRef:
+    name: grafana-project-content-v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: [spec]
+          x-kubernetes-validations:
+            - rule: self.metadata.name == self.spec.profile
+              message: metadata.name must match the platform-owned project profile
+            - rule: self.spec.profile == oldSelf.spec.profile
+              message: project profile is immutable
+          properties:
+            spec:
+              type: object
+              required: [profile]
+              properties:
+                profile:
+                  type: string
+                  minLength: 1
+                  maxLength: 40
+                  pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                  description: Platform-owned project-content profile authorizing the namespace, both existing stacks, project label equality and bounded content.
+            status:
+              type: object
+              properties:
+                projectContent:
+                  type: object
+                  properties:
+                    projectStack:
+                      type: string
+                      enum: [Waiting, Provisioning, Refused, Ready]
+                    centralStack:
+                      type: string
+                      enum: [Waiting, Provisioning, Refused, Ready]
+                    ready:
+                      type: boolean
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: grafana-project-content-v1beta1
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1beta1
+    kind: GrafanaProjectContent
+  mode: Pipeline
+  pipeline:
+    - step: render-project-content
+      functionRef:
+        name: function-grafana-vending
+      input:
+        apiVersion: platform.example.org/v1beta1
+        kind: GrafanaVendingConfig
+        spec:
+          maximumTokenLifetime: 720h
+          secretStoreRef:
+            name: grafana-vending-secrets
+            kind: SecretStore
+          # Opt-in only: consuming platforms add reviewed, namespace-bound profiles.
+          projectContentProfiles: []
+          stackConsumerProfiles: []

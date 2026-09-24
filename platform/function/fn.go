@@ -80,6 +80,7 @@ var compositeRenderers = map[string]compositeRenderer{
 	"GrafanaDatasourceAccess":       {render: renderDatasourceAccess, gateOnStack: true, implemented: datasourceAccessRendererImplemented},
 	"GrafanaProvisioningConnection": {render: renderProvisioningConnection, gateOnStack: true, observedStackContext: true, implemented: provisioningConnectionRendererImplemented},
 	"GrafanaProvisioningRepository": {render: renderProvisioningRepository, gateOnStack: true, implemented: provisioningRendererImplemented},
+	"GrafanaProjectContent":         {render: renderProjectContent, implemented: true},
 }
 
 // RunFunction renders desired composed resources from a platform claim.
@@ -121,6 +122,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		return rsp, nil
 	}
 	resolvedConfig := provisioningConnectionCredentialConfig(req, rsp, content, serviceBootstrapConfig(req, rsp, content, rendererConfig(req, content, config)))
+	resolvedConfig = projectContentCredentialConfig(req, rsp, content, resolvedConfig)
 	productContextReady := true
 	if renderer.observedStackContext {
 		resolvedConfig, productContextReady, err = observedSurfaceStackConfig(req, rsp, content, resolvedConfig)
@@ -172,6 +174,33 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 	if err == nil {
 		addCredentialHealth(content, observed, config)
 	}
+	if kind == "GrafanaProjectContent" {
+		status, ready := desiredProjectContentStatus(resolvedConfig)
+		productContextReady = ready
+		if statusErr := response.SetDesiredCompositeResource(rsp, status); statusErr != nil {
+			response.Fatal(rsp, errors.Wrap(statusErr, "cannot set desired project-content status"))
+			return rsp, nil
+		}
+		if err != nil {
+			if statusErr := setAccessCompositeReadiness(rsp, false); statusErr != nil {
+				response.Fatal(rsp, errors.Wrap(statusErr, "cannot set project-content readiness"))
+				return rsp, nil
+			}
+			if len(observed) > 0 {
+				// Crossplane v2.3.4 returns on Fatal before resource apply and
+				// garbage collection. Only an unrenderable request reaches here;
+				// observed provider refusals still return the full authored set.
+				response.Fatal(rsp, errors.New("project-content is unrenderable; inspect the authorized profile and missing dependencies"))
+			} else {
+				response.Warning(rsp, errors.New("project-content request refused; inspect the authorized profile")).TargetCompositeAndClaim()
+			}
+			return rsp, nil
+		}
+		state, _ := resolvedConfig[projectContentStatusKey].(map[string]any)
+		if state["projectStack"] == "Refused" || state["centralStack"] == "Refused" {
+			response.Warning(rsp, errors.New("project-content dependency refused; inspect side status and managed-resource conditions")).TargetCompositeAndClaim()
+		}
+	}
 	if kind == "GrafanaK6Project" && k6CapReconciliationPending(desired, observed) {
 		productContextReady = false
 	}
@@ -214,6 +243,12 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		}
 		if err := setAccessCompositeReadiness(rsp, admitted && productContextReady); err != nil {
 			response.Fatal(rsp, errors.Wrap(err, "cannot set access composite readiness"))
+			return rsp, nil
+		}
+	}
+	if kind == "GrafanaProjectContent" {
+		if err := setAccessCompositeReadiness(rsp, productContextReady); err != nil {
+			response.Fatal(rsp, errors.Wrap(err, "cannot set project-content readiness"))
 			return rsp, nil
 		}
 	}

@@ -347,6 +347,13 @@ func stackConsumerObservedExternalName(object map[string]any) string {
 // status is provider-owned; every request-controlled or profile-owned binding is
 // compared before a provider ID can unlock the next credential-bearing stage.
 func stackConsumerObservedChildMatches(actual, expected map[string]any, label string) error {
+	return stackConsumerObservedChildMatchesWithLabelPolicy(actual, expected, label, false)
+}
+
+// Only ProjectContent enables the platform-authored label-policy contract.
+// The released StackConsumer keeps its original refusal order and presence
+// check, including explicitly null labelPolicy fields.
+func stackConsumerObservedChildMatchesWithLabelPolicy(actual, expected map[string]any, label string, allowLabelPolicy bool) error {
 	for _, path := range [][]string{{"apiVersion"}, {"kind"}, {"metadata", "namespace"}, {"metadata", "name"}, {"spec"}} {
 		actualValue, actualFound := nestedStackConsumerValue(actual, path...)
 		expectedValue, expectedFound := nestedStackConsumerValue(expected, path...)
@@ -359,9 +366,20 @@ func stackConsumerObservedChildMatches(actual, expected map[string]any, label st
 	}
 	if label == "observed access policy" {
 		realm, _ := nestedStackConsumerValue(actual, "spec", "forProvider", "realm")
-		for _, raw := range realm.([]any) {
+		expectedRealm, _ := nestedStackConsumerValue(expected, "spec", "forProvider", "realm")
+		for index, raw := range realm.([]any) {
 			value, _ := raw.(map[string]any)
-			for _, forbidden := range []string{"stackRef", "stackSelector", "labelPolicy"} {
+			forbiddenFields := []string{"stackRef", "stackSelector", "labelPolicy"}
+			if allowLabelPolicy {
+				want, _ := expectedRealm.([]any)[index].(map[string]any)
+				actualLabels, actualHasLabels := value["labelPolicy"]
+				expectedLabels, expectedHasLabels := want["labelPolicy"]
+				if actualHasLabels != expectedHasLabels || !reflect.DeepEqual(actualLabels, expectedLabels) {
+					return errors.Errorf("%s has an unexpected identity-bearing realm field %q", label, "labelPolicy")
+				}
+				forbiddenFields = []string{"stackRef", "stackSelector"}
+			}
+			for _, forbidden := range forbiddenFields {
 				if _, found := value[forbidden]; found {
 					return errors.Errorf("%s has an unexpected identity-bearing realm field %q", label, forbidden)
 				}

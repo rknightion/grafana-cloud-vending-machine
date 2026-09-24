@@ -14,6 +14,47 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+func TestStackConsumerExpectedProjectLabelPolicy(t *testing.T) {
+	profile := stackConsumerProfile{consumerName: "example", providerConfigName: "example"}
+	expected := stackConsumerPolicy("example", "example", "prod-us-central-0", "12345", nil, profile).Resource.UnstructuredContent()
+	realm := nestedMap(t, expected, "spec", "forProvider")["realm"].([]any)[0].(map[string]any)
+	realm["labelPolicy"] = []any{map[string]any{"selector": `{project="example"}`}}
+	if err := stackConsumerObservedChildMatchesWithLabelPolicy(expected, expected, "observed access policy", true); err != nil {
+		t.Fatalf("explicit expected project restriction rejected: %v", err)
+	}
+	for _, change := range []string{"added", "removed", "altered", "extra-field"} {
+		t.Run(change, func(t *testing.T) {
+			var actual map[string]any
+			encoded, _ := json.Marshal(expected)
+			if err := json.Unmarshal(encoded, &actual); err != nil {
+				t.Fatal(err)
+			}
+			r := nestedMap(t, actual, "spec", "forProvider")["realm"].([]any)[0].(map[string]any)
+			switch change {
+			case "added":
+				r["labelPolicy"] = append(r["labelPolicy"].([]any), map[string]any{"selector": `{project="other"}`})
+			case "removed":
+				delete(r, "labelPolicy")
+			case "altered":
+				r["labelPolicy"] = []any{map[string]any{"selector": `{project="other"}`}}
+			case "extra-field":
+				r["labelPolicy"].([]any)[0].(map[string]any)["unexpected"] = "value"
+			}
+			if err := stackConsumerObservedChildMatchesWithLabelPolicy(actual, expected, "observed access policy", true); err == nil {
+				t.Fatal("changed restriction accepted")
+			}
+		})
+	}
+	unscoped := stackConsumerPolicy("example", "example", "prod-us-central-0", "12345", nil, profile).Resource.UnstructuredContent()
+	if err := stackConsumerObservedChildMatches(expected, unscoped, "observed access policy"); err == nil {
+		t.Fatal("released unscoped consumer accepted unexpected label policy")
+	}
+	realm["labelPolicy"] = nil
+	if err := stackConsumerObservedChildMatches(expected, unscoped, "observed access policy"); err == nil {
+		t.Fatal("released unscoped consumer accepted an unexpected null label policy")
+	}
+}
+
 func TestStackConsumerWaitsForTrustedObservedStackIdentity(t *testing.T) {
 	desired, err := renderStackConsumer(stackConsumerClaim(), nil, stackConsumerConfig())
 	if err != nil {

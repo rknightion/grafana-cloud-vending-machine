@@ -46,6 +46,7 @@ Home = "index.md"
     { SSO = "sso.md" },
     { Governance = "governance.md" },
     { "External project integration" = "external-project-integration.md" },
+    { "Cross-stack project content" = "cross-stack-datasources.md" },
 ]
 
 [[site.nav]]

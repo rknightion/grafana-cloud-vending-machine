@@ -1,0 +1,7 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaProjectContent
+metadata:
+  name: example-project-content
+  namespace: example-projects
+spec:
+  profile: example-project-content
