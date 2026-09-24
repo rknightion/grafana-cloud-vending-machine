@@ -1,5 +1,50 @@
 # Changelog
 
+## [3.2.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.1.0...v3.2.0) (2026-09-24)
+
+
+### Features
+
+* render bounded cross-stack project content ([ba1475d](https://github.com/rknightion/grafana-cloud-vending-machine/commit/ba1475df2ea802a0bbec678986fba80807d5f603))
+
+
+### Bug Fixes
+
+* allow-list Argo Application source paths ([b7fb245](https://github.com/rknightion/grafana-cloud-vending-machine/commit/b7fb2450b5b2f0782d52c3c7352222498691aa20))
+* **deps:** update kubernetes and controller-runtime to v0.37.1 ([#50](https://github.com/rknightion/grafana-cloud-vending-machine/issues/50)) ([52e335d](https://github.com/rknightion/grafana-cloud-vending-machine/commit/52e335da5ac8a1f3a695d645dd0a47ac20ef95c4))
+* **deps:** update module github.com/crossplane/crossplane-runtime/v2 to v2.4.2 ([#47](https://github.com/rknightion/grafana-cloud-vending-machine/issues/47)) ([abe1801](https://github.com/rknightion/grafana-cloud-vending-machine/commit/abe1801968f68b42addb1840598261e128f2b65b))
+* **deps:** update module github.com/crossplane/crossplane/apis/v2 to v2.4.2 ([#48](https://github.com/rknightion/grafana-cloud-vending-machine/issues/48)) ([3871d5d](https://github.com/rknightion/grafana-cloud-vending-machine/commit/3871d5d33734f3cfbf98c714b7771bb00bff4859))
+* **docs:** serve diagram fonts locally instead of from Google Fonts ([bd3530c](https://github.com/rknightion/grafana-cloud-vending-machine/commit/bd3530cbb271d81e63474d197612196d2bacfd6e))
+* harden source and package validation ([ac465f9](https://github.com/rknightion/grafana-cloud-vending-machine/commit/ac465f9a842089d8588259ee72ff8125ba236405))
+* reap interrupted envtest processes safely ([9e1cb57](https://github.com/rknightion/grafana-cloud-vending-machine/commit/9e1cb57fbe8b99134d7425f082076d53740abb58))
+
+
+### Documentation
+
+* add external project integration contract ([eccdd7d](https://github.com/rknightion/grafana-cloud-vending-machine/commit/eccdd7d5e882b8261c802dc0b91f592c892ff9b5))
+* **backlog:** reconcile loop 18 outcomes ([0b09557](https://github.com/rknightion/grafana-cloud-vending-machine/commit/0b09557c5ebd35000607f82bd3ecc4039331210b))
+* **backlog:** reconcile wave 17 outcomes ([7aaf633](https://github.com/rknightion/grafana-cloud-vending-machine/commit/7aaf633438360d2984b132083236ca220272ac17))
+* **backlog:** record loop 18 decisions and template gap ([6ebbc2b](https://github.com/rknightion/grafana-cloud-vending-machine/commit/6ebbc2b1316f72ddec3dd4bc620597a93b5d6ab2))
+* **backlog:** record successful dependency bump ([5c88f3f](https://github.com/rknightion/grafana-cloud-vending-machine/commit/5c88f3f202d0949329426147be1fc2fa5ac293ec))
+* **backlog:** settle the rotation model and the external-CR trigger boundary ([f659854](https://github.com/rknightion/grafana-cloud-vending-machine/commit/f659854e1362a378dea60bed57c79578b1aa3bab))
+* publish canonical agent documents ([62c2246](https://github.com/rknightion/grafana-cloud-vending-machine/commit/62c22466fc3a31c7fc3cf2c988e1e05d934482e5))
+* publish canonical agent documents ([7615f69](https://github.com/rknightion/grafana-cloud-vending-machine/commit/7615f692b59c3e75ff325c166844bf98ef3cb0e7))
+* publish canonical agent documents ([7044a1b](https://github.com/rknightion/grafana-cloud-vending-machine/commit/7044a1bbd80a22ad65376dd78ac6dcb4d66c3317))
+* publish canonical agent documents ([10cd1b5](https://github.com/rknightion/grafana-cloud-vending-machine/commit/10cd1b51a494aa3f44e220cfd46a915b74f25244))
+* publish canonical agent documents ([7e48a43](https://github.com/rknightion/grafana-cloud-vending-machine/commit/7e48a43a6f90f10927cd85956fac8c241fa7e319))
+* publish canonical agent documents ([64fdeb9](https://github.com/rknightion/grafana-cloud-vending-machine/commit/64fdeb9aed86b77dcd92adf29f96f696cf98975e))
+* publish canonical agent documents ([1f158b8](https://github.com/rknightion/grafana-cloud-vending-machine/commit/1f158b8dcac67b0cb0763dcf4242fd1d8845b646))
+
+
+### Miscellaneous Chores
+
+* **deps:** update gcr.io/distroless/static-debian12:nonroot docker digest to afa5c87 ([#44](https://github.com/rknightion/grafana-cloud-vending-machine/issues/44)) ([dc55e11](https://github.com/rknightion/grafana-cloud-vending-machine/commit/dc55e11c254e2ee8086f88b5f447395d3dba3081))
+* **deps:** update ghcr.io/sigstore/cosign/cosign docker tag to v3.1.3 ([#46](https://github.com/rknightion/grafana-cloud-vending-machine/issues/46)) ([e0e8911](https://github.com/rknightion/grafana-cloud-vending-machine/commit/e0e891189adf8d9bc5405a596af69adc5a69eb17))
+* **deps:** update golang:1.27.1 docker digest to 3680233 ([#45](https://github.com/rknightion/grafana-cloud-vending-machine/issues/45)) ([3f8fd00](https://github.com/rknightion/grafana-cloud-vending-machine/commit/3f8fd00f1c8b81714418c612a2594154129180d9))
+* **deps:** update rknightion/.github action to v1.23.0 ([#43](https://github.com/rknightion/grafana-cloud-vending-machine/issues/43)) ([ae6a4c3](https://github.com/rknightion/grafana-cloud-vending-machine/commit/ae6a4c3c3b45600980077ac40b5a0f7071aeaa55))
+* **deps:** update rknightion/.github action to v1.24.0 ([#49](https://github.com/rknightion/grafana-cloud-vending-machine/issues/49)) ([2e91a16](https://github.com/rknightion/grafana-cloud-vending-machine/commit/2e91a165a7f3588121d155ff6aabe86810f931a3))
+* pin published vending function digest ([886887d](https://github.com/rknightion/grafana-cloud-vending-machine/commit/886887d0315a2a6ae5182732f184cc873a5d1fa2))
+
 ## [3.1.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.0.0...v3.1.0) (2026-09-18)
 
 
