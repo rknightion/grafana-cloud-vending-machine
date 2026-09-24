@@ -4,7 +4,7 @@ title: The vended Git Sync connection cannot be created on Grafana Cloud
 status: Parked
 assignee: []
 created_date: '2026-09-12 19:11'
-updated_date: '2026-09-18 19:05'
+updated_date: '2026-09-24 10:25'
 labels:
   - needs-triage
 dependencies: []
@@ -116,4 +116,6 @@ Do NOT close this by declaring live proof out of scope. That disposition is righ
 Wave 15 corrected the repository function pin after exact-SHA publication. The current signed package digest is sha256:cc7498e086ceb6bee7a51386076bfabacdc6cd7c65009c9f2aef9c36ad1046d3, verified against the publish-function workflow identity. No estate action was taken, so the estate rollout criterion remains open.
 
 The digest written in the older resume boundary is superseded. The current repository pin is authoritative at platform/function/install.yaml; rolling that pin to an estate remains the human's next action.
+
+Loop 18 current function pin is 886887d0315a2a6ae5182732f184cc873a5d1fa2 (sha256:c2e55953a4ec28376aed668d5d58c80932f668e24e5242699f595d2d1c282d08). AC3 remains an estate pin roll and one connection claim.
 <!-- SECTION:NOTES:END -->

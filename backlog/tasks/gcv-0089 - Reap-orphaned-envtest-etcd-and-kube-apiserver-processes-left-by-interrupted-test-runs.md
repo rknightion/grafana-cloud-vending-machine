@@ -3,11 +3,11 @@ id: GCV-0089
 title: >-
   Reap orphaned envtest etcd and kube-apiserver processes left by interrupted
   test runs
-status: In Progress
+status: Done
 assignee:
   - '@codex'
 created_date: '2026-09-19 18:05'
-updated_date: '2026-09-24 08:39'
+updated_date: '2026-09-24 10:25'
 labels: []
 dependencies: []
 ordinal: 89000
@@ -25,17 +25,17 @@ Not a disk-throughput problem: envtest starts etcd with --unsafe-no-fsync=true a
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A check reports any envtest etcd or kube-apiserver process whose elapsed time exceeds a plausible ceiling for a test run
-- [ ] #2 A reap path kills orphaned envtest processes and removes their k8s_test_framework_* temp directories, and refuses to touch a pair belonging to a live test run
-- [ ] #3 k8s_test_framework_* directories with no owning process are reported and reclaimed separately, since those leak disk with no process to find
-- [ ] #4 The reap is reachable from the justfile as a named recipe in the correct group, and does not become a new scripts/*.sh task runner
-- [ ] #5 Verified by interrupting an envtest run on purpose, then confirming the check fires and the reap reclaims both the processes and the directory
+- [x] #1 A check reports any envtest etcd or kube-apiserver process whose elapsed time exceeds a plausible ceiling for a test run
+- [x] #2 A reap path kills orphaned envtest processes and removes their k8s_test_framework_* temp directories, and refuses to touch a pair belonging to a live test run
+- [x] #3 k8s_test_framework_* directories with no owning process are reported and reclaimed separately, since those leak disk with no process to find
+- [x] #4 The reap is reachable from the justfile as a named recipe in the correct group, and does not become a new scripts/*.sh task runner
+- [x] #5 Verified by interrupting an envtest run on purpose, then confirming the check fires and the reap reclaims both the processes and the directory
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -50,6 +50,8 @@ Wave 16 lane B adds a justfile-only check/reap interface, proves it refuses live
 Wave 17 attempt 2 refactored the candidate into scripts/envtest-processes.sh with justfile entry recipes and passed syntax/format/dump checks, but runtime proof was blocked twice by asset-scoped envtest processes outside the lane's owned TMPDIR and outside the empty campaign start witness. The frozen shared-resource rule forbade terminating them. No process or directory was removed; deliberate interruption, live-parent refusal, orphan pair reap, ownerless-directory reclaim and symlink containment remain unproven. Candidate blobs remain unlanded in the working tree: justfile 494524c74884bb4fa804461e26115ebdbae230cc and script 3f5a51faadb8d8f6c4b4a4166836ed6b820f0bb3.
 
 Loop 18 attempt 3 runs reaper proofs with lane-private copied envtest assets and lane-private TMPDIR. The discriminating check must list only lane-owned PIDs.
+
+Loop 18 private copied-assets/TMPDIR proof: initial /var versus /private/var alias failure corrected in final attempt 4; discriminating check listed only lane-owned PIDs. Interrupted parent made both children orphan, reap removed pair and private directories, second check clean; root independently replayed live-parent refusal. Exact local just check passed at 9e1cb57 and final integrated 886887d (85.5 percent); hosted Validate 35984785494 at ba1475d and pin Validate 35986358148 at 886887d both succeeded.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -58,4 +60,6 @@ Loop 18 attempt 3 runs reaper proofs with lane-private copied envtest assets and
 Wave 16 lane B was interrupted by the mandatory repeated-review stop while its justfile-only check/reap implementation and verification were still in progress. No integrated gate, commit or hosted validation exists, and no acceptance criterion is recorded complete. Resume by auditing the working-tree recipe, confirming no repository-pinned envtest process or k8s_test_framework directory was left behind, replaying live-parent refusal plus deliberate interruption/reap evidence under an empty kubeconfig, and then running the integrated gate.
 
 Wave 17 left the envtest reap candidate unlanded because the required deliberate runtime proof could not start under the shared-process safety rule. Static checks passed; no process was terminated and AC1-AC3/AC5 plus both DoD items remain open.
+
+Completed reaper script directly above the owners preserved recipe commit. Private envtest interruption, live-parent refusal, orphan/ownerless reap, symlink containment and a clean second check were observed. Root replayed the live-parent refusal. Completing pushed SHA ba1475df2ea802a0bbec678986fba80807d5f603, hosted Validate 35984785494; delivered pin SHA 886887d0315a2a6ae5182732f184cc873a5d1fa2, hosted Validate 35986358148.
 <!-- SECTION:FINAL_SUMMARY:END -->

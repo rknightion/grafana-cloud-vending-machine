@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-18 10:22'
+updated_date: '2026-09-24 10:25'
 labels: []
 dependencies: []
 references:
@@ -86,6 +86,8 @@ One more structural clue worth testing: all three churning kinds are WHOLE-SET r
 Also observed, and separately relevant to GCV-0075 AC4: AccessPolicyRotatingToken exposes NO expiration, secondsToLive or earlyRotationWindowSeconds in status.atProvider at all - all three read null - while StackServiceAccountRotatingToken exposes every one of them. An operator cannot see when an access policy token expires from the resource.
 
 Wave 13 terminal reconciliation: pinned-source evidence identifies resolver and late-initializer scalar writes as the no-op spec-write source for AccessPolicy, FolderPermission, and DashboardPermission. Focused tests prove the renderer preserves observed identifiers, UIDs, team IDs, and org IDs. No live cluster contact was permitted, so generation settling and Responsive=True remain unverified.
+
+Loop 18 current function pin is 886887d0315a2a6ae5182732f184cc873a5d1fa2 (sha256:c2e55953a4ec28376aed668d5d58c80932f668e24e5242699f595d2d1c282d08). AC4 remains estate rollout and multi-window Responsive=True observation.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

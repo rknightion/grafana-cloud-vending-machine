@@ -5,7 +5,7 @@ status: Parked
 assignee:
   - '@codex'
 created_date: '2026-09-11 13:22'
-updated_date: '2026-09-24 08:37'
+updated_date: '2026-09-24 10:25'
 labels: []
 dependencies: []
 ordinal: 69000
@@ -78,4 +78,6 @@ Wave 15 exhausted its two lane attempts and one bounded root repair. Lane E and 
 Wave 10 root-only blocker: the required control for integrations.oncall.grafana.m.crossplane.io failed. Canonical normalized package hash 6038ad9a805467cb372ebbf38135c09686d6ce35f54918aafbeb13747c713f36 differs from fixture hash 83c7e3627bb8f51c9167412c24881cd055cab852fa96841d3b7ed04339306620; the sole structural difference is top-level $.status present in the cached package CRD and absent from the fixture. No fixture extraction or lane dispatch occurred. Resume only after independently verifying the cached package layer and reconciling the fixture provenance contract, then rerun the equality control.
 
 Wave 15 parked after the second review repeated the integration identity-transition failure. No GCV-0069 source or API change landed. The exact resume boundary is a type-specific dual-key migration retaining old Integration and Route resources until replacement observation proves the new path.
+
+Loop 18 retained owner Parked decision of 2026-09-24. Resume requires a reviewed type-specific dual-key migration and a new budget; no implementation attempted.
 <!-- SECTION:FINAL_SUMMARY:END -->

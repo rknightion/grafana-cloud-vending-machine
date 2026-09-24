@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 17:10'
-updated_date: '2026-09-24 08:37'
+updated_date: '2026-09-24 10:25'
 labels: []
 dependencies: []
 documentation:
@@ -103,4 +103,6 @@ Wave 14 AC1-AC5 evidence is in codex/wave14/lane-g-plan.md and codex/wave14/lane
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 AC1-AC5 completed against pinning revision 1f2af4a0b37c244a799e1fe0cdfcea2fa5abd82e and hosted validation run 35364595851. AC6 remains open for the human-operated replacement cutover; status remains In Progress.
+
+Loop 18 changed status to Parked because AC6 is a human-operated replacement cutover after GCV-0075 lands and an estate runs a pin carrying it. No live estate action was authorized or performed.
 <!-- SECTION:FINAL_SUMMARY:END -->

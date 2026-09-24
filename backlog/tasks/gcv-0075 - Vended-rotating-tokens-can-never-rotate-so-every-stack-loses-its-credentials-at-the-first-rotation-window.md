@@ -7,7 +7,7 @@ status: Parked
 assignee:
   - '@codex'
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-24 08:49'
+updated_date: '2026-09-24 10:25'
 labels: []
 dependencies: []
 references:
@@ -168,4 +168,6 @@ Parked after four of four authorized attempts. No rotation implementation landed
 Wave 15 reopened the rotation direction without an implementation attempt. Recommendation: controlled replacement with explicit per-consumer interruption acceptance; operator-controlled fallback; provider-owned renewal when interruption is unacceptable.
 
 Wave 17 design-only exploration identified a conditional same-token expiry-extension seam, but independent review rejected the evidence packet for missing the effective Grafana Upjet fork and its restart persistence paths. Task remains Parked with AC3-AC5 and both DoD items open; no implementation landed.
+
+Loop 18 parked before implementation after F design and independent G review confirmed the pinned provider Delete path can create during Delete with a ForceNew diff; external revocation is not established by omission. New opt-in implementation budget remains 0/4. Resume with separately scoped provider deletion/restart proof, exact condition fixture and ESO gap behavior, then a revised reviewed design. Administrator remains operator-controlled.
 <!-- SECTION:FINAL_SUMMARY:END -->

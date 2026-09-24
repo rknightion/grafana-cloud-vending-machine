@@ -3,11 +3,11 @@ id: GCV-0079
 title: >-
   Provision datasources, a folder and Git Sync into a stack the platform does
   not own, driven by an external project CR
-status: In Progress
+status: Done
 assignee:
   - '@codex'
 created_date: '2026-09-18 07:44'
-updated_date: '2026-09-24 08:39'
+updated_date: '2026-09-24 10:25'
 labels:
   - needs-triage
   - integration
@@ -38,18 +38,18 @@ The requesting team's own identifiers, cluster names and stack slugs are deliber
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The set of resources provisioned per project is explicit and bounded, and provisioning into a stack the platform did not vend requires no full adoption of that stack
-- [ ] #2 A datasource in one stack can read from a backend exposed by a second stack, using a credential the platform mints in that second stack, with the per-project restriction expressed on the credential rather than on the datasource
-- [ ] #3 Ownership, lifetime and revocation of the cross-stack credential are recorded as a decision, including what the project-stack datasource does when it is revoked
-- [ ] #4 The mechanism that turns an external project CR into a claim is chosen and recorded, and it does not widen the ApplicationSet watch path beyond enabled/*
-- [ ] #5 A project whose claim cannot be satisfied fails loudly rather than reconciling a partial content set, and an operator can tell which of the two stacks refused
-- [ ] #6 The Git Sync connection in this flow uses the credential form the vendor accepts, proven by a renderer test rather than by prose
+- [x] #1 The set of resources provisioned per project is explicit and bounded, and provisioning into a stack the platform did not vend requires no full adoption of that stack
+- [x] #2 A datasource in one stack can read from a backend exposed by a second stack, using a credential the platform mints in that second stack, with the per-project restriction expressed on the credential rather than on the datasource
+- [x] #3 Ownership, lifetime and revocation of the cross-stack credential are recorded as a decision, including what the project-stack datasource does when it is revoked
+- [x] #4 The mechanism that turns an external project CR into a claim is chosen and recorded, and it does not widen the ApplicationSet watch path beyond enabled/*
+- [x] #5 A project whose claim cannot be satisfied fails loudly rather than reconciling a partial content set, and an operator can tell which of the two stacks refused
+- [x] #6 The Git Sync connection in this flow uses the credential form the vendor accepts, proven by a renderer test rather than by prose
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -92,6 +92,8 @@ Wave 17 attempt 3 produced local candidate c7877b26caa0692586d8599653e38628e4f2e
 2026-09-24 owner authorizes final attempt 4 of 4 against H1 and H2, followed by independent security review. Rejection parks; no fifth attempt without new owner decision.
 
 Loop 18 final attempt 4 is on rebased origin/main, with H1/H2 failing-first RunFunction controls and independent security review H.
+
+Loop 18 final attempt 4 repaired H1 missing/refused project observer and H2 policy identity mismatch with real RunFunction empty-incoming-desired tests. H independently approved exact candidate 1682086f; integrated reviewed source blobs remained identical. Full integrated just check passed at ba1475d with 85.5 percent coverage; hosted Validate 35984785494 and signed package Publish 35984785527 succeeded. Pin 886887d hosted Validate 35986358148 succeeded. Renderer/admission proof only; live cross-stack query and provider reconciliation are not exercised here.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -100,4 +102,6 @@ Loop 18 final attempt 4 is on rebased origin/main, with H1/H2 failing-first RunF
 Wave 16 parked before landing. Lane D implemented the new bounded cross-stack surface and root attempted the AC5 response integration, but the permitted rereview reproduced the same major preservation failure as the initial review: with 13 observed children and empty incoming desired state, central provider refusal returned desired=0. The same rereview also found TestProviderFamilyDocumentation unable to resolve the local renderer dispatch. No candidate was committed, published, deployed, or exercised live. Resume only with a new owner-authorized attempt that proves a fresh single-step pipeline response retains all 13 children on either refusal and dependency disappearance, fixes provider-family documentation coverage, then receives a fresh adversarial review. Do not reuse the prepopulated-desired test as preservation proof.
 
 Wave 17 specialist attempt 3 was rejected by independent security review on the repeated child-withdrawal/Fatal signature and a new policy identity mismatch. The local candidate was not landed or published. Resume only from the two exact Lane H counterexamples; the root is not authorized to repair this code.
+
+Shipped bounded cross-stack project content. Status-only refusals retain all 13 authored children; policy identities are validated before desired state is written. Independent security review approved; released API files remained unchanged. Completing source SHA ba1475df2ea802a0bbec678986fba80807d5f603, hosted Validate 35984785494; signed publish 35984785527; delivered by pin SHA 886887d0315a2a6ae5182732f184cc873a5d1fa2, hosted Validate 35986358148. Live provider behavior is not exercised here.
 <!-- SECTION:FINAL_SUMMARY:END -->
