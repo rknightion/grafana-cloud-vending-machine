@@ -7,7 +7,7 @@ status: Parked
 assignee:
   - '@codex'
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-24 10:25'
+updated_date: '2026-09-24 12:41'
 labels: []
 dependencies: []
 references:
@@ -156,6 +156,10 @@ AC4 and AC5 are fulfilled by GCV-0087 at 1c13c27039068f4eacede61f6664dd498cff0d9
 Loop 18 opt-in design F and review G precede implementation K and review L; no estate action is authorized.
 
 Loop 18 F design packet SHA-256 44f8a5cd7f9315b207dce30db19f5e3fab00868ab1c87f23f93ba7591292a5af, independent G review ACCEPT blocker SHA-256 8c3e564213df9fe08f8308d72dab959011c3ca1e758ef94cd871d22a1b22ea8a. Effective pinned Grafana Upjet Delete retains a ForceNew diff; selected SDK may invoke Create inside Delete. Existing preservation settings also fail to prove external revocation. No safe in-repository deletion primitive demonstrated. K and L not admitted; new opt-in implementation budget remains 0/4. Resume after separately scoped provider deletion/restart proof, exact condition fixture and ESO gap behavior, then revise/review design. Administrator stays operator-controlled.
+
+Loop 19 owner decision, 2026-09-24: commission one read-only provider-boundary proof on gpt-6-astra at high as an explicit one-shot exception, followed by independent Astra/medium review. No implementation lane is admitted and the opt-in implementation budget stays 0/4. Administrator automation remains excluded; the overlapping-generation design remains rejected. The task stays Parked whatever the proof verdict.
+
+Loop 19 provider proof P verdict UNDETERMINED, packet SHA-256 74fa91068b22a94f65e16bb9b1e410652d66f1ded9fa3b11f16218d7ea4b63e6 at codex/loop19/lane-p-proof.md. Independent Q ACCEPT review SHA-256 723b063562d6cda24f8598ca11d7a8005779fbab0385950f3307feaf1d64768b at codex/loop19/lane-q-review.md. Direct rotating-MR Delete retains ForceNew and the SDK can invoke Create inside Delete. A nonrotating same-token adoption handle exists in pinned source, but an exclusive restart-safe ownership handoff is unproved and outside this commission. ESO source absence with default deletionPolicy None preserves the remote bytes by controller behavior, while delivery and reload remain separate. AC3 stays open; implementation remains 0/4.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -170,4 +174,6 @@ Wave 15 reopened the rotation direction without an implementation attempt. Recom
 Wave 17 design-only exploration identified a conditional same-token expiry-extension seam, but independent review rejected the evidence packet for missing the effective Grafana Upjet fork and its restart persistence paths. Task remains Parked with AC3-AC5 and both DoD items open; no implementation landed.
 
 Loop 18 parked before implementation after F design and independent G review confirmed the pinned provider Delete path can create during Delete with a ForceNew diff; external revocation is not established by omission. New opt-in implementation budget remains 0/4. Resume with separately scoped provider deletion/restart proof, exact condition fixture and ESO gap behavior, then a revised reviewed design. Administrator remains operator-controlled.
+
+Loop 19 read-only P/Q proof accepted as UNDETERMINED. Direct rotating-MR deletion is unsafe; a possible nonrotating adoption handle needs a new ownership contract. Resume when the owner commissions either a read-only same-token handoff proof against packet 74fa91068b22a94f65e16bb9b1e410652d66f1ded9fa3b11f16218d7ea4b63e6 or the narrow provider connector repair described there. No implementation or live action was authorized; AC3 remains unchecked.
 <!-- SECTION:FINAL_SUMMARY:END -->
