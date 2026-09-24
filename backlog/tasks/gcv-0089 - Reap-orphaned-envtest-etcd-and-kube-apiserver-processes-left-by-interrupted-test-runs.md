@@ -3,11 +3,11 @@ id: GCV-0089
 title: >-
   Reap orphaned envtest etcd and kube-apiserver processes left by interrupted
   test runs
-status: Parked
+status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-09-19 18:05'
-updated_date: '2026-09-22 18:58'
+updated_date: '2026-09-24 08:39'
 labels: []
 dependencies: []
 ordinal: 89000
@@ -48,6 +48,8 @@ Wave 16 lane B adds a justfile-only check/reap interface, proves it refuses live
 
 <!-- SECTION:NOTES:BEGIN -->
 Wave 17 attempt 2 refactored the candidate into scripts/envtest-processes.sh with justfile entry recipes and passed syntax/format/dump checks, but runtime proof was blocked twice by asset-scoped envtest processes outside the lane's owned TMPDIR and outside the empty campaign start witness. The frozen shared-resource rule forbade terminating them. No process or directory was removed; deliberate interruption, live-parent refusal, orphan pair reap, ownerless-directory reclaim and symlink containment remain unproven. Candidate blobs remain unlanded in the working tree: justfile 494524c74884bb4fa804461e26115ebdbae230cc and script 3f5a51faadb8d8f6c4b4a4166836ed6b820f0bb3.
+
+Loop 18 attempt 3 runs reaper proofs with lane-private copied envtest assets and lane-private TMPDIR. The discriminating check must list only lane-owned PIDs.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

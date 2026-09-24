@@ -3,9 +3,11 @@ id: GCV-0093
 title: >-
   A plain Argo Application with a source path under examples/ or enabled/ is an
   unguarded live-request source
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@codex'
 created_date: '2026-09-22 17:44'
+updated_date: '2026-09-24 08:39'
 labels:
   - needs-triage
   - ci
@@ -33,3 +35,9 @@ Found in the wave 16 review while checking GCV-0091's candidate. GCV-0091 discov
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Loop 18 lane A is implementing the exact Application source-path allow-list; independent AR review and hosted validation are required.
+<!-- SECTION:NOTES:END -->

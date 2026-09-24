@@ -5,7 +5,7 @@ status: Parked
 assignee:
   - '@codex'
 created_date: '2026-09-11 13:22'
-updated_date: '2026-09-18 19:02'
+updated_date: '2026-09-24 08:37'
 labels: []
 dependencies: []
 ordinal: 69000
@@ -68,6 +68,8 @@ Wave 10 root-only blocker: the required control for integrations.oncall.grafana.
 Wave 15 commissioned from the accepted wave 14 fit packet. Preserve the released default integration identities byte-for-byte; any required field, CEL rule or immutability constraint is a returned breaking-change blocker.
 
 Wave 15 exhausted its two lane attempts and one bounded root repair. Lane E and CodeRabbit both rejected the identity transition: one logical composed-resource key cannot retain the old Integration while creating the renamed replacement. The second CodeRabbit pass repeated the same failure signature, so the complete candidate was removed under the wave stop rule. Resume only with a reviewed type-specific composed-resource-key migration that retains the old Integration and Route until both replacements are observed, without tightening either released API.
+
+2026-09-24 owner decision: keep Parked. Resume requires a reviewed type-specific dual-key migration and new budget.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

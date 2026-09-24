@@ -3,10 +3,10 @@ id: GCV-0078
 title: >-
   Migrate the pre-organization estate onto the current request schema and move
   its output identity with it
-status: In Progress
+status: Parked
 assignee: []
 created_date: '2026-09-16 17:10'
-updated_date: '2026-09-18 15:54'
+updated_date: '2026-09-24 08:37'
 labels: []
 dependencies: []
 documentation:
@@ -95,6 +95,8 @@ and let the owner decide; a fail-closed loosening on a released API is a breakin
 safe it looks.
 
 Wave 14 AC1-AC5 evidence is in codex/wave14/lane-g-plan.md and codex/wave14/lane-g-ac5.md. The pinned API server refused both organization-only and organization-plus-mutable-sibling updates, so replacement is required. Before AC6: wait for GCV-0075 to land safely; freeze promotion; capture the source revision and generator revision; record the stored request, output path, UID, conditions and immutable fields; inventory every composed object, external identity, management policy, credential generation, remote writer and reader; render the replacement against the completing catalogue while preserving usage and both allowed-usage layers. During AC6: verify Retain and non-deleting policies; remove the old request through its delivery mechanism; prove the external stack survives with unchanged identity; apply the replacement and stop on any Create or identity change; wait for the replacement core graph and dependent requests; move every remote-path consumer one at a time and prove reload onto replacement credentials; retire source tokens before policies or service accounts; delete only source-only documents; resume promotion only after the orphan, duplicate and stale-reader census is empty. AC6 remains open because no live estate, cluster, credential, consumer or generator was contacted.
+
+2026-09-24: AC6 is the human-operated replacement cutover in the task notes, after GCV-0075 lands and the estate runs a pin carrying it. No one is presently executing it.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

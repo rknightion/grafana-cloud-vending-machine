@@ -3,11 +3,11 @@ id: GCV-0079
 title: >-
   Provision datasources, a folder and Git Sync into a stack the platform does
   not own, driven by an external project CR
-status: Parked
+status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-09-18 07:44'
-updated_date: '2026-09-22 18:58'
+updated_date: '2026-09-24 08:39'
 labels:
   - needs-triage
   - integration
@@ -88,6 +88,10 @@ The reasoning, because the alternatives are not obviously worse until stated:
 **Proof boundary for AC5.** A real RunFunction response with an empty incoming desired state and all 13 children observed must carry all 13 authored identities and specs for central refusal, project refusal and dependency disappearance. A test that pre-populates req.Desired proves nothing about preservation.
 
 Wave 17 attempt 3 produced local candidate c7877b26caa0692586d8599653e38628e4f2e447 and passed the integrated local gate, but independent security review REJECTED it. Lane H reproduced the E3 signature: removing an unused project observer ID or refusing that observer returned zero desired children plus Fatal although all 13 children remained renderable from the claim/profile and observed dependencies. Lane H also proved a mismatched access-policy external-name could be copied into desired state while the token retained the original policy ID and both sides reported Ready. Review artifact codex/wave17/lane-h-review.md SHA-256 dba2290ee1ec2b4ab1efc4cc44a625735cf7dc2fa7320421ba0c84b1b118212d. No candidate was pushed or published; task remains Parked and no acceptance criterion changed.
+
+2026-09-24 owner authorizes final attempt 4 of 4 against H1 and H2, followed by independent security review. Rejection parks; no fifth attempt without new owner decision.
+
+Loop 18 final attempt 4 is on rebased origin/main, with H1/H2 failing-first RunFunction controls and independent security review H.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

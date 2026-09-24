@@ -4,9 +4,10 @@ title: >-
   Vended rotating tokens can never rotate, so every stack loses its credentials
   at the first rotation window
 status: Parked
-assignee: []
+assignee:
+  - '@codex'
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-22 18:58'
+updated_date: '2026-09-24 08:49'
 labels: []
 dependencies: []
 references:
@@ -40,8 +41,8 @@ This needs a decision, not a patch, and every option is unattractive: delete and
 - [x] #1 The failure is reproduced against the provider version this repository pins, with the resource kinds, the exact provider message and the timing relative to the early-rotation window recorded as evidence
 - [x] #2 The chosen handling of rotation is recorded as a decision with its trade-offs, covering both rotating token kinds the composition emits
 - [ ] #3 The chosen handling works for an estate that has already passed a rotation window, not only for a stack vended after the change
-- [ ] #4 An operator can distinguish a stuck token from a healthy one from resource conditions alone, without reading provider logs
-- [ ] #5 The composite no longer reports Ready=True while a token it owns cannot rotate, or the reason it still does is recorded
+- [x] #4 An operator can distinguish a stuck token from a healthy one from resource conditions alone, without reading provider logs
+- [x] #5 The composite no longer reports Ready=True while a token it owns cannot rotate, or the reason it still does is recorded
 - [x] #6 The upstream position is recorded: whether a provider or Upjet change is required, and whether it has been raised
 <!-- AC:END -->
 
@@ -147,6 +148,14 @@ Wave 17 commissions the design-only lane that the 2026-09-22 rotation-model deci
 The estate windows recorded on 2026-09-18 open on 2026-10-03 and 2026-10-09. Manual delete-and-recreate by an operator is still the proven fallback, and this lane does not change that.
 
 Wave 17 completed the authorized design-only provider-renewal packet at codex/wave17/lane-f-design.md (SHA-256 f9bf60d020a33dd608734b554bcfed4a4834bd42a542bc634fba53add06de015). Independent Lane I review REJECTED it because the packet analyzed upstream Upjet rather than the effective Grafana fork replacement, whose annotation-backed persistence/restart paths materially affect the runtime claim. Same-token lease extension remains a conditional design concept, not key rotation; no implementation was authorized, no criteria changed, and administrator automation remains excluded.
+
+2026-09-24 owner authorizes a new implementation budget for the additive per-family controlled replacement opt-in direction only. Administrator stays operator-controlled; default output byte-identical; PushSecret interval derived from window. Design F, review G, implementation K, review L. Rejected overlapping-generation design remains rejected.
+
+AC4 and AC5 are fulfilled by GCV-0087 at 1c13c27039068f4eacede61f6664dd498cff0d9a, hosted Validate 35382961277: exact current child identity and Synced condition drive composite Ready=False; AccessPolicyRotatingToken needs no expiry status.
+
+Loop 18 opt-in design F and review G precede implementation K and review L; no estate action is authorized.
+
+Loop 18 F design packet SHA-256 44f8a5cd7f9315b207dce30db19f5e3fab00868ab1c87f23f93ba7591292a5af, independent G review ACCEPT blocker SHA-256 8c3e564213df9fe08f8308d72dab959011c3ca1e758ef94cd871d22a1b22ea8a. Effective pinned Grafana Upjet Delete retains a ForceNew diff; selected SDK may invoke Create inside Delete. Existing preservation settings also fail to prove external revocation. No safe in-repository deletion primitive demonstrated. K and L not admitted; new opt-in implementation budget remains 0/4. Resume after separately scoped provider deletion/restart proof, exact condition fixture and ESO gap behavior, then revise/review design. Administrator stays operator-controlled.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
