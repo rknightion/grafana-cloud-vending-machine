@@ -142,3 +142,15 @@ envtest:
     echo "Export this before running the gate:"
     # %q so a cache path containing a space stays copy-pasteable.
     printf 'export KUBEBUILDER_ASSETS=%q\n' "$assets_path"
+
+# report repository-pinned envtest processes and leaked temporary directories over the ceiling
+[group('dev')]
+[no-exit-message]
+envtest-process-check max_age_seconds="900":
+    ENVTEST_PROCESS_MODE=check ENVTEST_PROCESS_MAX_AGE_SECONDS={{ quote(max_age_seconds) }} scripts/envtest-processes.sh
+
+# reap only old, ownerless repository-pinned envtest processes and directories
+[group('dev')]
+[no-exit-message]
+envtest-process-reap max_age_seconds="900":
+    ENVTEST_PROCESS_MODE=reap ENVTEST_PROCESS_MAX_AGE_SECONDS={{ quote(max_age_seconds) }} scripts/envtest-processes.sh
