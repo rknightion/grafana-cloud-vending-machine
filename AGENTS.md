@@ -78,6 +78,7 @@ Backlog CLI traps beyond the global "drive it through the CLI" rule:
 <!-- BACKLOG.MD GUIDELINES START -->
 <!-- backlog.md-instructions-version: 1.50.1 -->
 <CRITICAL_INSTRUCTION>
+- `LOOP.md` - read at loop preparation: gates, release rules, environments and credential conventions, standing route exceptions, traps, cross-harness eligibility, resource mutexes and Grafana stacks for this repository's loops.
 
 ## Backlog.md Workflow
 
