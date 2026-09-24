@@ -441,23 +441,28 @@ ruby -ryaml -e '
     ["git", "ls-files", "-z", "--", "*.yaml", "*.yml", "*.json"],
     ["git", "ls-files", "-z", "--others", "--exclude-standard", "--", "*.yaml", "*.yml", "*.json"],
   ].flat_map { |command| IO.popen(command, "rb", &:read).split("\0") }.reject(&:empty?).uniq.sort
-  application_sets_in = nil
-  application_sets_in = lambda do |document|
+  argo_objects_in = nil
+  argo_objects_in = lambda do |document|
     next [] unless document.is_a?(Hash)
-    if document["kind"] == "ApplicationSet"
-      [document]
+    if %w[Application ApplicationSet].include?(document["kind"])
+      [[document["kind"], document]]
     elsif document["kind"] == "List"
-      (document["items"] || []).flat_map { |item| application_sets_in.call(item) }
+      (document["items"] || []).flat_map { |item| argo_objects_in.call(item) }
     else
       []
     end
   end
-  application_sets = candidate_paths.flat_map do |path|
+  argo_objects = candidate_paths.flat_map do |path|
     YAML.load_stream(File.read(path)).compact.flat_map do |document|
-      application_sets_in.call(document).map do |application_set|
-        [path, application_set.dig("metadata", "name") || "<unnamed>", application_set]
+      argo_objects_in.call(document).map do |kind, object|
+        [kind, path, object.dig("metadata", "name") || "<unnamed>", object]
       end
     end
+  end
+  application_sets = argo_objects.select do |kind, _path, _name, _document|
+    kind == "ApplicationSet"
+  end.map do |_kind, path, name, document|
+    [path, name, document]
   end
   abort "ApplicationSet: no tracked ApplicationSet found" if application_sets.empty?
 
@@ -482,6 +487,72 @@ ruby -ryaml -e '
     directories = git_generator["directories"]
     unless directories == [{"path" => "enabled/*"}]
       abort "#{path}: ApplicationSet #{name} must watch only top-level enabled/*"
+    end
+  end
+
+  applications = argo_objects.select do |kind, _path, _name, _document|
+    kind == "Application"
+  end.map do |_kind, path, name, document|
+    [path, name, document]
+  end
+  abort "Application: no tracked Application found" if applications.empty?
+
+  # Owner decision: fail closed on source paths outside this allow-list.
+  # A path under examples/ or enabled/ can make an inert example live.
+  allowed_application_source_paths = %w[deploy/aws platform]
+  applications.each do |path, name, document|
+    spec = document["spec"]
+    abort "#{path}: Application #{name} must declare spec.source or spec.sources" unless spec.is_a?(Hash)
+
+    # Inspect both fields so a disallowed path cannot hide in either declaration.
+    sources = []
+    single_source = spec["source"]
+    sources << single_source unless single_source.nil?
+    multiple_sources = spec["sources"]
+    unless multiple_sources.nil?
+      unless multiple_sources.is_a?(Array) && multiple_sources.all? { |source| source.is_a?(Hash) }
+        abort "#{path}: Application #{name} spec.sources entries must be mappings"
+      end
+      sources.concat(multiple_sources)
+    end
+    abort "#{path}: Application #{name} must declare at least one source" if sources.empty?
+
+    sources.each do |source|
+      unless source.is_a?(Hash)
+        abort "#{path}: Application #{name} spec.source must be a mapping"
+      end
+
+      source_path = source["path"]
+      if source_path.nil?
+        chart_source = source["chart"].is_a?(String) && !source["chart"].empty?
+        ref_source = source["ref"].is_a?(String) && !source["ref"].empty?
+        next if chart_source || ref_source
+        abort "#{path}: Application #{name} has a pathless source without a chart or ref"
+      end
+      unless source_path.is_a?(String) && !source_path.empty?
+        abort "#{path}: Application #{name} source path must be a non-empty string"
+      end
+      if source_path.start_with?("/", "\\") || source_path.match?(/\A[A-Za-z]:[\\\/]/)
+        abort "#{path}: Application #{name} source path #{source_path.inspect} must be repository-relative"
+      end
+
+      normalized_parts = []
+      source_path.tr("\\", "/").split("/").each do |part|
+        next if part.empty? || part == "."
+        if part == ".."
+          if normalized_parts.empty? || normalized_parts.last == ".."
+            normalized_parts << part
+          else
+            normalized_parts.pop
+          end
+        else
+          normalized_parts << part
+        end
+      end
+      normalized_path = normalized_parts.empty? ? "." : normalized_parts.join("/")
+      unless allowed_application_source_paths.include?(normalized_path)
+        abort "#{path}: Application #{name} source path #{source_path.inspect} normalizes to #{normalized_path.inspect}, which is outside the allow-list; sourcing examples/ or enabled/ can make an inert example live"
+      end
     end
   end
 '
