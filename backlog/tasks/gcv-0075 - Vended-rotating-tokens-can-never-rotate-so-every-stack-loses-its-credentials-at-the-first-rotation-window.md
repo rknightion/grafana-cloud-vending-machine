@@ -7,7 +7,7 @@ status: Parked
 assignee:
   - '@codex'
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-24 12:41'
+updated_date: '2026-09-24 14:24'
 labels: []
 dependencies: []
 references:
@@ -160,6 +160,16 @@ Loop 18 F design packet SHA-256 44f8a5cd7f9315b207dce30db19f5e3fab00868ab1c87f23
 Loop 19 owner decision, 2026-09-24: commission one read-only provider-boundary proof on gpt-6-astra at high as an explicit one-shot exception, followed by independent Astra/medium review. No implementation lane is admitted and the opt-in implementation budget stays 0/4. Administrator automation remains excluded; the overlapping-generation design remains rejected. The task stays Parked whatever the proof verdict.
 
 Loop 19 provider proof P verdict UNDETERMINED, packet SHA-256 74fa91068b22a94f65e16bb9b1e410652d66f1ded9fa3b11f16218d7ea4b63e6 at codex/loop19/lane-p-proof.md. Independent Q ACCEPT review SHA-256 723b063562d6cda24f8598ca11d7a8005779fbab0385950f3307feaf1d64768b at codex/loop19/lane-q-review.md. Direct rotating-MR Delete retains ForceNew and the SDK can invoke Create inside Delete. A nonrotating same-token adoption handle exists in pinned source, but an exclusive restart-safe ownership handoff is unproved and outside this commission. ESO source absence with default deletionPolicy None preserves the remote bytes by controller behavior, while delivery and reload remain separate. AC3 stays open; implementation remains 0/4.
+
+Loop 20 owner decision, 2026-09-24: commission one read-only same-token handoff proof through nonrotating AccessPolicyToken and ServiceAccountToken handles, not the provider connector repair. The proof may assume activation of those kinds and design a persisted same-token adoption and deletion handoff with exclusive ownership, restart, opt-out and whole-stack deletion. The connector repair in codex/loop19/lane-p-proof.md section 7 stays the fallback if the handoff fails. No implementation is admitted; the opt-in implementation budget stays 0/4.
+
+Loop 20 route decision, 2026-09-24: lane H uses gpt-6-astra/high as an explicit one-shot operator exception, followed by independent gpt-6-astra/medium security review R. No H correction round.
+
+Loop 20 release decision, 2026-09-24: leave release PR #51 for the owner. This run makes no pull-request write.
+
+Loop 20 read-only H proof: NOT BUILDABLE WITHOUT A PROVIDER CHANGE, codex/loop20/lane-h-proof.md SHA-256 38007f5af912a8b7b5777806acfd7c1dfdcccbe6cf10c1ac217b5b6399ff5da3. Its proposed nonrotating import primitive is partial; the decisive counterexample is an old provider process resuming a prepared mutation after another process orphan-finalizes that same original MR and the handle begins Delete. The process-local tracker and finalizer do not fence that prior operation. No design file or implementation resulted.
+
+Loop 20 independent R review on the required gpt-6-astra/medium route produced no artifact or verdict: the runtime rejected both the original read-only review turn and a narrower same-thread continuation with a cybersecurity policy error. H is unreviewed and not accepted. GCV-0075 stays Parked, AC3 unchecked, opt-in implementation budget 0/4. Resume only after the owner selects a permitted independent review path for the exact H packet, or commissions the narrow direct provider destroy-only repair in codex/loop19/lane-p-proof.md section 7. Administrator automation and the overlapping-generation design remain excluded.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
