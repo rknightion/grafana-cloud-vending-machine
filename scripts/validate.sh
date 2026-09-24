@@ -488,6 +488,45 @@ ruby -ryaml -e '
     unless directories == [{"path" => "enabled/*"}]
       abort "#{path}: ApplicationSet #{name} must watch only top-level enabled/*"
     end
+
+    # ApplicationSet templates can turn otherwise inert examples into live
+    # requests when they source a path under examples/ or enabled/. Keep the
+    # only known request template: one go-template source at exactly the path
+    # emitted by the enabled/* directory generator. Refuse multi-source and
+    # template patches because either can add or rewrite a source.
+    spec = document["spec"]
+    live_path_risk = "a source path under examples/ or enabled/ can make an inert example live"
+    unless spec["goTemplate"] == true
+      abort "#{path}: ApplicationSet #{name} must set spec.goTemplate: true; #{live_path_risk}"
+    end
+    if spec.key?("templatePatch")
+      abort "#{path}: ApplicationSet #{name} spec.templatePatch is unsupported because it can rewrite the source; #{live_path_risk}"
+    end
+
+    template = spec["template"]
+    template_spec = template.is_a?(Hash) ? template["spec"] : nil
+    unless template_spec.is_a?(Hash)
+      abort "#{path}: ApplicationSet #{name} must declare spec.template.spec.source.path exactly as \"{{.path.path}}\"; #{live_path_risk}"
+    end
+    if template_spec.key?("sources")
+      abort "#{path}: ApplicationSet #{name} spec.template.spec.sources is unsupported; use only spec.template.spec.source.path exactly as \"{{.path.path}}\"; #{live_path_risk}"
+    end
+
+    template_source = template_spec["source"]
+    unless template_source.is_a?(Hash)
+      abort "#{path}: ApplicationSet #{name} spec.template.spec.source must be a mapping with path exactly \"{{.path.path}}\"; #{live_path_risk}"
+    end
+    chart = template_source["chart"]
+    if !chart.nil? && chart != ""
+      abort "#{path}: ApplicationSet #{name} template source chart is unsupported even when the path matches; only a directory path is allowed; #{live_path_risk}"
+    end
+    source_path = template_source["path"]
+    if source_path.nil? && %w[chart ref].any? { |field| template_source[field].is_a?(String) && !template_source[field].empty? }
+      abort "#{path}: ApplicationSet #{name} template source cannot be a pathless chart or ref; #{live_path_risk}"
+    end
+    unless source_path.is_a?(String) && source_path == "{{.path.path}}"
+      abort "#{path}: ApplicationSet #{name} spec.template.spec.source.path must be exactly \"{{.path.path}}\"; #{live_path_risk}"
+    end
   end
 
   applications = argo_objects.select do |kind, _path, _name, _document|
