@@ -1,5 +1,35 @@
 # Changelog
 
+## [3.2.1](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.2.0...v3.2.1) (2026-09-26)
+
+
+### Bug Fixes
+
+* allow-list ApplicationSet template source paths ([1687bc7](https://github.com/rknightion/grafana-cloud-vending-machine/commit/1687bc711c568089365ac5732dcb71076c3b1800))
+
+
+### Documentation
+
+* **backlog:** reconcile loop 19 outcomes ([ef57efc](https://github.com/rknightion/grafana-cloud-vending-machine/commit/ef57efc8960c17e9ba93c32d7d14f9805328b993))
+* **backlog:** reconcile loop 20 outcomes ([faa7617](https://github.com/rknightion/grafana-cloud-vending-machine/commit/faa76179fc0a9f06585a51a028213ffac2d57887))
+* name the Task interface section ([5affb27](https://github.com/rknightion/grafana-cloud-vending-machine/commit/5affb273b625a2f1095978e6913d91f990ec78fe))
+* publish canonical agent documents ([563036c](https://github.com/rknightion/grafana-cloud-vending-machine/commit/563036c2ab73d40abc07b88252064105f6db74ed))
+* publish canonical agent documents ([5bf2a3a](https://github.com/rknightion/grafana-cloud-vending-machine/commit/5bf2a3a0425e698564f1fb3d2b8483557e6b36c3))
+* publish canonical agent documents ([2e82a5c](https://github.com/rknightion/grafana-cloud-vending-machine/commit/2e82a5c525f4a2a567568bf468861d57a1eb39b1))
+* publish canonical agent documents ([408f7da](https://github.com/rknightion/grafana-cloud-vending-machine/commit/408f7dae865b9f1e4dee3087add3e9638e224397))
+* publish canonical agent documents ([e385b10](https://github.com/rknightion/grafana-cloud-vending-machine/commit/e385b106db86aab486144cfaa60da19d2b4ffde3))
+* publish canonical agent documents ([be1d458](https://github.com/rknightion/grafana-cloud-vending-machine/commit/be1d45879ef172312a897e5781df752cdca3578f))
+* publish canonical agent documents ([1beff41](https://github.com/rknightion/grafana-cloud-vending-machine/commit/1beff414a9dfd7e656e62cfed65fa757df9a0b9f))
+* publish canonical agent documents ([5235f8f](https://github.com/rknightion/grafana-cloud-vending-machine/commit/5235f8f82b07abe67f781d874b1e5de672d8c94c))
+
+
+### Miscellaneous Chores
+
+* **backlog:** file GCV-0096 for the doc-0001 public-release-scan regression ([75871a1](https://github.com/rknightion/grafana-cloud-vending-machine/commit/75871a117cde44faa81dd4329de0b20125e8f556))
+* **backlog:** park GCV-0095, AC1/AC2 proven, AC3 unexercised ([33627a1](https://github.com/rknightion/grafana-cloud-vending-machine/commit/33627a10a34692766ccf4ff7c0a766963267a255))
+* **docs:** drop the dead [backlog] table from docs.toml ([e28da0e](https://github.com/rknightion/grafana-cloud-vending-machine/commit/e28da0ef45630e1cd712ee78239907fc9a937ff8))
+* stop tracking machine-local codex/ artefacts ([5fce319](https://github.com/rknightion/grafana-cloud-vending-machine/commit/5fce3193bf3e4bcf08bd877e230db8350d0c6bff))
+
 ## [3.2.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.1.0...v3.2.0) (2026-09-24)
 
 
