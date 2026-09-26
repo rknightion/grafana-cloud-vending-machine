@@ -8,10 +8,11 @@ identity, no credentials and no live requests. Examples are inert by constructio
 asserts the ApplicationSet watches `enabled/*` and nothing else, so adding a second watch path breaks
 the gate deliberately.
 
-## The gate
+## Task interface
 
 `just check` runs `scripts/validate.sh`, byte for byte the same script the hosted
 `Validate public reference` workflow runs. It is the whole local gate and must pass before you commit.
+There is no `just ci` recipe.
 
 Completion claims carry evidence: the completing SHA and the hosted validation run ID. A green local
 run alone is not `Done`.
