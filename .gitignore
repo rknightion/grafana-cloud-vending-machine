@@ -38,3 +38,6 @@ docs/superpowers/
 # is per-machine state (worktrees, scheduler locks, settings.local.json).
 .claude/
 codex/
+
+# loop-pi (pi-subagents writes .pi/subagents/)
+.pi/
