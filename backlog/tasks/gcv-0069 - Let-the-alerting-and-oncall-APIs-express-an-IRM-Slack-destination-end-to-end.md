@@ -1,11 +1,11 @@
 ---
 id: GCV-0069
 title: Let the alerting and oncall APIs express an IRM Slack destination end to end
-status: In Progress
+status: Done
 assignee:
   - '@codex'
 created_date: '2026-09-11 13:22'
-updated_date: '2026-09-30 21:29'
+updated_date: '2026-09-30 23:25'
 labels: []
 dependencies: []
 ordinal: 69000
@@ -35,17 +35,17 @@ SCOPE NOTE. Items 1 to 3 are one coherent change: an integration type, a route-l
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The oncall composite accepts an integration type covering at least the Grafana Alerting type, and the composition writes it instead of a literal
-- [ ] #2 The oncall composite accepts a route-level chat-channel reference taking the channel's opaque id, and the composition sets it on the route
-- [ ] #3 A chat-channel reference that the control plane cannot resolve fails the claim loudly rather than reconciling a route with no destination
-- [ ] #4 The routing composite can emit a contact point of the IRM type whose integration URL is resolved inside the control plane from the referenced oncall composite, never passed in by the consumer
-- [ ] #5 The four shapes are provable together from one claim set: integration, escalation chain, IRM-typed contact point, and a regex-matched notification policy route
+- [x] #1 The oncall composite accepts an integration type covering at least the Grafana Alerting type, and the composition writes it instead of a literal
+- [x] #2 The oncall composite accepts a route-level chat-channel reference taking the channel's opaque id, and the composition sets it on the route
+- [x] #3 A chat-channel reference that the control plane cannot resolve fails the claim loudly rather than reconciling a route with no destination
+- [x] #4 The routing composite can emit a contact point of the IRM type whose integration URL is resolved inside the control plane from the referenced oncall composite, never passed in by the consumer
+- [x] #5 The four shapes are provable together from one claim set: integration, escalation chain, IRM-typed contact point, and a regex-matched notification policy route
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -78,6 +78,8 @@ Loop 22 owner grant: reviewed dual-key migration replaces the wave 15 single-key
 Loop 22 D2 final ACCEPT after R1-R4 corrections. Source-only RBAC aggregation verified in pinned Crossplane 2.3.4; no manual support-role edit. Necessary fn.go reconciliation wiring assigned to I1 by superseding packet; no released API or external-authority amendment. Nonblocking Slack citation correction: pinned official source is web-api/slack_web_openapi_v2.json.
 
 Loop 22 attempt GCV-0069-impl-1 returned partial/uncommitted after one infrastructure retry. Final gate failed dynamic newDesired preservation coverage, not the original single-key Integration signature. CodeRabbit completed two major findings: stable responder binding deadlock and redundant URL transport recommendation. A bounded source/target Slack-reference change trace exposed shared lookup non-convergence. Root disposition: distinct type-specific lookup identities within this newly introduced seam; preserve legacy lookup for inbound-email and a Grafana Alerting lookup for target. Pinned provider source confirms Required/Always reference resolution populates URL from Integration link, so retain internal validation but omit redundant literal URL in emitted ContactPoint. Review-repair round1 reserved, complete gate and fresh CodeRabbit required before S1.
+
+Loop 22 accounting: design2/2; implementation2/3 consumed (impl1 infra1, impl2 infra0); review-repair2/3 consumed (rr1 infra2, rr2 infra0); no ceiling raised beyond owner grant. Original wave 15 single-key Integration signature did not recur. Source-family analyzer and packet ownership gaps repaired without weakening tests or gates. S1-M1 false-green test repaired with predicate-negative control and restored production bytes; final S1 ACCEPT.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -88,4 +90,6 @@ Wave 10 root-only blocker: the required control for integrations.oncall.grafana.
 Wave 15 parked after the second review repeated the integration identity-transition failure. No GCV-0069 source or API change landed. The exact resume boundary is a type-specific dual-key migration retaining old Integration and Route resources until replacement observation proves the new path.
 
 Loop 18 retained owner Parked decision of 2026-09-24. Resume requires a reviewed type-specific dual-key migration and a new budget; no implementation attempted.
+
+Delivered through completing pin SHA3a12bd0260b006484b3400db74801e4fceaba381, hosted Validate36790284865 exact SHA completed success (Validate reference and ci-success success). Source landed17bc31ad2d63c9e7e7e257c6c2466bb8874e116e, hosted Validate36788719954 success; publish36788719877 all four jobs success and Cosign verified immutable digest sha256:29ca2da4146145e330d5c01c3e63f5beba18f15d38b7526ff3b51ef3ca1d9266, pinned in both install references and installation row. Required integrated and pin local gates exit0 Validation passed; 84.9% coverage, no skips or races. Type-specific Integration/Route/Slack lookup migration retains predecessor until both replacements observed; durable journal and named absence witnesses support cancellation/reverse adoption. Internal IRM link validation emits reference-only Required/Always ContactPoint, no consumer URL. Released APIs retain existing constraints/defaults and legacy inbound-email output. Final exact-candidate S1 ACCEPT019176e750aa11c0e9714776774992b94ffb68e0; rebased landing retains stable patch ID611532c18ce409a070ea8001c80c4cd75d6a56a8. CodeRabbit coverage complete; critical missing-status and major ID-clearing suggestions independently disproven by S1, explicit types retained for unchanged analyzer. Live delivery/adoption/migration/deletion are not exercised, and not exercisable here.
 <!-- SECTION:FINAL_SUMMARY:END -->

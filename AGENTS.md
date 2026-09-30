@@ -103,6 +103,19 @@ Do not edit Backlog task, draft, document, decision, or milestone markdown files
 </CRITICAL_INSTRUCTION>
 <!-- BACKLOG.MD GUIDELINES END -->
 
+## OnCall evolution
+
+An absent `integrationType` retains the released inbound-email renderer and identities. Opted-in
+migration uses type-specific Integration, Route and Slack lookup keys plus a controller-owned journal.
+Retained external IDs are required for reverse adoption; retired Kubernetes UIDs are not reused.
+Withdrawal requires observed journal authority, current replacement observations and named absence
+witnesses, not omission from a partial observation map.
+
+IRM ContactPoints emit a Required/Always Integration reference. The pinned provider resolves its link
+inside the control plane; never duplicate a literal bearer URL in consumer input, renderer diagnostics,
+claim status or the migration journal. Necessary provider-managed transport is not a provider-wide
+redaction guarantee.
+
 ## Releases
 
 Release automation runs on pushes to `main` through release-please. Use Conventional Commits so
