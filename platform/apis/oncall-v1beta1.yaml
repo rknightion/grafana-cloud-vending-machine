@@ -49,6 +49,10 @@ spec:
                 - rule: "self.route.match == 'all'"
                   message: on-call route must match every vended alert
               properties:
+                integrationType:
+                  type: string
+                  enum: [inbound_email, grafana_alerting]
+                  description: Optional integration type. Absence preserves the released inbound-email behavior; type changes use a durable observed migration journal.
                 stackRef:
                   type: object
                   required: [name]
@@ -98,6 +102,15 @@ spec:
                   type: object
                   required: [match]
                   properties:
+                    channelId:
+                      type: string
+                      description: Opaque Slack channel ID, validated without normalization by the renderer. At most one of channelId and channelRef may be selected.
+                    channelRef:
+                      type: object
+                      description: Observe-only Slack display-name lookup. Empty or unresolved names cannot publish a usable receiver.
+                      properties:
+                        name:
+                          type: string
                     match:
                       type: string
                       minLength: 1
@@ -106,10 +119,83 @@ spec:
               type: object
               description: Read-only status owned by Crossplane.
               properties:
+                onCallIdentity:
+                  type: object
+                  description: Controller-owned, non-secret migration journal. Returned plans must be observed before creation or withdrawal authority is used.
+                  properties:
+                    version: {type: string}
+                    ownerUID: {type: string}
+                    name: {type: string}
+                    namespace: {type: string}
+                    stack: {type: string}
+                    activeType: {type: string}
+                    activeConfiguration: &onCallConfiguration
+                      type: object
+                      properties:
+                        selection:
+                          type: object
+                          properties:
+                            type: {type: string}
+                            channelMode: {type: string}
+                            channelName: {type: string}
+                            channelID: {type: string}
+                        responders:
+                          type: array
+                          items: {type: string}
+                        shiftStart: {type: string}
+                        bindings:
+                          type: object
+                          additionalProperties: &onCallBinding
+                            type: object
+                            properties:
+                              id: {type: string}
+                              uid: {type: string}
+                    stableEdit:
+                      type: object
+                      properties:
+                        configuration: *onCallConfiguration
+                        fingerprint: {type: string}
+                        plannedUsers:
+                          type: array
+                          items: {type: string}
+                    inventory:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          state: {type: string}
+                          integration: *onCallBinding
+                          route: *onCallBinding
+                          retiredTransaction: {type: string}
+                    transition:
+                      type: object
+                      properties:
+                        fromType: {type: string}
+                        toType: {type: string}
+                        phase: {type: string}
+                        disposition: {type: string}
+                        generation: {type: string}
+                        fingerprint: {type: string}
+                        source: *onCallConfiguration
+                        target: *onCallConfiguration
+                        sourceIncomplete: {type: boolean}
+                        sourceIntegrationPlanned: {type: boolean}
+                        sourceRoutePlanned: {type: boolean}
+                        plannedShared:
+                          type: array
+                          items: {type: string}
+                        plannedIntegration: {type: boolean}
+                        plannedRoute: {type: boolean}
+                        keepType: {type: string}
+                        retireType: {type: string}
                 alertReceiver:
                   type: object
-                  description: Provider-observed inbound-email receiver for consumers of this stack's catch-all alert route.
+                  description: Provider-observed, non-secret receiver identity. Inbound email retains its address; Grafana Alerting publishes only an integration name and type, with its link resolved inside the control plane.
                   properties:
+                    integrationType:
+                      type: string
+                    integrationName:
+                      type: string
                     address:
                       type: string
                     integrationID:

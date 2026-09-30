@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/crossplane/function-sdk-go/errors"
 	"github.com/crossplane/function-sdk-go/resource"
@@ -34,10 +35,11 @@ func renderAlertingRouting(xr map[string]any, _ map[resource.Name]resource.Obser
 			return nil, errors.Errorf("contactPoints[%d] must be an object", index)
 		}
 		shortName, _ := contactPoint["name"].(string)
-		email, _ := contactPoint["email"].(map[string]any)
-		addresses, _ := email["addresses"].([]any)
-		if shortName == "" || len(addresses) == 0 {
-			return nil, errors.Errorf("contactPoints[%d] must set name and email.addresses", index)
+		if shortName == "" {
+			return nil, errors.New("contact point must set a name")
+		}
+		if err := validateRoutingDestination(contactPoint); err != nil {
+			return nil, err
 		}
 		if _, exists := contactNames[shortName]; exists {
 			return nil, errors.Errorf("contactPoints contains duplicate name %q", shortName)
@@ -53,14 +55,20 @@ func renderAlertingRouting(xr map[string]any, _ map[resource.Name]resource.Obser
 		contactPoint := item.(map[string]any)
 		shortName := contactPoint["name"].(string)
 		objectName := contactNames[shortName]
+		parameters := map[string]any{"name": objectName}
+		if email, ok := contactPoint["email"]; ok {
+			parameters["email"] = []any{email}
+		} else {
+			// The pinned provider extracts link from this Integration reference.
+			// Do not duplicate the validated bearer link in desired transport.
+			oncall := contactPoint["oncall"].(map[string]any)
+			parameters["oncall"] = []any{map[string]any{"oncallIntegrationRef": oncall["oncallIntegrationRef"]}}
+		}
 		desired[resource.Name("contact-point-"+shortName)] = newDesired("alerting.grafana.m.crossplane.io/v1alpha1", "ContactPoint", namespace, name+"-contact-point-"+shortName,
 			map[string]any{"crossplane.io/external-name": objectName}, map[string]any{
 				"managementPolicies": managementPolicies,
-				"forProvider": map[string]any{
-					"name":  objectName,
-					"email": []any{contactPoint["email"]},
-				},
-				"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": stackName},
+				"forProvider":        parameters,
+				"providerConfigRef":  map[string]any{"kind": "ProviderConfig", "name": stackName},
 			})
 	}
 
@@ -143,6 +151,34 @@ func renderAlertingRouting(xr map[string]any, _ map[resource.Name]resource.Obser
 			"providerConfigRef": map[string]any{"kind": "ProviderConfig", "name": stackName},
 		})
 	return desired, nil
+}
+
+func validOnCallURL(value string) bool {
+	u, err := url.Parse(value)
+	return err == nil && u.Scheme == "https" && u.Hostname() != "" && u.User == nil && u.Fragment == "" && u.Opaque == ""
+}
+
+func validateRoutingDestination(point map[string]any) error {
+	email, hasEmail := point["email"]
+	oncall, hasOnCall := point["oncall"]
+	if hasEmail == hasOnCall {
+		return errors.New("contact point must select exactly one internal destination")
+	}
+	if hasEmail {
+		e, ok := email.(map[string]any)
+		addresses, _ := e["addresses"].([]any)
+		if !ok || len(addresses) == 0 {
+			return errors.New("contact point must set email.addresses")
+		}
+		return nil
+	}
+	o, ok := oncall.(map[string]any)
+	ref, _ := o["oncallIntegrationRef"].(map[string]any)
+	policy, _ := ref["policy"].(map[string]any)
+	if !ok || !validOnCallURL(stringValue(o, "url", "")) || stringValue(ref, "name", "") == "" || policy["resolution"] != "Required" || policy["resolve"] != "Always" {
+		return errors.New("internal OnCall destination is invalid")
+	}
+	return nil
 }
 
 func renderRoutingRules(rules []any) ([]any, error) {

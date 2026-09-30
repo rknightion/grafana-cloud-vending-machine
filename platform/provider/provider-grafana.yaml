@@ -234,6 +234,7 @@ spec:
     - routes.oncall.grafana.m.crossplane.io
     - schedules.oncall.grafana.m.crossplane.io
     - users.oncall.grafana.o.crossplane.io
+    - slackchannels.oncall.grafana.o.crossplane.io
     - serviceaccountpermissions.oss.grafana.m.crossplane.io
     - serviceaccountrotatingtokens.oss.grafana.m.crossplane.io
     - serviceaccounts.oss.grafana.m.crossplane.io
