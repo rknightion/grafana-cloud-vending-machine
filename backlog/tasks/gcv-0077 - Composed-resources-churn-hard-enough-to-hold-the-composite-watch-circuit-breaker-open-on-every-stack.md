@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-30 23:10'
+updated_date: '2026-09-30 23:39'
 labels: []
 dependencies: []
 references:
@@ -92,6 +92,8 @@ Loop 18 current function pin is 886887d0315a2a6ae5182732f184cc873a5d1fa2 (sha256
 Loop 22 pin-roll boundary: signed function package from successful main publish run 36766188067 resolves to sha256:b227db268335776e050c81548818aa532d71f82992d4f84a12a95ac3ee70ef3f. Install references and installation row move together; estate rollout remains owner action.
 
 Loop 22 final estate pin-roll boundary is signed function digest sha256:29ca2da4146145e330d5c01c3e63f5beba18f15d38b7526ff3b51ef3ca1d9266, published from main17bc31ad2d63c9e7e7e257c6c2466bb8874e116e by run36788719877. Estate rollout remains owner action.
+
+Loop 22 final pin-roll boundary now includes the preserved automatic protobuf update: signed function digest sha256:44273e53f0e7c77264e631c9139841c23eae42943bacbff23c7176ac509a7fd0, publish36791008118 from main8361eda2dad9c7066c25cc5e556c619b81e75853. Owner estate rollout remains open.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

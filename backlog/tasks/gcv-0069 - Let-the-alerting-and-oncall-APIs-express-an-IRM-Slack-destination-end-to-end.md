@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@codex'
 created_date: '2026-09-11 13:22'
-updated_date: '2026-09-30 23:25'
+updated_date: '2026-09-30 23:39'
 labels: []
 dependencies: []
 ordinal: 69000
@@ -92,4 +92,6 @@ Wave 15 parked after the second review repeated the integration identity-transit
 Loop 18 retained owner Parked decision of 2026-09-24. Resume requires a reviewed type-specific dual-key migration and a new budget; no implementation attempted.
 
 Delivered through completing pin SHA3a12bd0260b006484b3400db74801e4fceaba381, hosted Validate36790284865 exact SHA completed success (Validate reference and ci-success success). Source landed17bc31ad2d63c9e7e7e257c6c2466bb8874e116e, hosted Validate36788719954 success; publish36788719877 all four jobs success and Cosign verified immutable digest sha256:29ca2da4146145e330d5c01c3e63f5beba18f15d38b7526ff3b51ef3ca1d9266, pinned in both install references and installation row. Required integrated and pin local gates exit0 Validation passed; 84.9% coverage, no skips or races. Type-specific Integration/Route/Slack lookup migration retains predecessor until both replacements observed; durable journal and named absence witnesses support cancellation/reverse adoption. Internal IRM link validation emits reference-only Required/Always ContactPoint, no consumer URL. Released APIs retain existing constraints/defaults and legacy inbound-email output. Final exact-candidate S1 ACCEPT019176e750aa11c0e9714776774992b94ffb68e0; rebased landing retains stable patch ID611532c18ce409a070ea8001c80c4cd75d6a56a8. CodeRabbit coverage complete; critical missing-status and major ID-clearing suggestions independently disproven by S1, explicit types retained for unchanged analyzer. Live delivery/adoption/migration/deletion are not exercised, and not exercisable here.
+
+Loop 22 later preserved automatic protobuf dependency update publishes the same IRM feature from8361eda2dad9c7066c25cc5e556c619b81e75853 via successful run36791008118. Current signed package resolves to sha256:44273e53f0e7c77264e631c9139841c23eae42943bacbff23c7176ac509a7fd0; Cosign verification passed and final pin follows. The feature source and released APIs are unchanged by this dependency update.
 <!-- SECTION:FINAL_SUMMARY:END -->
