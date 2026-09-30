@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-09-11 13:22'
-updated_date: '2026-09-30 20:15'
+updated_date: '2026-09-30 20:39'
 labels: []
 dependencies: []
 ordinal: 69000
@@ -54,6 +54,8 @@ SCOPE NOTE. Items 1 to 3 are one coherent change: an integration type, a route-l
 1. Lane D adds selectable integration type, exactly-one Slack channel reference or opaque id, unresolved-reference readiness blocking, and the IRM contact-point cross-resource reference.
 2. Prove the four-resource route in one claim set while preserving the existing regex notification policy surface.
 3. Root wires SlackChannel activation and mapping, runs the integrated gate and security review, then records exact-SHA hosted evidence.
+
+Loop 22 accepted implementation sequence: type-specific dual-key migration with observed durable journal and frozen committed configuration; positive stack admission before advancement/pruning; exact Slack destination readback; type-specific internal IRM URL join with fixed diagnostics; untouched default inbound-email output and optional-only API additions. D2 accepted final design; implementation in isolated candidate branch, own gate/CodeRabbit, independent S1, then main landing/publish/pin.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -72,6 +74,8 @@ Wave 15 exhausted its two lane attempts and one bounded root repair. Lane E and 
 2026-09-24 owner decision: keep Parked. Resume requires a reviewed type-specific dual-key migration and new budget.
 
 Loop 22 owner grant: reviewed dual-key migration replaces the wave 15 single-key failure premise. Design budget 2, implementation budget 3 and review-repair budget 3 are new explicitly granted allowances; prior wave 15 spent two lane attempts and one root repair. D1 design then D2 independent review precede implementation; no released API tightening permitted.
+
+Loop 22 D2 final ACCEPT after R1-R4 corrections. Source-only RBAC aggregation verified in pinned Crossplane 2.3.4; no manual support-role edit. Necessary fn.go reconciliation wiring assigned to I1 by superseding packet; no released API or external-authority amendment. Nonblocking Slack citation correction: pinned official source is web-api/slack_web_openapi_v2.json.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
