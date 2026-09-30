@@ -3,11 +3,11 @@ id: GCV-0075
 title: >-
   Vended rotating tokens can never rotate, so every stack loses its credentials
   at the first rotation window
-status: In Progress
+status: Parked
 assignee:
   - '@claude'
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-30 18:57'
+updated_date: '2026-09-30 19:33'
 labels: []
 dependencies: []
 references:
@@ -48,8 +48,8 @@ This needs a decision, not a patch, and every option is unattractive: delete and
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -174,6 +174,8 @@ Loop 20 read-only H proof: NOT BUILDABLE WITHOUT A PROVIDER CHANGE, codex/loop20
 Loop 20 independent R review on the required gpt-6-astra/medium route produced no artifact or verdict: the runtime rejected both the original read-only review turn and a narrower same-thread continuation with a cybersecurity policy error. H is unreviewed and not accepted. GCV-0075 stays Parked, AC3 unchecked, opt-in implementation budget 0/4. Resume only after the owner selects a permitted independent review path for the exact H packet, or commissions the narrow direct provider destroy-only repair in codex/loop19/lane-p-proof.md section 7. Administrator automation and the overlapping-generation design remain excluded.
 
 2026-09-30 carry implemented. Root cause confirmed at the pins: ready_for_rotation is Computed+ForceNew; Upjet Update refuses any RequiresNew diff; Upjet Delete reuses the Observe diff, so the SDK Apply runs the pending replacement inside Delete. Against a fake API that Create fails for lack of configuration, so an in-window Delete errors rather than minting an orphan token, which corrects the earlier orphan-token expectation. Fix, carried in a public fork of the provider at tag v2.14.0-rotation.1: a provider config override for the three rotating-token kinds clears ForceNew on ready_for_rotation and mints the successor inside Update; Observe then moves the external name to the new token and republishes the connection Secret; the predecessor stays valid until its own expiry, including under deleteOnDestroy, because Upjet Update returns no connection details and the new key is published only at the next poll. Proof: tests drive the real Upjet SDK connector against a fake API for all three kinds (rotate in place, cold restart after rotation, delete inside the window with and without deleteOnDestroy, plain access policy update does not rotate), each rotation case seen failing without the override with the exact refuse-to-update message. Fork CI run 36745416011 green including check-diff, so no generated type changed. Image multi-arch, cosign-verified locally against the fork tag identity. This repository now overrides only the package-runtime image by digest, verifies it in the PreSync Job, and the gate requires the carried tag to start with the package tag, seen failing for tag drift, identity drift and a missing verifier. AC3 stays open until an estate observes one in-place rotation after rollout.
+
+2026-09-30 DoD: local just check passed and hosted Validate public reference run 36763862811 succeeded on f35c8a039ce79c7fa953cc4e2706e93da4430a42, the commit wiring the carried controller. Parked with one resume boundary: AC3 is checked only when an owner rolls this revision to an estate and observes one rotating token rotate in place (external name moves to a new token ID, Synced stays True, connection Secret carries the new key). The estate windows recorded earlier open 2026-10-03 and 2026-10-09, so an estate synced to this revision before then will exercise it without any manual recreate.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -190,4 +192,6 @@ Wave 17 design-only exploration identified a conditional same-token expiry-exten
 Loop 18 parked before implementation after F design and independent G review confirmed the pinned provider Delete path can create during Delete with a ForceNew diff; external revocation is not established by omission. New opt-in implementation budget remains 0/4. Resume with separately scoped provider deletion/restart proof, exact condition fixture and ESO gap behavior, then a revised reviewed design. Administrator remains operator-controlled.
 
 Loop 19 read-only P/Q proof accepted as UNDETERMINED. Direct rotating-MR deletion is unsafe; a possible nonrotating adoption handle needs a new ownership contract. Resume when the owner commissions either a read-only same-token handoff proof against packet 74fa91068b22a94f65e16bb9b1e410652d66f1ded9fa3b11f16218d7ea4b63e6 or the narrow provider connector repair described there. No implementation or live action was authorized; AC3 remains unchecked.
+
+2026-09-30: implemented through a carried provider controller that rotates the three rotating-token kinds in place, proven against the real Upjet connector, wired by digest with cosign verification and a tag-match gate, hosted Validate 36763862811. AC3 awaits an owner estate rollout.
 <!-- SECTION:FINAL_SUMMARY:END -->
