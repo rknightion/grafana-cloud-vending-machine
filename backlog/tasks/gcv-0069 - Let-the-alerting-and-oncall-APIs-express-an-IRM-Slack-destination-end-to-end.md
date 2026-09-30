@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-09-11 13:22'
-updated_date: '2026-09-30 20:39'
+updated_date: '2026-09-30 21:29'
 labels: []
 dependencies: []
 ordinal: 69000
@@ -76,6 +76,8 @@ Wave 15 exhausted its two lane attempts and one bounded root repair. Lane E and 
 Loop 22 owner grant: reviewed dual-key migration replaces the wave 15 single-key failure premise. Design budget 2, implementation budget 3 and review-repair budget 3 are new explicitly granted allowances; prior wave 15 spent two lane attempts and one root repair. D1 design then D2 independent review precede implementation; no released API tightening permitted.
 
 Loop 22 D2 final ACCEPT after R1-R4 corrections. Source-only RBAC aggregation verified in pinned Crossplane 2.3.4; no manual support-role edit. Necessary fn.go reconciliation wiring assigned to I1 by superseding packet; no released API or external-authority amendment. Nonblocking Slack citation correction: pinned official source is web-api/slack_web_openapi_v2.json.
+
+Loop 22 attempt GCV-0069-impl-1 returned partial/uncommitted after one infrastructure retry. Final gate failed dynamic newDesired preservation coverage, not the original single-key Integration signature. CodeRabbit completed two major findings: stable responder binding deadlock and redundant URL transport recommendation. A bounded source/target Slack-reference change trace exposed shared lookup non-convergence. Root disposition: distinct type-specific lookup identities within this newly introduced seam; preserve legacy lookup for inbound-email and a Grafana Alerting lookup for target. Pinned provider source confirms Required/Always reference resolution populates URL from Integration link, so retain internal validation but omit redundant literal URL in emitted ContactPoint. Review-repair round1 reserved, complete gate and fresh CodeRabbit required before S1.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
