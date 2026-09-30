@@ -63,20 +63,9 @@ them. Read it at loop preparation.
 
 ## Standing route exceptions
 
-- **Task GCV-0075 (provider-boundary / same-token-handoff proof, and its independent review).**
-  - Lane kind: a single read-only SECURITY/design-judgement lane — no implementation, no live or
-    estate action, network limited to reads of pinned public upstream source.
-  - Scope: route to `gpt-6-astra` at `high`, one-shot per loop (no correction round, no stacking of
-    attempts). Re-granted by the owner at preparation across four consecutive units — wave 17 lane F,
-    loop 19 lane P, loop 20 lane H, loop 21 lane R2a — each time despite that loop's own goal calling
-    it "not a precedent" and despite the fan-out protocol's default "never automatically launch
-    Astra/high ... only a new explicit operator instruction" (`goal-2026-09-24-loop21.md` line 195:
-    "GCV-0075, Astra/high one-shots | wave 17 F, loop 19 P, loop 20 H | loop 21 R2a, one-shot review,
-    no correction round | Each needs a new explicit owner instruction"; corroborated in
-    `goal-2026-09-24-loop19.md` §0 item 1 and `goal-2026-09-24-loop20.md` §0 item 1;
-    `work.md` D9, lines 316-326).
-  - Expiry: none given by any source. Treat as standing until revoked by Rob.
-  - Fallback on refusal: see Known traps below.
+None. The GCV-0075 Astra/high proof exception (wave 17 through loop 21) is retired: GCV-0075 was
+implemented on 2026-09-30 through a carried provider controller, and only its owner estate rollout
+remains (task notes).
 
 ## Known traps
 
@@ -98,6 +87,13 @@ them. Read it at loop preparation.
 - **`backlog task edit --notes`/`--plan` bare silently replaces the whole section and exits 0**,
   destroying another session's writes; use `--append-notes`/`--append-plan` (AGENTS.md "Backlog CLI
   traps").
+
+- **The provider controller is a carried build.** `platform/provider/provider-grafana.yaml`
+  overrides the `package-runtime` image with a carried build of the package tag that rotates
+  rotating tokens in place (GCV-0075). The gate refuses a carried tag that does not start with the
+  package tag, so a provider pin bump (including a Renovate one) is red until the carry is rebuilt
+  from the new tag and its image digest, verifier digest and tag-scoped identity move together.
+  Never merge a provider pin bump without that rebuild (docs/installation.md).
 
 ## Cross-harness eligibility
 
