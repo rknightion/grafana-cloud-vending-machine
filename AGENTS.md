@@ -28,7 +28,9 @@ history is not an option here.
 The trap that catches agents specifically is absolute local paths: the scan rejects the macOS
 home-directory prefix case-sensitively, and tooling instructions, hook tests and pasted command lines
 carry them by default. Derive paths from `git rev-parse --show-toplevel` or use relative paths. Never
-hard-code one, in this file included.
+hard-code one, in this file included. Git administrative metadata is excluded in both checkout shapes:
+`.git` may be a linked-worktree pointer file, not only a directory. Ordinary files, including ignored
+working-tree files, remain in scope.
 
 The frozen publication boundary is narrower than a blanket slug prohibition. Stack slugs, regions
 and `grafana.net` hostnames are permitted. Bare numeric organisation, stack and account identifiers,

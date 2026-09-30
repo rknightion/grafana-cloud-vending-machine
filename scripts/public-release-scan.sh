@@ -20,7 +20,7 @@ done < <(git rev-list --all)
 scan_fixed() {
   local label=$1
   local pattern=$2
-  if rg --hidden --glob '!.git/**' --glob '!scripts/public-release-scan.sh' -n -i -F -- "$pattern" .; then
+  if rg --hidden --glob '!.git' --glob '!.git/**' --glob '!scripts/public-release-scan.sh' -n -i -F -- "$pattern" .; then
     echo "public-release scan: found $label in the working tree" >&2
     failed=1
   fi
@@ -35,7 +35,7 @@ scan_fixed() {
 scan_fixed_case_sensitive() {
   local label=$1
   local pattern=$2
-  if rg --hidden --glob '!.git/**' --glob '!scripts/public-release-scan.sh' -n -F -- "$pattern" .; then
+  if rg --hidden --glob '!.git' --glob '!.git/**' --glob '!scripts/public-release-scan.sh' -n -F -- "$pattern" .; then
     echo "public-release scan: found $label in the working tree" >&2
     failed=1
   fi
@@ -50,7 +50,7 @@ scan_fixed_case_sensitive() {
 scan_regex() {
   local label=$1
   local pattern=$2
-  if rg --hidden --glob '!.git/**' --glob '!LICENSE' --glob '!scripts/public-release-scan.sh' \
+  if rg --hidden --glob '!.git' --glob '!.git/**' --glob '!LICENSE' --glob '!scripts/public-release-scan.sh' \
     -n -i -- "$pattern" .; then
     echo "public-release scan: found $label in the working tree" >&2
     failed=1
@@ -117,7 +117,7 @@ scan_working_tree_only() {
   local quiet=${5:-0}
   local case_sensitive=${6:-0}
   local status
-  local -a rg_args=(rg --hidden --glob '!.git/**' \
+  local -a rg_args=(rg --hidden --glob '!.git' --glob '!.git/**' \
     --glob '!scripts/public-release-scan.sh' -n)
   local hits
 
@@ -309,7 +309,7 @@ scan_fixed_case_sensitive_allowing() {
   local allowed=$3
   local hits
 
-  hits=$(run_search rg --hidden --glob '!.git/**' \
+  hits=$(run_search rg --hidden --glob '!.git' --glob '!.git/**' \
     --glob '!scripts/public-release-scan.sh' -n -F -- "$pattern" . |
     sift_hits_case_sensitive "$pattern" "$allowed")
   if [[ -n $hits ]]; then
@@ -336,7 +336,7 @@ scan_fixed_allowing() {
   local allowed=$3
   local hits
 
-  hits=$(run_search rg --hidden --glob '!.git/**' \
+  hits=$(run_search rg --hidden --glob '!.git' --glob '!.git/**' \
     --glob '!scripts/public-release-scan.sh' -n -i -F -- "$pattern" . |
     sift_hits "$pattern" "$allowed")
   if [[ -n $hits ]]; then
