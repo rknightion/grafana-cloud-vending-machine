@@ -67,6 +67,7 @@
     {"apiVersion": "oncall.grafana.m.crossplane.io/v1alpha1", "kind": "OutgoingWebhook", "plural": "outgoingwebhooks"},
     {"apiVersion": "oncall.grafana.m.crossplane.io/v1alpha1", "kind": "Route", "plural": "routes"},
     {"apiVersion": "oncall.grafana.m.crossplane.io/v1alpha1", "kind": "Schedule", "plural": "schedules"},
+    {"apiVersion": "oncall.grafana.o.crossplane.io/v1alpha1", "kind": "SlackChannel", "plural": "slackchannels"},
     {"apiVersion": "oncall.grafana.o.crossplane.io/v1alpha1", "kind": "User", "plural": "users"},
     {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "ConnectionV0Alpha1", "plural": "connectionv0alpha1s"},
     {"apiVersion": "oss.grafana.m.crossplane.io/v1alpha1", "kind": "Dashboard", "plural": "dashboards"},

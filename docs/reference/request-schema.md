@@ -106,7 +106,7 @@ configuration, not a live cloud transaction or notification delivery.
 | API | Request fields | Policy and ownership |
 | --- | --- | --- |
 | `GrafanaAlertingRouting` | `stackRef`, `contactPoints`, `defaultContactPoint`, optional `routes` and `ruleGroups` | One request named after its stack owns the complete notification-policy tree. Every receiver is reachable. Each contact point selects literal `email` or a same-stack `onCallRef`. Ordinary rules omit direct notification settings and use this tree. |
-| `GrafanaOnCall` | `stackRef`, UTC `shiftStart`, `responders`, `escalation`, `route` | One request per stack; individual responders rotate in weekly groups from the explicit anchor. Users and dependent identities are observed. Only the vended schedule and catch-all route are accepted. |
+| `GrafanaOnCall` | `stackRef`, UTC `shiftStart`, `responders`, `escalation`, `route`, optional `integrationType` and Slack selection | One request per stack; individual responders rotate in weekly groups from the explicit anchor. Users and dependent identities are observed. Only the vended schedule and catch-all route are accepted. |
 | `GrafanaCloudIntegrations` | `stackRef`, `profile`, `scrapeJobs` | One request per stack. Platform profiles own accounts, credential references, scrape count and interval budgets. A profile usage mismatch with the observed stack fails reconciliation. |
 | `GrafanaPDC` | `stackRef`, `profile`, `networks`, `token.expiresAfter`, optional `datasources` | Datasources may reference only this request's networks. Tokens wait for observed network IDs and use the existing Composition lifetime ceiling. |
 | `GrafanaServiceAccounts` | `stackRef`, `profile`, `accounts` | One request per stack; platform profiles own roles, rotating token lifetime and whole-set permissions. Static tokens and permission-item writers are excluded. |
@@ -138,6 +138,62 @@ The existing usage-specific weighted check budget is enforced at reconciliation;
 there is no cross-resource admission claim for that budget. CheckAlerts does not
 select a receiver, and delivery through a vended notification policy remains
 unproven for Synthetic Monitoring.
+
+### `GrafanaOnCall` and `GrafanaAlertingRouting`
+
+`GrafanaOnCall.spec.integrationType` optionally selects `inbound_email` or
+`grafana_alerting`. Omission preserves the released inbound-email staging, child
+names and address-based receiver behavior. It adds no schema default or new
+required field.
+
+`spec.route` retains `match: all` and accepts at most one Slack destination:
+
+| Field | Behavior |
+| --- | --- |
+| `channelRef.name` | Observe-only SlackChannel lookup by display name. The Route references its own type-specific lookup with Required resolution and Always refresh. |
+| `channelId` | Opaque ID escape hatch. The entire input must match `^(?:C[A-Z0-9]{2,}\|[GD][A-Z0-9]{8,})$`; no trimming, display-name pass-through, or existence inference. |
+
+Selecting neither field remains valid for a schedule-only request. Both together, an empty
+reference, or an invalid ID are refused with fixed diagnostics before a new
+Route update is transmitted. Missing or stale lookup evidence cannot publish a
+usable receiver. Readiness requires exactly the selected enabled Slack ID in
+current Route readback; a syntactically plausible but silently dropped ID remains
+not ready with a visible fixed warning. Removing Slack explicitly clears desired
+destinations and waits for no enabled destinations in readback. Untouched released
+schedule-only requests do not acquire these new readback requirements.
+
+The controller-owned `status.onCallIdentity` is a non-secret durable journal,
+not a consumer input. Type changes retain the existing Integration and Route
+under their original keys while replacements use different keys. Each type has
+its own Slack lookup during overlap. Retirement authority comes from observed
+journal phases and current replacement observations, then named absence witnesses:
+Route ownership retires before Integration ownership. Existing management policies
+retain external resources, so this is not revocation or external deletion proof.
+Reverse migration adopts inventoried identities. Stable responder additions plan
+observe-only User lookups while retaining the old graph, and activate the new
+configuration only after current owned bindings are captured. Request edits
+behind a transaction are deferred; committed retirement uses its frozen
+configuration rather than the latest request. Closed stack admission preserves
+trusted applied specifications without advancement, creation or pruning. Malformed
+or mismatched journals are refused, never reset silently.
+
+`GrafanaAlertingRouting.spec.contactPoints[].onCallRef.name` continues to select a
+same-namespace, same-stack OnCall object. For `inbound_email` its current
+`status.alertReceiver.address` supplies the released email destination; no
+Integration link is required. For `grafana_alerting`, receiver status publishes
+only Integration identity/name/type and current generation. The function validates
+that managed Integration and its HTTPS link inside the control plane, then emits
+one IRM `oncall` block containing only a Required/Always `oncallIntegrationRef`.
+The pinned provider extracts the link from the same Integration. Consumers never
+supply a URL, and links are absent from journal, XR receiver status, metadata,
+fingerprints and renderer diagnostics. Necessary provider-managed status transport
+remains sensitive; no provider-wide redaction claim is made. The whole-tree regex
+notification-policy contract is unchanged.
+
+See [the catalog](catalog.md) and `examples/catalog/oncall/` for linked inert
+claims. Offline checks establish schema and renderer behavior, not live provider
+reconciliation, adoption, migration or delivery; those are not exercised, and not
+exercisable here.
 
 The [catalog](catalog.md) links each complete field example. All schemas and
 Compositions live together under `platform/apis/`.

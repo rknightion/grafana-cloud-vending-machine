@@ -1,0 +1,41 @@
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaOnCall
+metadata:
+  name: replacewithirm01
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithirm01
+  integrationType: grafana_alerting
+  responders:
+    - username: replace-with-oncall-user
+  shiftStart: "2020-01-06T00:00:00"
+  escalation:
+    finalStep: schedule
+    scheduleRef:
+      name: vended
+  route:
+    match: all
+    channelRef:
+      name: replace-with-slack-channel
+---
+apiVersion: platform.example.org/v1beta1
+kind: GrafanaAlertingRouting
+metadata:
+  name: replacewithirm01
+  namespace: grafana-vending
+spec:
+  stackRef:
+    name: replacewithirm01
+  contactPoints:
+    - name: irm
+      onCallRef:
+        name: replacewithirm01
+  defaultContactPoint: irm
+  routes:
+    - name: services
+      contactPoint: irm
+      matchers:
+        - label: service
+          match: "=~"
+          value: "example-.*"

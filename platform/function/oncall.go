@@ -11,6 +11,17 @@ import (
 const onCallRendererImplemented = true
 
 func renderOnCall(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
+	if onCallJournalGoverned(xr) {
+		return renderOnCallIdentity(xr, observed, config)
+	}
+	if _, err := onCallSelection(xr); err != nil {
+		return nil, err
+	}
+	return renderOnCallLegacy(xr, observed, config)
+}
+
+// The released staging path is deliberately kept separate from the journal.
+func renderOnCallLegacy(xr map[string]any, observed map[resource.Name]resource.ObservedComposed, config map[string]any) (map[resource.Name]*resource.DesiredComposed, error) {
 	metadata, _ := xr["metadata"].(map[string]any)
 	spec, _ := xr["spec"].(map[string]any)
 	name, _ := metadata["name"].(string)
@@ -185,6 +196,7 @@ func onCallExternalAnnotations(observed map[resource.Name]resource.ObservedCompo
 }
 
 func onCallObservedDependent(observed map[resource.Name]resource.ObservedComposed, names ...resource.Name) bool {
+	names = append(names, "integration-grafana-alerting", "catch-all-route-grafana-alerting")
 	for _, name := range names {
 		if _, found := observed[name]; found {
 			return true

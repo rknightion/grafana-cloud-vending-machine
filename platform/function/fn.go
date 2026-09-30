@@ -164,6 +164,17 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 			return rsp, nil
 		}
 	}
+	onCallEarly := kind == "GrafanaOnCall" && onCallJournalGoverned(content)
+	if onCallEarly {
+		admitted, admissionErr := accessResourcesAdmittedWithRequest(req, rsp, content)
+		if admissionErr != nil {
+			response.Fatal(rsp, admissionErr)
+			return rsp, nil
+		}
+		// Overwrite caller input in place: config alias identity is a contract.
+		resolvedConfig[onCallContextKey] = onCallTrustedContext{Admitted: admitted, Request: req, Response: rsp}
+		delete(resolvedConfig, onCallPlanKey)
+	}
 	desired, err := renderer.render(content, observed, resolvedConfig)
 	if err == nil {
 		err = refusedVendorShapeError(desired)
@@ -213,6 +224,22 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 			status = desiredProvisioningConnectionStatus(content, observed, resolvedConfig)
 		case "GrafanaOnCall":
 			status, productContextReady = onCallReceiverStatus(content, observed, desired)
+			if onCallEarly {
+				plan, hasPlan := resolvedConfig[onCallPlanKey].(onCallPlan)
+				if hasPlan {
+					err = onCallPlanStatus(status, plan)
+					if plan.PendingDestination {
+						response.Warning(rsp, errors.New("OnCall Slack destination is not confirmed by current provider readback")).TargetCompositeAndClaim()
+					}
+				} else {
+					// Closed admission returns applied children and leaves journal unchanged.
+					s, _ := content["status"].(map[string]any)
+					if journal, exists := s["onCallIdentity"]; exists {
+						status.Resource.UnstructuredContent()["status"].(map[string]any)["onCallIdentity"] = journal
+					}
+				}
+				productContextReady = productContextReady && hasPlan && plan.CurrentRequest
+			}
 		case "GrafanaStackInventory":
 			status = desiredStackInventoryStatus(content, observed)
 		case "GrafanaStackLadder":
@@ -252,6 +279,11 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 			return rsp, nil
 		}
 	}
+	if onCallEarly {
+		if plan, ok := resolvedConfig[onCallPlanKey].(onCallPlan); ok {
+			pruneOnCallDesired(rsp, plan)
+		}
+	}
 	if kind == "GrafanaK6Project" {
 		pruneK6Desired(rsp, desired)
 	}
@@ -267,7 +299,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		return rsp, nil
 	}
 	if err := response.SetDesiredComposedResources(rsp, desired); err != nil {
-		response.Fatal(rsp, errors.Wrap(err, "cannot set desired composed resources"))
+		response.Fatal(rsp, errors.New("cannot serialize desired composed resources"))
 	}
 
 	return rsp, nil

@@ -23,7 +23,7 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
-          description: The authoritative Grafana notification policy tree, its owned email contact points, and ordinary alert rules for one stack. The platform replaces policy nodes omitted from this request; existing direct rule-level routes remain outside this tree.
+          description: The authoritative Grafana notification policy tree, its owned email or internally resolved IRM contact points, and ordinary alert rules for one stack. The platform replaces policy nodes omitted from this request; existing direct rule-level routes remain outside this tree.
           x-kubernetes-validations:
             - rule: self.metadata.name == self.spec.stackRef.name
               message: metadata.name must match spec.stackRef.name so one composite owns the stack notification policy tree
@@ -59,7 +59,7 @@ spec:
                   maxItems: 20
                   x-kubernetes-list-type: map
                   x-kubernetes-list-map-keys: [name]
-                  description: Complete platform-owned email contact point set. A removed entry is no longer owned or reachable through this tree.
+                  description: Complete platform-owned contact point set. Literal email or onCallRef selects the destination; IRM bearer links are never consumer input. A removed entry is no longer owned or reachable through this tree.
                   items:
                     type: object
                     required: [name]
@@ -76,7 +76,7 @@ spec:
                       onCallRef:
                         type: object
                         required: [name]
-                        description: Same-namespace GrafanaOnCall for this stack. Its observed integration email becomes this contact point destination.
+                        description: Same-namespace GrafanaOnCall for this stack. Current inbound-email receivers retain email delivery; Grafana Alerting receivers select an IRM Integration reference whose link is resolved inside the control plane.
                         properties:
                           name:
                             type: string
