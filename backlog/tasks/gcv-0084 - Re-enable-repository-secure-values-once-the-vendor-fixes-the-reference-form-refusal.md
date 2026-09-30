@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-18 08:00'
-updated_date: '2026-09-22 15:57'
+updated_date: '2026-09-30 20:15'
 labels:
   - needs-triage
   - vendor-defect
@@ -59,4 +59,6 @@ Moved from To Do to Parked. AC1 requires re-verifying the vendor's secure-value 
 Owner's position: leave it parked until the vendor ships the fix, because the verification would fail anyway.
 
 Resume boundary: an owner-run live check, outside this repository, on a stack nothing depends on, establishing whether the reference form is accepted for both the connection and repository kinds. Remember the vendor's secret API ignores dryRun, so every such call mutates and its residue must be removed and recorded. Only once that evidence exists does the in-repository half become selectable: removing the admission refusal graded against the released-API rule, and resolving the connection renderer's duplicate secure value in the same change.
+
+Loop 22 public-only vendor evidence is INCONCLUSIVE: grafana/grafana PR 116501 (merged 2026-01-21) creates Repository tokens when referencing Connections, but does not prove secure-value name-reference acceptance for both kinds; PR 109908 (merged 2025-08-22) moved Git Sync to InlineSecureValues. Public setup docs still demonstrate create. No live contact or AC1 completion. Resume remains an owner-run live check for both kinds outside this inert reference, with residue removal. Evidence URLs: https://github.com/grafana/grafana/pull/116501 and https://github.com/grafana/grafana/pull/109908. Implementation/review-repair counts 0/0 in loop22; no infrastructure retries, public search access limitation noted.
 <!-- SECTION:NOTES:END -->

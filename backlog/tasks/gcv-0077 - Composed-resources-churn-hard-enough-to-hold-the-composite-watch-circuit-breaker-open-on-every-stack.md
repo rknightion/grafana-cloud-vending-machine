@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-24 10:25'
+updated_date: '2026-09-30 20:15'
 labels: []
 dependencies: []
 references:
@@ -88,6 +88,8 @@ Also observed, and separately relevant to GCV-0075 AC4: AccessPolicyRotatingToke
 Wave 13 terminal reconciliation: pinned-source evidence identifies resolver and late-initializer scalar writes as the no-op spec-write source for AccessPolicy, FolderPermission, and DashboardPermission. Focused tests prove the renderer preserves observed identifiers, UIDs, team IDs, and org IDs. No live cluster contact was permitted, so generation settling and Responsive=True remain unverified.
 
 Loop 18 current function pin is 886887d0315a2a6ae5182732f184cc873a5d1fa2 (sha256:c2e55953a4ec28376aed668d5d58c80932f668e24e5242699f595d2d1c282d08). AC4 remains estate rollout and multi-window Responsive=True observation.
+
+Loop 22 pin-roll boundary: signed function package from successful main publish run 36766188067 resolves to sha256:b227db268335776e050c81548818aa532d71f82992d4f84a12a95ac3ee70ef3f. Install references and installation row move together; estate rollout remains owner action.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

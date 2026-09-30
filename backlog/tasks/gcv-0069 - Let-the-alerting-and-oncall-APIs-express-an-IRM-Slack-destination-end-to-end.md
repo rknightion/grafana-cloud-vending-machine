@@ -1,11 +1,11 @@
 ---
 id: GCV-0069
 title: Let the alerting and oncall APIs express an IRM Slack destination end to end
-status: Parked
+status: In Progress
 assignee:
   - '@codex'
 created_date: '2026-09-11 13:22'
-updated_date: '2026-09-24 10:25'
+updated_date: '2026-09-30 20:15'
 labels: []
 dependencies: []
 ordinal: 69000
@@ -70,6 +70,8 @@ Wave 15 commissioned from the accepted wave 14 fit packet. Preserve the released
 Wave 15 exhausted its two lane attempts and one bounded root repair. Lane E and CodeRabbit both rejected the identity transition: one logical composed-resource key cannot retain the old Integration while creating the renamed replacement. The second CodeRabbit pass repeated the same failure signature, so the complete candidate was removed under the wave stop rule. Resume only with a reviewed type-specific composed-resource-key migration that retains the old Integration and Route until both replacements are observed, without tightening either released API.
 
 2026-09-24 owner decision: keep Parked. Resume requires a reviewed type-specific dual-key migration and new budget.
+
+Loop 22 owner grant: reviewed dual-key migration replaces the wave 15 single-key failure premise. Design budget 2, implementation budget 3 and review-repair budget 3 are new explicitly granted allowances; prior wave 15 spent two lane attempts and one root repair. D1 design then D2 independent review precede implementation; no released API tightening permitted.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
