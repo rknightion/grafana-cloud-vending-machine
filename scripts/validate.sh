@@ -217,6 +217,53 @@ ruby -ryaml -e '
     end
     documents.each { |document| collect_package_references.call(document) }
     abort "#{path}: package digest must occur only in the package resource and verification Job argument" unless package_references.length == 2
+
+    # A runtime image override runs a controller built outside the signed
+    # package. It must be digest-pinned, built from the package tag, and
+    # verified by the same Job against the tag-scoped identity that built it,
+    # so the controller can never drift from the CRDs it serves.
+    runtime_config_name = packages.fetch(0).dig("spec", "runtimeConfigRef", "name")
+    runtime_images = documents.select do |document|
+      document["kind"] == "DeploymentRuntimeConfig" && document.dig("metadata", "name") == runtime_config_name
+    end.flat_map do |document|
+      (document.dig("spec", "deploymentTemplate", "spec", "template", "spec", "containers") || []).
+        select { |container| container["name"] == "package-runtime" && container.key?("image") }.
+        map { |container| container["image"] }
+    end
+    abort "#{path}: at most one package-runtime image override is allowed" if runtime_images.length > 1
+    runtime_images.each do |runtime_image|
+      runtime_match = runtime_image.to_s.match(/\A[^@\s]+:([^:@\s]+)@sha256:([0-9a-f]{64})\z/)
+      abort "#{path}: package-runtime image #{runtime_image} must be pinned as tag@sha256:digest" if runtime_match.nil?
+      runtime_tag, runtime_digest = runtime_match.captures
+      package_tag = installed.match(/:([^:@\s]+)@sha256:/)&.captures&.first
+      abort "#{path}: package #{installed} has no tag" if package_tag.nil?
+      abort "#{path}: package-runtime image tag #{runtime_tag} is not built from package tag #{package_tag}" unless runtime_tag.start_with?("#{package_tag}-")
+      runtime_verifiers = (verification_job.dig("spec", "template", "spec", "containers") || []).drop(1).select do |container|
+        (container["args"] || []).include?(runtime_image)
+      end
+      abort "#{path}: verification Job must verify package-runtime image #{runtime_image} in its own container" unless runtime_verifiers.length == 1
+      runtime_verifier = runtime_verifiers.fetch(0)
+      package_verifier = verification_job.dig("spec", "template", "spec", "containers", 0)
+      abort "#{path}: package-runtime verifier must use the package verifier image" unless runtime_verifier["image"] == package_verifier["image"]
+      runtime_args = runtime_verifier.fetch("args")
+      abort "#{path}: package-runtime verifier must run cosign verify" unless runtime_args.first == "verify"
+      issuers = runtime_args.grep(/\A--certificate-oidc-issuer=/)
+      abort "#{path}: package-runtime verifier must pin the GitHub Actions OIDC issuer" unless issuers == ["--certificate-oidc-issuer=https://token.actions.githubusercontent.com"]
+      identities = runtime_args.grep(/\A--certificate-identity/)
+      expected_identity = "--certificate-identity=https://github.com/rknightion/crossplane-provider-grafana/.github/workflows/ci_tag.yaml@refs/tags/#{runtime_tag}"
+      abort "#{path}: package-runtime verifier identity must be #{expected_identity}" unless identities == [expected_identity]
+      runtime_references = []
+      collect_runtime_references = nil
+      collect_runtime_references = lambda do |value|
+        case value
+        when Hash then value.each_value { |child| collect_runtime_references.call(child) }
+        when Array then value.each { |child| collect_runtime_references.call(child) }
+        when String then runtime_references << value if value.include?(runtime_digest)
+        end
+      end
+      documents.each { |document| collect_runtime_references.call(document) }
+      abort "#{path}: package-runtime digest must occur only in the runtime image and its verification argument" unless runtime_references.length == 2
+    end
   end
 
   # Documentation quotes pinned digests and names platform/ as canonical for

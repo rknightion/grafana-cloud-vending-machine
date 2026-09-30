@@ -3,11 +3,11 @@ id: GCV-0075
 title: >-
   Vended rotating tokens can never rotate, so every stack loses its credentials
   at the first rotation window
-status: Parked
+status: In Progress
 assignee:
-  - '@codex'
+  - '@claude'
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-24 14:24'
+updated_date: '2026-09-30 18:57'
 labels: []
 dependencies: []
 references:
@@ -60,6 +60,8 @@ Wave 13: security design packet first; root acceptance gates renderer implementa
 Root accepted Lane A packet: overlapping token generations with create-observe-publish-consumer-handover-retire ordering. Goal ownership repaired to include additive active-secret status refs and bootstrap consumers; root retains shared RunFunction, status-condition, RBAC, and validation wiring.
 
 Wave 14: repair the accepted rotation design against security findings 1-5, implement the replayed handover across all five emit sites, integrate root-owned wiring, and obtain adversarial review before the gate.
+
+2026-09-30 owner direction: carry an in-place rotation fix in a public fork of the Grafana Crossplane provider and override only the provider runtime image; no upstream PR. 1. Fork config override clears ForceNew on ready_for_rotation for the three rotating-token kinds and mints the successor inside Update; the predecessor expires on its own. 2. Real Upjet connector tests against a fake API, seen failing without the override. 3. Fork CI publishes a signed GHCR image from a v2.14.0-rotation.N tag. 4. This repository overrides the package-runtime image by digest, verifies it with cosign against the fork's tag identity, and the gate requires the runtime tag to carry the package tag. 5. Owner rolls the carry to an estate; AC3 is checked only from an observed rotation.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -170,6 +172,8 @@ Loop 20 release decision, 2026-09-24: leave release PR #51 for the owner. This r
 Loop 20 read-only H proof: NOT BUILDABLE WITHOUT A PROVIDER CHANGE, codex/loop20/lane-h-proof.md SHA-256 38007f5af912a8b7b5777806acfd7c1dfdcccbe6cf10c1ac217b5b6399ff5da3. Its proposed nonrotating import primitive is partial; the decisive counterexample is an old provider process resuming a prepared mutation after another process orphan-finalizes that same original MR and the handle begins Delete. The process-local tracker and finalizer do not fence that prior operation. No design file or implementation resulted.
 
 Loop 20 independent R review on the required gpt-6-astra/medium route produced no artifact or verdict: the runtime rejected both the original read-only review turn and a narrower same-thread continuation with a cybersecurity policy error. H is unreviewed and not accepted. GCV-0075 stays Parked, AC3 unchecked, opt-in implementation budget 0/4. Resume only after the owner selects a permitted independent review path for the exact H packet, or commissions the narrow direct provider destroy-only repair in codex/loop19/lane-p-proof.md section 7. Administrator automation and the overlapping-generation design remain excluded.
+
+2026-09-30 carry implemented. Root cause confirmed at the pins: ready_for_rotation is Computed+ForceNew; Upjet Update refuses any RequiresNew diff; Upjet Delete reuses the Observe diff, so the SDK Apply runs the pending replacement inside Delete. Against a fake API that Create fails for lack of configuration, so an in-window Delete errors rather than minting an orphan token, which corrects the earlier orphan-token expectation. Fix, carried in a public fork of the provider at tag v2.14.0-rotation.1: a provider config override for the three rotating-token kinds clears ForceNew on ready_for_rotation and mints the successor inside Update; Observe then moves the external name to the new token and republishes the connection Secret; the predecessor stays valid until its own expiry, including under deleteOnDestroy, because Upjet Update returns no connection details and the new key is published only at the next poll. Proof: tests drive the real Upjet SDK connector against a fake API for all three kinds (rotate in place, cold restart after rotation, delete inside the window with and without deleteOnDestroy, plain access policy update does not rotate), each rotation case seen failing without the override with the exact refuse-to-update message. Fork CI run 36745416011 green including check-diff, so no generated type changed. Image multi-arch, cosign-verified locally against the fork tag identity. This repository now overrides only the package-runtime image by digest, verifies it in the PreSync Job, and the gate requires the carried tag to start with the package tag, seen failing for tag drift, identity drift and a missing verifier. AC3 stays open until an estate observes one in-place rotation after rollout.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

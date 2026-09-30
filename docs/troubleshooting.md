@@ -218,6 +218,7 @@ remove all residue afterwards. Kubernetes server-side dry run does not make a ve
 - Provider schemas and Grafana APIs may expose fields that do not round-trip cleanly; test drift rather than assuming.
 - The pinned provider requires the optional Role autoIncrementVersion field to be present because of an initializer defect; this reference pins it to false and omits version.
 - The pinned v2.14.0 release is digest-pinned and signed by the provider's tag workflow; future upgrades must move the tag-scoped certificate identity and both digest occurrences together.
+- The provider controller runs a carried build of the package tag that rotates rotating tokens in place. A provider upgrade must also rebuild the carry from the new tag and move its image digest, its verifier digest and its tag-scoped identity together; the gate refuses a carried tag that does not start with the package tag.
 - AccessPolicy realm is a Block List at the pinned build where v2.13.0 generated a Block Set. This reference emits exactly one realm entry, so element ordering is not load-bearing here; a multi-realm policy would need to treat order as significant.
 - Stack status gained per-service allowlist URL fields at the pinned build. They are endpoint references for retrieving source IP addresses to allow, not a means of restricting inbound access to a stack.
 - The reference has no one-command destructive workflow; the authorized Delete path still requires

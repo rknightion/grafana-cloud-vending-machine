@@ -54,6 +54,13 @@ The platform maximum lifetime caps the standard 30-day lifetime. The seven-day e
 interval is one hour, so a newly rotated token is copied to the external store well inside the
 overlap window.
 
+Rotation happens in place. Once the early rotation window opens, the provider mints the successor
+token on the same managed resource, moves its external name to the new token and republishes the
+connection Secret. The predecessor is not revoked; it stays valid until its own expiry, which is the
+overlap window above. This relies on the carried provider controller described in
+[Installation](installation.md): the upstream controller refuses the rotation with
+`CannotUpdateExternalResource`, and the token then expires unreplaced.
+
 The exported document has this shape:
 
 ```json
