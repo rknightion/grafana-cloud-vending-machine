@@ -290,6 +290,46 @@ run_refused_identifier_negative_control() (
   echo "public-release scan: refused-identifier negative controls passed."
 )
 
+# Case-sensitive twin of sift_hits and scan_fixed_allowing, for patterns such as
+# the macOS home prefix whose lowercase form is an ordinary URL path segment.
+sift_hits_case_sensitive() {
+  local pattern=$1
+  local allowed=$2
+  run_search perl -ne '
+    BEGIN { $allowed = shift @ARGV; $forbidden = shift @ARGV }
+    $stripped = $_;
+    $stripped =~ s/$allowed//g;
+    print if $stripped =~ /\Q$forbidden\E/;
+  ' "$allowed" "$pattern"
+}
+
+scan_fixed_case_sensitive_allowing() {
+  local label=$1
+  local pattern=$2
+  local allowed=$3
+  local hits
+
+  hits=$(run_search rg --hidden --glob '!.git/**' \
+    --glob '!scripts/public-release-scan.sh' -n -F -- "$pattern" . |
+    sift_hits_case_sensitive "$pattern" "$allowed")
+  if [[ -n $hits ]]; then
+    printf '%s\n' "$hits"
+    echo "public-release scan: found $label in the working tree" >&2
+    failed=1
+  fi
+
+  if (( ${#history_revisions[@]} > 0 )); then
+    hits=$(run_search git grep -I -n -F -- "$pattern" "${history_revisions[@]}" -- . \
+      ':(exclude)scripts/public-release-scan.sh' |
+      sift_hits_case_sensitive "$pattern" "$allowed")
+    if [[ -n $hits ]]; then
+      printf '%s\n' "$hits"
+      echo "public-release scan: found $label in reachable Git history" >&2
+      failed=1
+    fi
+  fi
+}
+
 scan_fixed_allowing() {
   local label=$1
   local pattern=$2
@@ -416,7 +456,12 @@ fi
 # The description itself was reworded to drop the qualifier, so the phrase does
 # not recur. This entry exists only to cover the history that cannot be changed.
 org_identifier="m7kni"
-allowed_source_repositories="$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs|$org_identifier/ci-tools|$org_identifier/renovate-config|$org_identifier/portina-iac|$org_identifier self-hosted|rknightion/$org_identifier"
+# The `agent-sessions` metrics phrase added 2026-09-30 for the same reason. The
+# canonical fan-out protocol, imported verbatim into backlog/docs, named the
+# owner's agent-observability stack by the organisation identifier and reached
+# about seven published commits. The source was reworded and republished, so the
+# phrase no longer occurs in the tree; this entry covers history only.
+allowed_source_repositories="$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs|$org_identifier/ci-tools|$org_identifier/renovate-config|$org_identifier/portina-iac|$org_identifier self-hosted|rknightion/$org_identifier|metrics \\(job \`agent-sessions\`\\) on the $org_identifier"
 scan_fixed_allowing "source API/domain identifier" "$org_identifier" \
   "$allowed_source_repositories"
 scan_fixed "source account identifier" "robknight"
@@ -468,7 +513,13 @@ scan_fixed "source architecture acronym" "avm"
 scan_regex "Grafana Cloud token" "gl""c_[A-Za-z0-9_-]{16,}"
 scan_regex "Grafana service-account token" "gl""sa_[A-Za-z0-9_-]{16,}"
 scan_fixed "private Tailscale hostname" ".ts"".net"
-scan_fixed_case_sensitive "local macOS path" "/Users/"
+# One historical path is tolerated: the canonical fan-out protocol, imported
+# verbatim into backlog/docs, quoted the owner's redact-push tool by absolute
+# path in three lines across its revisions and reached about seven published
+# commits before the source was reworded on 2026-09-30. Only that exact tool
+# path is exempt; every other occurrence of the prefix still fails.
+scan_fixed_case_sensitive_allowing "local macOS path" "/Users/" \
+  '`/Users/rob/\.local/bin/redact-push '
 scan_fixed_case_sensitive "private key material" "-----BEGIN ""PRIVATE KEY-----"
 
 scan_regex "an AWS account ID, JWT-like value, or Kubernetes Secret payload" \
