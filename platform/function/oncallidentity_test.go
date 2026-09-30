@@ -404,8 +404,8 @@ func TestOnCallFreshSlackAndCombinedJoin(t *testing.T) {
 func TestOnCallRejectsDisplayNameDestination(t *testing.T) {
 	xr := onCallTestXR()
 	xr["spec"].(map[string]any)["route"] = map[string]any{"channelId": "operations-channel"}
-	if _, err := renderOnCall(xr, onCallObservedResponders(t), nil); err == nil {
-		t.Fatal("display-name destination was accepted")
+	if _, err := onCallSelection(xr); err == nil || err.Error() != "OnCall Slack destination must be an opaque channel ID" {
+		t.Fatalf("expected opaque channel ID refusal, got %v", err)
 	}
 }
 
