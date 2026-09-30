@@ -38,7 +38,7 @@ env:
 jobs:
   test:
     name: Test function
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       runtime-changed: ${{ steps.runtime-changes.outputs.changed }}
     defaults:
@@ -157,7 +157,7 @@ jobs:
     name: Build ${{ matrix.arch }} package
     needs: test
     if: needs.test.outputs.runtime-changed == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       packages: write # Read/write the GHCR registry cache below.
@@ -236,7 +236,7 @@ jobs:
     name: Publish and sign package
     if: github.event_name != 'pull_request'
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       id-token: write # Keyless Cosign signing through GitHub OIDC.
