@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-09-30 23:39'
+updated_date: '2026-10-02 17:56'
 labels: []
 dependencies: []
 references:
@@ -94,6 +94,8 @@ Loop 22 pin-roll boundary: signed function package from successful main publish 
 Loop 22 final estate pin-roll boundary is signed function digest sha256:29ca2da4146145e330d5c01c3e63f5beba18f15d38b7526ff3b51ef3ca1d9266, published from main17bc31ad2d63c9e7e7e257c6c2466bb8874e116e by run36788719877. Estate rollout remains owner action.
 
 Loop 22 final pin-roll boundary now includes the preserved automatic protobuf update: signed function digest sha256:44273e53f0e7c77264e631c9139841c23eae42943bacbff23c7176ac509a7fd0, publish36791008118 from main8361eda2dad9c7066c25cc5e556c619b81e75853. Owner estate rollout remains open.
+
+Loop23 estate A pass1 live readback at 2026-10-02T17:55Z: both stack composites report current-generation Synced=True, Ready=True and Responsive=True with WatchCircuitClosed since 17:29:16Z. Managed-resource census remains twenty Synced and twenty Ready, unchanged from pre-state. Platform carries the released controller and function digest; both fresh signature Jobs were observed Complete. AC4 live observation is now available; final task completion still needs the completing local/hosted gate identity.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
