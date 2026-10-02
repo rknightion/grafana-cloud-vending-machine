@@ -357,6 +357,59 @@ scan_fixed_allowing() {
   fi
 }
 
+# These three exact records are the only source-identifier hits tolerated from
+# the imported protocol's published revisions. This filter runs on history
+# results only; the working-tree check above remains unchanged. Strip only the
+# revision prefix emitted by git grep, then compare path, line number and content.
+protocol_history_line_1="backlog/docs/doc-0001 - Agent-fan-out-protocol-canonical.md:2035:The authority is \`m7kni/loopwatch\`'s \`schema/README.md\` and \`schema/loop-report.schema.json\`, pinned"
+protocol_history_line_2="backlog/docs/doc-0001 - Agent-fan-out-protocol-canonical.md:2043:is an explicit top-level \`wave-notify receiver: https://loopwatch.m7kni.com\` line in loopwatch's"
+protocol_history_line_3='backlog/docs/doc-0001 - Agent-fan-out-protocol-canonical.md:2067:  "repo": "m7kni/loopwatch",'
+
+history_line_is_protocol_allowance() {
+  local hit=$1
+  local record=${hit#*:}
+  case "$record" in
+    "$protocol_history_line_1"|"$protocol_history_line_2"|"$protocol_history_line_3")
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+scan_fixed_allowing_history_exact() {
+  local label=$1
+  local pattern=$2
+  local allowed=$3
+  local hits
+
+  hits=$(run_search rg --hidden --glob '!.git' --glob '!.git/**' \
+    --glob '!scripts/public-release-scan.sh' -n -i -F -- "$pattern" . |
+    sift_hits "$pattern" "$allowed")
+  if [[ -n $hits ]]; then
+    printf '%s\n' "$hits"
+    echo "public-release scan: found $label in the working tree" >&2
+    failed=1
+  fi
+
+  if (( ${#history_revisions[@]} > 0 )); then
+    hits=$(run_search git grep -I -n -i -F -- "$pattern" "${history_revisions[@]}" -- . \
+      ':(exclude)scripts/public-release-scan.sh' |
+      sift_hits "$pattern" "$allowed" |
+      while IFS= read -r hit || [[ -n $hit ]]; do
+        if ! history_line_is_protocol_allowance "$hit"; then
+          printf '%s\n' "$hit"
+        fi
+      done)
+    if [[ -n $hits ]]; then
+      printf '%s\n' "$hits"
+      echo "public-release scan: found $label in reachable Git history" >&2
+      failed=1
+    fi
+  fi
+}
+
 # Source-environment identity comes from an ERE passed IN BY ENVIRONMENT, never
 # from this file.
 #
@@ -462,7 +515,7 @@ org_identifier="m7kni"
 # about seven published commits. The source was reworded and republished, so the
 # phrase no longer occurs in the tree; this entry covers history only.
 allowed_source_repositories="$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs|$org_identifier/ci-tools|$org_identifier/renovate-config|$org_identifier/portina-iac|$org_identifier self-hosted|rknightion/$org_identifier|metrics \\(job \`agent-sessions\`\\) on the $org_identifier"
-scan_fixed_allowing "source API/domain identifier" "$org_identifier" \
+scan_fixed_allowing_history_exact "source API/domain identifier" "$org_identifier" \
   "$allowed_source_repositories"
 scan_fixed "source account identifier" "robknight"
 
