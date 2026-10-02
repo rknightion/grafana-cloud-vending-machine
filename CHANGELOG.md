@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.2](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.1...v3.3.2) (2026-10-02)
+
+
+### Documentation
+
+* publish canonical agent documents ([2abf558](https://github.com/rknightion/grafana-cloud-vending-machine/commit/2abf55835390bbe653f416e95cc98716cf7cfc11))
+
 ## [3.3.1](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.0...v3.3.1) (2026-10-02)
 
 
