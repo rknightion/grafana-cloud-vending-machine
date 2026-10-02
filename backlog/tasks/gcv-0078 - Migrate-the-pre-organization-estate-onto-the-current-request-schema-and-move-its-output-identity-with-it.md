@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 17:10'
-updated_date: '2026-09-24 10:25'
+updated_date: '2026-10-02 17:25'
 labels: []
 dependencies: []
 documentation:
@@ -97,6 +97,8 @@ safe it looks.
 Wave 14 AC1-AC5 evidence is in codex/wave14/lane-g-plan.md and codex/wave14/lane-g-ac5.md. The pinned API server refused both organization-only and organization-plus-mutable-sibling updates, so replacement is required. Before AC6: wait for GCV-0075 to land safely; freeze promotion; capture the source revision and generator revision; record the stored request, output path, UID, conditions and immutable fields; inventory every composed object, external identity, management policy, credential generation, remote writer and reader; render the replacement against the completing catalogue while preserving usage and both allowed-usage layers. During AC6: verify Retain and non-deleting policies; remove the old request through its delivery mechanism; prove the external stack survives with unchanged identity; apply the replacement and stop on any Create or identity change; wait for the replacement core graph and dependent requests; move every remote-path consumer one at a time and prove reload onto replacement credentials; retire source tokens before policies or service accounts; delete only source-only documents; resume promotion only after the orphan, duplicate and stale-reader census is empty. AC6 remains open because no live estate, cluster, credential, consumer or generator was contacted.
 
 2026-09-24: AC6 is the human-operated replacement cutover in the task notes, after GCV-0075 lands and the estate runs a pin carrying it. No one is presently executing it.
+
+Loop23 design attempt 1 returned NOT-READY and independent ownership review rejected the executable ledger. Existing stack-owned ProviderConfig has eighteen usages including eleven dependent managed children; destroying those children loses provider-assigned adoption identities. Independent pinned-controller source supports XR-only orphan preservation and ownerless resource-reference adoption while keeping the seventeen existing stack references and all dependents. Root corrected an impossible same-name simultaneous-live witness: old-live Retain plus a frozen validated paused desired replacement before removal, then new-live paused Retain and preserved UID/policy/protection witnesses before reconciliation. No released API or destructive target changed; finalizers are never bypassed; old remote material is retained without revocation. Second and final design attempt is active; AC6 remains unchecked and live cutover held for separate estate ownership and final-release evidence. Baseline plugin child is Ready but not Synced, so aggregate green is not complete proof.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
