@@ -1,5 +1,31 @@
 # Changelog
 
+## [3.3.1](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.0...v3.3.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* **deps:** update module sigs.k8s.io/controller-runtime to v0.25.2 ([#58](https://github.com/rknightion/grafana-cloud-vending-machine/issues/58)) ([6a28015](https://github.com/rknightion/grafana-cloud-vending-machine/commit/6a28015eaa96a5b3aafc343b7d786ee37af0a43b))
+* exempt exact republished protocol history lines ([b799100](https://github.com/rknightion/grafana-cloud-vending-machine/commit/b799100cf9ad691a08a18c259ad732029d191f86))
+* **function:** pin the published function package ([91ae456](https://github.com/rknightion/grafana-cloud-vending-machine/commit/91ae4568f7866d00e294aff843b92676d701c1b1))
+
+
+### Documentation
+
+* **backlog:** park replacement at reviewed permission boundary ([d24bdeb](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d24bdeb3e66c763e91a4e0c5cfe54f2b9608c988))
+* **backlog:** record live recovery and guarded republication ([4dbbcca](https://github.com/rknightion/grafana-cloud-vending-machine/commit/4dbbcca0b5e6b812c93af24450139fbaf8464f9c))
+* **backlog:** record replacement ownership review ([aa9ffb0](https://github.com/rknightion/grafana-cloud-vending-machine/commit/aa9ffb0be0d7cbf12de29ee38b8c400a02dd9d3d))
+* publish canonical agent documents ([cc9d3f3](https://github.com/rknightion/grafana-cloud-vending-machine/commit/cc9d3f318b6d55d3c77d7b3bc19967e9814182ec))
+* publish canonical agent documents ([37e8b87](https://github.com/rknightion/grafana-cloud-vending-machine/commit/37e8b879361beef4c37831245c459eae81380949))
+* publish canonical agent documents ([110d580](https://github.com/rknightion/grafana-cloud-vending-machine/commit/110d580cb39323d1f5a2f9a1f44a4eb74b037d79))
+* publish canonical agent documents ([783613d](https://github.com/rknightion/grafana-cloud-vending-machine/commit/783613d5d48ce83243b7561e929155773a7dbcff))
+* track symbolic HEAD audit attribution followup ([592deeb](https://github.com/rknightion/grafana-cloud-vending-machine/commit/592deeb105da60e10472642229f6c883e2caf14d))
+
+
+### Miscellaneous Chores
+
+* **backlog:** track publication guard and carry rebase ([de31d4c](https://github.com/rknightion/grafana-cloud-vending-machine/commit/de31d4ceb3ee729625cf25ec0df616a0b684f78f))
+
 ## [3.3.0](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.2.0...v3.3.0) (2026-09-30)
 
 
