@@ -4,7 +4,7 @@ title: The vended Git Sync connection cannot be created on Grafana Cloud
 status: Parked
 assignee: []
 created_date: '2026-09-12 19:11'
-updated_date: '2026-09-30 23:39'
+updated_date: '2026-10-02 18:35'
 labels:
   - needs-triage
 dependencies: []
@@ -124,4 +124,6 @@ Loop 22 pin-roll boundary: signed function package from successful main publish 
 Loop 22 final estate pin-roll boundary is signed function digest sha256:29ca2da4146145e330d5c01c3e63f5beba18f15d38b7526ff3b51ef3ca1d9266, published from main17bc31ad2d63c9e7e7e257c6c2466bb8874e116e by run36788719877. Estate rollout remains owner action.
 
 Loop 22 final pin-roll boundary now includes the preserved automatic protobuf update: signed function digest sha256:44273e53f0e7c77264e631c9139841c23eae42943bacbff23c7176ac509a7fd0, publish36791008118 from main8361eda2dad9c7066c25cc5e556c619b81e75853. Owner estate rollout remains open.
+
+Loop23 function-pin tail advances the current package to signed digest sha256:1968d0f84fa8926fe762ae2976eccc2625770e5bef412cd9d879aeab105cfe5a from successful main Publish 36899690651 at 6a28015eaa96a5b3aafc343b7d786ee37af0a43b. Both install references and the installation row move together; exact main-workflow cosign verification passed. AC3 Git Sync live proof remains excluded and open; no connection claim was restored.
 <!-- SECTION:NOTES:END -->

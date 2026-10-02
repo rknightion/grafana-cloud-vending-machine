@@ -3,10 +3,10 @@ id: GCV-0077
 title: >-
   Composed resources churn hard enough to hold the composite watch circuit
   breaker open on every stack
-status: Parked
+status: Done
 assignee: []
 created_date: '2026-09-16 16:48'
-updated_date: '2026-10-02 17:56'
+updated_date: '2026-10-02 18:35'
 labels: []
 dependencies: []
 references:
@@ -35,13 +35,13 @@ Impact today looks bounded: event-driven composite reconciles are throttled to o
 - [x] #1 The source of the repeated no-op updates is identified per affected kind, with evidence showing what the provider sends and what the API returns
 - [x] #2 Whether the churn originates in the provider or in what this composition sets is settled, and the finding names which of the two has to change
 - [x] #3 Either the churn is removed for the kinds this platform composes, or the platform records why it is acceptable, what it costs and what it would take to fix
-- [ ] #4 A composite with no failing children reports Responsive=True, or the condition is documented as uninformative with the reason
+- [x] #4 A composite with no failing children reports Responsive=True, or the condition is documented as uninformative with the reason
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -96,10 +96,16 @@ Loop 22 final estate pin-roll boundary is signed function digest sha256:29ca2da4
 Loop 22 final pin-roll boundary now includes the preserved automatic protobuf update: signed function digest sha256:44273e53f0e7c77264e631c9139841c23eae42943bacbff23c7176ac509a7fd0, publish36791008118 from main8361eda2dad9c7066c25cc5e556c619b81e75853. Owner estate rollout remains open.
 
 Loop23 estate A pass1 live readback at 2026-10-02T17:55Z: both stack composites report current-generation Synced=True, Ready=True and Responsive=True with WatchCircuitClosed since 17:29:16Z. Managed-resource census remains twenty Synced and twenty Ready, unchanged from pre-state. Platform carries the released controller and function digest; both fresh signature Jobs were observed Complete. AC4 live observation is now available; final task completion still needs the completing local/hosted gate identity.
+
+Loop23 AC4 live verification only: no new source implementation or review-repair attempt; prior source attempt lineage unchanged, infrastructure retries 0, no new grant. Both observed composites have no failing managed children and Responsive=True with WatchCircuitClosed.
+
+Loop23 function pin tail is the signed package sha256:1968d0f84fa8926fe762ae2976eccc2625770e5bef412cd9d879aeab105cfe5a from Publish 36899690651 on 6a28015eaa96a5b3aafc343b7d786ee37af0a43b. Existing AC4 live signal was proven on the prior released digest; the final estate release repin will receive this completing function package.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Parked after landing the source-backed renderer correction. The composition now preserves provider-resolved fields for all three affected kinds, with focused tests and integrated just check plus hosted Validate run 35333659147 green at b47831ddddfd5ec10e1e699d4d8608886261becd. Resume after deploying this pin: observe generations over several burst windows and confirm a healthy composite returns Responsive=True. AC4 remains unproven.
+
+AC4 completed by estate A pass1 post-state at 2026-10-02T17:55Z: both composites are current-generation Synced=True, Ready=True and Responsive=True; all twenty managed resources remain Synced and Ready. Completing repository SHA b799100cf9ad691a08a18c259ad732029d191f86 passed the full local gate and hosted Validate 37047155497. The released function and carried provider are healthy live, with fresh verifier Jobs observed Complete. Existing source corrections now have the required live responsive signal.
 <!-- SECTION:FINAL_SUMMARY:END -->
