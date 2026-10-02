@@ -3,11 +3,11 @@ id: GCV-0075
 title: >-
   Vended rotating tokens can never rotate, so every stack loses its credentials
   at the first rotation window
-status: Parked
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-09-16 16:48'
-updated_date: '2026-10-02 23:13'
+updated_date: '2026-10-02 23:46'
 labels: []
 dependencies: []
 references:
@@ -40,7 +40,7 @@ This needs a decision, not a patch, and every option is unattractive: delete and
 <!-- AC:BEGIN -->
 - [x] #1 The failure is reproduced against the provider version this repository pins, with the resource kinds, the exact provider message and the timing relative to the early-rotation window recorded as evidence
 - [x] #2 The chosen handling of rotation is recorded as a decision with its trade-offs, covering both rotating token kinds the composition emits
-- [ ] #3 The chosen handling works for an estate that has already passed a rotation window, not only for a stack vended after the change
+- [x] #3 The chosen handling works for an estate that has already passed a rotation window, not only for a stack vended after the change
 - [x] #4 An operator can distinguish a stuck token from a healthy one from resource conditions alone, without reading provider logs
 - [x] #5 The composite no longer reports Ready=True while a token it owns cannot rotate, or the reason it still does is recorded
 - [x] #6 The upstream position is recorded: whether a provider or Upjet change is required, and whether it has been raised
@@ -198,4 +198,6 @@ Loop 18 parked before implementation after F design and independent G review con
 Loop 19 read-only P/Q proof accepted as UNDETERMINED. Direct rotating-MR deletion is unsafe; a possible nonrotating adoption handle needs a new ownership contract. Resume when the owner commissions either a read-only same-token handoff proof against packet 74fa91068b22a94f65e16bb9b1e410652d66f1ded9fa3b11f16218d7ea4b63e6 or the narrow provider connector repair described there. No implementation or live action was authorized; AC3 remains unchecked.
 
 2026-09-30: implemented through a carried provider controller that rotates the three rotating-token kinds in place, proven against the real Upjet connector, wired by digest with cosign verification and a tag-match gate, hosted Validate 36763862811. AC3 awaits an owner estate rollout.
+
+Loop24 closes AC3 from the first in-window live observation at 2026-10-02T23:45Z, after the window opened at 23:29:32Z. One estate A rotating token retained its managed-resource UID and connection Secret UID, acquired a nonempty new external token identity, stayed Synced=True, and published a changed key hash with the same populated key-field set. Direct before/after hashes prove in-place rotation; no deletion, recreation, forced rotation or fallback was used. The other eight inventoried tokens remained Synced and were not counted as rotations. Completing platform release SHA ac1db1ba45541d8ea40bf4c5f31988a4ceecdfd2 is validated through successful descendant 8baded3f31774a429dab5594c977416bdb69cffe, hosted Validate 37073116812, under the foreign-push cancellation rule; the merge run 37072613088 was cancelled and is not a pass. Estate pin 35c4759b4bdf83e5c2a69015fb7e7ac093214ba4 passed the local gate and hosted manifests 37074717640. Earlier implementation/local/hosted criteria remain satisfied at f35c8a039ce79c7fa953cc4e2706e93da4430a42 and Validate 36763862811. Fresh verifier hooks were not rerun for the content-identical pin and are not claimed by this rotation proof. The rejected overlapping-generation design remains retired.
 <!-- SECTION:FINAL_SUMMARY:END -->
