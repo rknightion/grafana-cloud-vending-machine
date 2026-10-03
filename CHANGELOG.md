@@ -1,5 +1,25 @@
 # Changelog
 
+## [3.3.3](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.2...v3.3.3) (2026-10-03)
+
+
+### Bug Fixes
+
+* **provider:** carry in-place rotation onto upstream v2.15.0 ([92202e5](https://github.com/rknightion/grafana-cloud-vending-machine/commit/92202e55b1a79b437c3078e516280bb744c19291))
+
+
+### Documentation
+
+* **backlog:** admit the bounded provider carry reserve ([d72ec96](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d72ec961249e50918ec9696fcfd580c7a8aaf83d))
+* **backlog:** close live in-place rotation acceptance ([6a509ff](https://github.com/rknightion/grafana-cloud-vending-machine/commit/6a509ff73e7b5ca7a7613e437e5a0f2413d7a1d4))
+* **backlog:** park the incompatible provider carry reserve ([0dbc6fb](https://github.com/rknightion/grafana-cloud-vending-machine/commit/0dbc6fb27d711329ca9dd51ad49c458575cb3c1b))
+* **backlog:** preserve the live rotation observation boundary ([b7fd879](https://github.com/rknightion/grafana-cloud-vending-machine/commit/b7fd87984e23dd9399d41e9e697ac95738c98b53))
+* **backlog:** record accepted local migration proof and release pin evidence ([6b855e3](https://github.com/rknightion/grafana-cloud-vending-machine/commit/6b855e338b17272e177e215ce54d6f713ba41070))
+* **backlog:** record loop proof and carry admission boundaries ([e9f6b6c](https://github.com/rknightion/grafana-cloud-vending-machine/commit/e9f6b6c63702c5e97a63ea55960194958958b290))
+* **backlog:** record the live migration containment boundary ([3f2a58f](https://github.com/rknightion/grafana-cloud-vending-machine/commit/3f2a58f1313b4cdf1ac2cce604447173b420fce5))
+* **loop:** record the revision initialisation grace and identical-pin hook rule ([7299295](https://github.com/rknightion/grafana-cloud-vending-machine/commit/729929542cd54111e77d2a2bec9796c5ac142d60))
+* publish canonical agent documents ([8baded3](https://github.com/rknightion/grafana-cloud-vending-machine/commit/8baded3f31774a429dab5594c977416bdb69cffe))
+
 ## [3.3.2](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.1...v3.3.2) (2026-10-02)
 
 
