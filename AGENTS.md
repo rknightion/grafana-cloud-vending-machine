@@ -43,10 +43,9 @@ values.
 ## Task tracking
 
 Work is tracked with Backlog.md in `backlog/`, committed to git. `backlog doc list --plain` shows the
-two operating-model documents: **Agent fan-out protocol (canonical)**, imported verbatim from the
-upstream sourcebook and re-imported in the same change whenever upstream moves, and **Wave operating
-model**, this project's own lane conventions, recurring defects, exclusive publishing resource and
-run-end. Read both before designing a wave.
+the operating-model document **Wave operating model**, this project's own lane conventions, recurring
+defects, exclusive publishing resource and run-end. The campaign model is `~/repos/agent-docs/sources/loop/contract.md`.
+Read both before designing a wave.
 
 `backlog/` is committed to git and is inside the publication scan, so tasks, docs and decisions must
 never contain refused account identifiers or personal data: no email addresses, handles, usernames,

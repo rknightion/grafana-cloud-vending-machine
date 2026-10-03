@@ -8,7 +8,7 @@ updated_date: '2026-09-18 14:44'
 This document carries **only** what is specific to this repository. The campaign model itself —
 run contract and run modes, the routing contract, authority and the thread pool, child lane briefs,
 external-contract freezing, the unattended blocker contract, the goal-file template and the
-pre-flight checklist — lives in the **Agent fan-out protocol (canonical)** document. Read that
+pre-flight checklist - lives in `~/repos/agent-docs/sources/loop/contract.md`. Read that
 first; this one is the delta. Nothing here restates it, and nothing here that could be pasted into
 another project unchanged belongs here.
 
