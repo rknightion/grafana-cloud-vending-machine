@@ -67,6 +67,15 @@ None. The GCV-0075 Astra/high proof exception (wave 17 through loop 21) is retir
 implemented on 2026-09-30 through a carried provider controller, and only its owner estate rollout
 remains (task notes).
 
+## Estate rollout health rule
+
+- A newly created ProviderRevision or FunctionRevision gets a 10-minute initialisation grace (owner
+  decision, 2026-10-03). It must report `RuntimeHealthy=True` within 10 minutes of creation; still
+  `False` after that, or any flip from `True` to `False`, is terminal-unhealthy. An image pull
+  error, an Argo `Failed`/`Degraded` operation or an XRD not `Established` stays an immediate stop.
+- A content-identical platform pin does not rerun the verifier hooks. Fresh hook proof needs one
+  explicitly granted one-shot sync; a later healthy readback never retrofits it.
+
 ## Known traps
 
 - **Astra refuses a SECURITY-framed review under provider `cyber_policy`, not under an effort or
