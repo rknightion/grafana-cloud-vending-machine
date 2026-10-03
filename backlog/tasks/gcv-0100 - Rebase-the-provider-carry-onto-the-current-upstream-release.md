@@ -1,10 +1,10 @@
 ---
 id: GCV-0100
 title: Rebase the provider carry onto the current upstream release
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-02 16:48'
-updated_date: '2026-10-03 13:17'
+updated_date: '2026-10-03 15:34'
 labels: []
 dependencies: []
 priority: medium
@@ -20,15 +20,15 @@ The carried rotation controller is based on the previous upstream package. Evalu
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 All three rotating-token kinds preserve in-place rotation on the current upstream release
-- [ ] #2 Tagged build and upstream package signatures verify and independent review accepts
-- [ ] #3 Provider pins land with local gate and hosted validation evidence
+- [x] #1 All three rotating-token kinds preserve in-place rotation on the current upstream release
+- [x] #2 Tagged build and upstream package signatures verify and independent review accepts
+- [x] #3 Provider pins land with local gate and hosted validation evidence
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 just check passes locally
-- [ ] #2 hosted Validate workflow passes on the completing commit
+- [x] #1 just check passes locally
+- [x] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -51,4 +51,16 @@ Loop25 carry attempt C1-impl-2 admitted after a fresh audited clean fork worktre
 Loop25 C1-impl-2 consumed on a guessed API package path that still failed compilation, before publication. Final granted C1-impl-3 inspected installed API and generated types, ported only test import and policy alias, preserved all assertions, and passed all thirteen carry cases plus documented tests at 4bf00dd8901590aef8770314dd1393e2041474da. Two setup/toolchain infrastructure retries; no tag push yet. Independent final review admitted. GCV pin candidate correctly rejects its explicitly root-owned digest placeholder; signatures, tagged CI, full local validation and hosted completion remain pending. No further implementation attempt.
 
 Loop25 final independent C2 review ACCEPTS exact fork 4bf00dd8901590aef8770314dd1393e2041474da and pin candidate; all ninety-two activated-kind map entries match served source CRDs. Root published the single accepted carry tag; hosted tag CI37124509433 passed all seven jobs on that SHA. Root Cosign3.1.3 verified upstream package and carried multi-platform index against exact tag-scoped workflow identities. Both provider runtime/verifier placeholders now use the identical verified index digest. Local combined gate and main hosted validation remain pending; no completion claim yet.
+
+Loop25 independent post-rollout observation-tool review accepts the actual estate A terminal poststate and fresh verifier Jobs, but finds two private monitor defects: separate Application health Degraded was omitted from the stop predicate, and late first RuntimeHealthy=True could bypass the ten-minute creation deadline. Neither is evidenced as triggered: recorded health transition remains unchanged and provider initialized in66 seconds. Historical monitoring coverage is partial, not retroactively repaired. The used helper and evidence are preserved; a separate future helper has explicit degraded-health and first-transition checks, locally discriminated against the failing original predicates. One root observation-tool review-repair; no additional live operation, rollback or publication. Independent correction review pending.
+
+Independent DC correction review accepts the separate future observer helper after sixteen discriminating pure-function/stop-wiring cases. Both monitor findings are fixed for future use; used helper and sixteen historical evidence identities remain unchanged. Actual estate A terminal and fresh-hook proof stays accepted, historical monitoring remains partial. No additional live operation or rollback. Root observation-tool review-repair1 consumed, no remaining pending correction.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Loop25 completed provider refresh on main SHA92202e55b1a79b437c3078e516280bb744c19291 with exact hosted Validate37126043827: Validate reference and ci-success both success. Local unchanged just check printed Validation passed before commit and on the completing SHA. Final fork4bf00dd8901590aef8770314dd1393e2041474da preserved every original assertion and passed all thirteen rotation cases; independent C2 accepted source/Upjet/map compatibility. Single carry tag build37124509433 passed all seven jobs; root Cosign3.1.3 verified immutable upstream package and carried multi-platform runtime against exact tag-scoped identities. Both runtime/verifier references agree with the signed index. C1-impl-1 and impl-2 consumed; impl-3 successful, two setup/toolchain infrastructure retries, no further implementation attempt. Live integration test remained intentionally skipped, not a pass.
+
+Released as v3.3.3 at645add140b0c522274f12d91283b7782ff780616 through the one authorized release merge. Merge Validate37126868932 passed both required jobs. Estate A pin77d5abf1cbf12601ffa00c2fe5220ce221e9b394 passed local gate and manifests37128368372, and actual live rollout was observed healthy: signed runtime running, active provider healthy within66 seconds of creation, unchanged healthy function,25 Established XRDs,20 managed objects and9 rotating tokens Synced,2 composites Ready. Both verifier Jobs completed freshly. Token UIDs/external identities/credential hashes stable and no new CannotUpdateExternalResource event found. Estate B did not take this release because its independent resume payload proof failed; its containment was not changed.
+<!-- SECTION:FINAL_SUMMARY:END -->
