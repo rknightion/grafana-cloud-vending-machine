@@ -514,6 +514,9 @@ org_identifier="m7kni"
 # owner's agent-observability stack by the organisation identifier and reached
 # about seven published commits. The source was reworded and republished, so the
 # phrase no longer occurs in the tree; this entry covers history only.
+# The loopwatch receiver URL added 2026-10-03: every LOOP.md must name the loop
+# report receiver (`receiver:` key, read by loop-lint and wave-notify). It is a
+# public service hostname, not an account or customer identifier.
 allowed_source_repositories="loopwatch\\.$org_identifier\\.com|$org_identifier/$org_identifier-net-site|$org_identifier\\.io|$org_identifier-net-site|$org_identifier/agent-docs|$org_identifier/ci-tools|$org_identifier/renovate-config|$org_identifier/portina-iac|$org_identifier self-hosted|rknightion/$org_identifier|metrics \\(job \`agent-sessions\`\\) on the $org_identifier"
 scan_fixed_allowing_history_exact "source API/domain identifier" "$org_identifier" \
   "$allowed_source_repositories"
