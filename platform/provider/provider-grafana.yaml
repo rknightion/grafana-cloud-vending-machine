@@ -26,8 +26,8 @@ spec:
         - name: cosign
           image: ghcr.io/sigstore/cosign/cosign:v3.1.3@sha256:9e5c2f2edc34351160407ca3416c61855bdf9403c3c5936e0f0be7fc261611b8
           imagePullPolicy: IfNotPresent
-          # This is the v2.14.0 release artifact. The ci_tag.yaml workflow signs
-          # tag builds with a certificate identity scoped to refs/tags/v2.14.0.
+          # This is the v2.15.0 release artifact. The ci_tag.yaml workflow signs
+          # tag builds with a certificate identity scoped to refs/tags/v2.15.0.
           # The immutable digest below was verified against that exact identity;
           # every upgrade must move the identity and digest in both places.
           #
@@ -39,8 +39,8 @@ spec:
           args:
             - verify
             - --certificate-oidc-issuer=https://token.actions.githubusercontent.com
-            - --certificate-identity=https://github.com/grafana/crossplane-provider-grafana/.github/workflows/ci_tag.yaml@refs/tags/v2.14.0
-            - xpkg.upbound.io/grafana/provider-grafana:v2.14.0@sha256:3f078cf9f0fa4affbf65a5d9e288d3a33fced0b8e79354589763f1e7bd7c7048
+            - --certificate-identity=https://github.com/grafana/crossplane-provider-grafana/.github/workflows/ci_tag.yaml@refs/tags/v2.15.0
+            - xpkg.upbound.io/grafana/provider-grafana:v2.15.0@sha256:1568d648d28591cb1e705b84181af99db5cd4eca36b65ae627882482ae90925a
           env:
             - name: HOME
               value: /tmp
@@ -67,8 +67,8 @@ spec:
           args:
             - verify
             - --certificate-oidc-issuer=https://token.actions.githubusercontent.com
-            - --certificate-identity=https://github.com/rknightion/crossplane-provider-grafana/.github/workflows/ci_tag.yaml@refs/tags/v2.14.0-rotation.1
-            - ghcr.io/rknightion/provider-grafana:v2.14.0-rotation.1@sha256:605fc20d3937656b925057a5c7fa74f1de1b2fd59a735955a75c1fda27882064
+            - --certificate-identity=https://github.com/rknightion/crossplane-provider-grafana/.github/workflows/ci_tag.yaml@refs/tags/v2.15.0-rotation.1
+            - ghcr.io/rknightion/provider-grafana:v2.15.0-rotation.1@sha256:afcfcc3213838d415d0ddbc4ebeb3c618f1dcff0483f30bf9db4b0d50b0d1d68
           env:
             - name: HOME
               value: /tmp
@@ -105,12 +105,12 @@ spec:
       template:
         spec:
           containers:
-            # Carried controller build: upstream v2.14.0 plus in-place rotation
+            # Carried controller build: upstream v2.15.0 plus in-place rotation
             # for the three rotating-token kinds (GCV-0075). CRDs still come from
             # the signed upstream package; only the controller binary differs.
             # Remove this image line once an upstream release carries the fix.
             - name: package-runtime
-              image: ghcr.io/rknightion/provider-grafana:v2.14.0-rotation.1@sha256:605fc20d3937656b925057a5c7fa74f1de1b2fd59a735955a75c1fda27882064
+              image: ghcr.io/rknightion/provider-grafana:v2.15.0-rotation.1@sha256:afcfcc3213838d415d0ddbc4ebeb3c618f1dcff0483f30bf9db4b0d50b0d1d68
               args:
                 - --safe-start
               resources:
@@ -139,7 +139,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  package: xpkg.upbound.io/grafana/provider-grafana:v2.14.0@sha256:3f078cf9f0fa4affbf65a5d9e288d3a33fced0b8e79354589763f1e7bd7c7048
+  package: xpkg.upbound.io/grafana/provider-grafana:v2.15.0@sha256:1568d648d28591cb1e705b84181af99db5cd4eca36b65ae627882482ae90925a
   packagePullPolicy: IfNotPresent
   revisionActivationPolicy: Automatic
   revisionHistoryLimit: 1

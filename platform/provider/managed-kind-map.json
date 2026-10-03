@@ -1,5 +1,5 @@
 {
-  "providerPackageDigest": "sha256:3f078cf9f0fa4affbf65a5d9e288d3a33fced0b8e79354589763f1e7bd7c7048",
+  "providerPackageDigest": "sha256:1568d648d28591cb1e705b84181af99db5cd4eca36b65ae627882482ae90925a",
   "managedKinds": [
     {"apiVersion": "agento11y.grafana.m.crossplane.io/v1alpha1", "kind": "Collection", "plural": "collections"},
     {"apiVersion": "agento11y.grafana.m.crossplane.io/v1alpha1", "kind": "EvaluationRule", "plural": "evaluationrules"},

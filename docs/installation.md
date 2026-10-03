@@ -35,20 +35,19 @@ before requests can be admitted.
 | --- | --- | --- | --- |
 | Kubernetes | 1.30+ | `platform/kustomization.yaml` (`apis/cloud-integrations-v1beta1.yaml`) | Minimum version for the `admissionregistration.k8s.io/v1` `ValidatingAdmissionPolicy` resources installed by the platform base |
 | Crossplane | Manifest-pinned | `deploy/argocd/crossplane.yaml` (`targetRevision:`) | Required for namespaced composite resources, namespaced managed resources, and ManagedResourceActivationPolicy |
-| Grafana Crossplane provider | Manifest tag, immutable digest | `platform/provider/provider-grafana.yaml` (`refs/tags/`) | Tagged release generated from Grafana Terraform provider with the complete upstream resource surface used here |
-| Grafana provider controller | Manifest tag, immutable digest | `platform/provider/provider-grafana.yaml` (`rknightion/provider-grafana:`) | Carried build of the provider tag with in-place rotating-token rotation; the CRDs still come from the signed upstream package |
+| Grafana Crossplane provider | Manifest tag, immutable digest | `platform/provider/provider-grafana.yaml` (`refs/tags/`) | Signed upstream release generated from Grafana Terraform provider; package and verifier pins move together |
+| Grafana provider controller | Manifest tag, immutable digest | `platform/provider/provider-grafana.yaml` (`rknightion/provider-grafana:`) | Carried build of the provider tag with in-place rotating-token rotation; runtime and verifier digest pins must move together |
 | ESO Helm chart | Manifest-pinned | `deploy/argocd/external-secrets.yaml` (`targetRevision:`) | Last release before the open AWS PushSecret creation regression |
 | Cosign verification image | Manifest tag, immutable digest | `platform/function/install.yaml`, `platform/provider/provider-grafana.yaml` (`cosign/cosign:`) | Verifies the Grafana provider and this repository's function package |
 | Composition function SDK | Go module pin | `platform/function/go.mod` (`github.com/crossplane/function-sdk-go v`) | Pinned by the function Go module |
 | Vending composition function | sha256:1968d0f84fa8926fe762ae2976eccc2625770e5bef412cd9d879aeab105cfe5a | `platform/function/install.yaml` (`function-grafana-vending@sha256:1968d0f84fa8926fe762ae2976eccc2625770e5bef412cd9d879aeab105cfe5a`) | Signed amd64/arm64 package |
 
-The Grafana Crossplane provider describes itself as experimental and unsupported. The v2.14.0 tag is
-generated from Terraform provider 4.45.1 and carries the resource surface used by this reference. It
-is pinned by digest and Cosign-verified against the provider's `ci_tag.yaml` identity scoped to
-`refs/tags/v2.14.0`. Test provider upgrades and drift behavior against non-production stacks before
-rollout.
+The Grafana Crossplane provider describes itself as experimental and unsupported. The v2.15.0 tag is
+generated from Terraform provider 4.46.0. It is pinned by digest and Cosign-verified against the
+provider's `ci_tag.yaml` identity scoped to `refs/tags/v2.15.0`. Test provider upgrades and drift
+behavior against non-production stacks before rollout.
 
-The provider controller does not run from that package. Upstream v2.14.0 cannot rotate its rotating
+The provider controller does not run from that package. Upstream v2.15.0 cannot rotate its rotating
 tokens under Crossplane: the Terraform resources rotate by replacement, Upjet refuses to replace a
 managed resource, and the token expires unreplaced. The `grafana-provider-runtime` runtime config
 therefore runs a carried build of the same tag from
@@ -56,7 +55,9 @@ therefore runs a carried build of the same tag from
 which rotates the three rotating-token kinds in place. The CRDs are still the signed upstream ones,
 because the carry changes no generated type. The same PreSync Job verifies the carried image against
 that fork's `ci_tag.yaml` identity, scoped to the carried tag, and the gate requires the carried tag
-to be built from the installed package tag. Drop the image override once an upstream release rotates
+to be built from the installed package tag. The carried tag is `v2.15.0-rotation.1`. Publication must
+supply its signed immutable digest in both carried image references and pass the unchanged
+validation gate before installation. Drop the image override once an upstream release rotates
 in place.
 
 ESO issue [external-secrets/external-secrets#6593](https://github.com/external-secrets/external-secrets/issues/6593) remains open. Versions 2.7.0 and 2.8.0 send an empty replica-region request when creating an AWS Secrets Manager PushSecret target, which AWS rejects. Do not add a replica region merely to hide the bug. Upgrade after a fixed release exists and prove creation of a brand-new remote secret before removing the pin.
@@ -66,7 +67,7 @@ ESO issue [external-secrets/external-secrets#6593](https://github.com/external-s
 The Grafana provider manifest:
 
 - pins an immutable OCI digest, carried identically in spec.package and in the verification job's argv;
-- verifies Grafana's keyless signature against the exact publishing workflow identity scoped to `refs/tags/v2.14.0`;
+- verifies Grafana's keyless signature against the exact publishing workflow identity scoped to `refs/tags/v2.15.0`;
 - runs the provider with SafeStart;
 - activates only the managed-resource kinds used by this reference.
 
