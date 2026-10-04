@@ -1,5 +1,27 @@
 # Changelog
 
+## [3.3.4](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.3...v3.3.4) (2026-10-04)
+
+
+### Documentation
+
+* **agents:** drop stale history, cached facts and restated global rules ([902c147](https://github.com/rknightion/grafana-cloud-vending-machine/commit/902c14701498ace3257137420ce4ee249ff39bd1))
+* **backlog:** close provider refresh with reviewed rollout evidence ([4fa4188](https://github.com/rknightion/grafana-cloud-vending-machine/commit/4fa4188bdc656333c3aac03a73fa2cbd4404941c))
+* **backlog:** close the HEAD-alias audit task as fixed upstream ([7822215](https://github.com/rknightion/grafana-cloud-vending-machine/commit/78222150610f0b1ca16feb241a19752b6dd96863))
+* **backlog:** record authorized migration fallback ([6fd9104](https://github.com/rknightion/grafana-cloud-vending-machine/commit/6fd91046a11a20ec851d19c9e549afd432328eb4))
+* **backlog:** retain migration hold after bounded payload failure ([e6dac25](https://github.com/rknightion/grafana-cloud-vending-machine/commit/e6dac259d2e76928779f21613539bb36cb27616c))
+* **loop:** adopt the lean LOOP.md and point at the loop contract ([2a3e22a](https://github.com/rknightion/grafana-cloud-vending-machine/commit/2a3e22ac96e2050b4a26faa9a8ba93cfde9c2846))
+* publish canonical agent documents ([c936de0](https://github.com/rknightion/grafana-cloud-vending-machine/commit/c936de0c5e0400a7c5eda726f6b77aac84fbfcf1))
+* publish canonical agent documents ([6ae7e94](https://github.com/rknightion/grafana-cloud-vending-machine/commit/6ae7e94ea8854232a6fa74debd4790d05e4c0130))
+* publish canonical agent documents ([5d1e3dc](https://github.com/rknightion/grafana-cloud-vending-machine/commit/5d1e3dc2a426573186c1e5612a7574172248c958))
+
+
+### Miscellaneous Chores
+
+* **deps:** update rknightion/.github action to v1.25.4 ([#62](https://github.com/rknightion/grafana-cloud-vending-machine/issues/62)) ([f69ccb1](https://github.com/rknightion/grafana-cloud-vending-machine/commit/f69ccb1aef4dd0be27c034749d21ef630909cc24))
+* **deps:** update rknightion/.github action to v1.25.5 ([#63](https://github.com/rknightion/grafana-cloud-vending-machine/issues/63)) ([6b14d7e](https://github.com/rknightion/grafana-cloud-vending-machine/commit/6b14d7e51f633851af164654af67bacd86a0cb4c))
+* **scan:** justify the loopwatch receiver allowlist entry ([61cc668](https://github.com/rknightion/grafana-cloud-vending-machine/commit/61cc6684ada390ff1c52e4b00c9b198337db006d))
+
 ## [3.3.3](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.2...v3.3.3) (2026-10-03)
 
 
