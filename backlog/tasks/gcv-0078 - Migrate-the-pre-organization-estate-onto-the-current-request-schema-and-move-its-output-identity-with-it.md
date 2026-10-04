@@ -3,10 +3,10 @@ id: GCV-0078
 title: >-
   Migrate the pre-organization estate onto the current request schema and move
   its output identity with it
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-16 17:10'
-updated_date: '2026-10-04 18:05'
+updated_date: '2026-10-04 18:35'
 labels: []
 dependencies: []
 documentation:
@@ -36,7 +36,7 @@ The version gap will be larger by the time this is picked up, and the schema may
 - [x] #3 The output-identity move names every consumer of the old remote path and states the cutover order, including when the old path stops being read
 - [x] #4 The estate's non-standard usage value is preserved, or the migration records why it can change given usage is immutable and forms part of the output identity
 - [x] #5 The schema delta is re-derived against the platform revision current at pickup rather than any delta recorded in this task
-- [ ] #6 The estate reaches the current request schema with its composite Synced and Ready, no in-stack resource orphaned by the move, and its delivery patches applying cleanly against the example they rewrite
+- [x] #6 The estate reaches the current request schema with its composite Synced and Ready, no in-stack resource orphaned by the move, and its delivery patches applying cleanly against the example they rewrite
 <!-- AC:END -->
 
 ## Definition of Done
@@ -117,6 +117,8 @@ Loop25 resume amendment READY after root corrected two briefing ambiguities: the
 Loop25 BF-1 resume handoff READY, but BF-P-1 production-template gate failed implementation at the replacement containment pause: unpause removed its sole annotation and the containment nested add assumed an annotations parent that no longer existed. Actual API rejection observed; no payload repair or gate weakening. All three phase renders and estate gates passed, but dependent lifecycle/ownership proof was not reached. BF-P-1 consumed with one provider-cache infrastructure retry; BF-P-2 is infrastructure/harness-only and cannot repair this candidate. Independent live review not dispatched, no B mutation, unchanged B27 containment preserved. P10.1 and fallback entry remain closed under goal P10.0. Resume requires a newly granted payload repair, complete private production-template admission/ownership proof and independent B1R-4 ACCEPT; AC6 remains unchecked. Prior design and live counts remain consumed.
 
 Loop27 sole owner-granted payload repair consumed: annotation-less replacement containment passed, preserving collaborator ownership and rejecting stale UID/resourceVersion guards. Full private payload test then failed at the first dependent seed because the inherited reference capture omits managedFields; faithful ownership assertion correctly refused it. Dependent intent/select/unpause/restore, all-four order, final Argo-equivalent SSA and claims operation admission were not reached. Three regenerated phase estate gates passed on current main; steady renders match reviewed baseline. Source-only CodeRabbit failed before coverage because the isolated review baseline lacks HEAD; three source files unreviewed. No live write, estate publication, replacement, reader cutover or pin performed. Explicit goal R1-failure hold keeps B27 containment and bars fix-forward/fallback; AC6 stays unchecked. Resume requires owner-granted bounded fixture repair using full historical paused/Manual captures, a committed source-only review baseline, complete private proof and independent security acceptance. Attempts: one newly granted implementation attempt consumed, no candidate-gate infrastructure retry, no live attempt or fallback rung consumed.
+
+Loop28: owner superseded the earlier payload-proof hold and granted the fallback ladder. Independent safety challenge found a Kubernetes Secret-GC gap; root corrected F2 by prohibiting MR/Secret deletion/recreation. Existing-child attachment completed the same-identity migration with five current-generation Synced/Ready requests, all 28 original child UIDs retained among 31 owned children, original Automatic controls restored, administrators omitted, tokens and plugin Synced, fresh new-path publication and reader auth hashes, no current old-path reader or orphan, legacy retention policies unchanged, and original Argo automation restored. F2 one attempt plus sole corrected stale-resourceVersion restoration retry; F3 zero. Live acceptance and composed estate gate cover 966e3d803cfde87b1e76d592f8cbe9b4b213b2f2 with notify run 37224816128. Later tracker commit is intentionally local after the sole release publication.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -125,4 +127,6 @@ Loop27 sole owner-granted payload repair consumed: annotation-less replacement c
 AC1-AC5 completed against pinning revision 1f2af4a0b37c244a799e1fe0cdfcea2fa5abd82e and hosted validation run 35364595851. AC6 remains open for the human-operated replacement cutover; status remains In Progress.
 
 Loop 18 changed status to Parked because AC6 is a human-operated replacement cutover after GCV-0075 lands and an estate runs a pin carrying it. No live estate action was authorized or performed.
+
+AC6 completed by the same-protected-stack migration. Reference release SHA 17c4e3f6eb67439ebb665b16b8bace8284ad9bdc has local composed Validation passed and hosted Validate reference/ci-success run 37224363754 success. Estate acceptance SHA 966e3d803cfde87b1e76d592f8cbe9b4b213b2f2, hosted notify run 37224816128, full current-generation graph/reader/automation witness. Direct legacy remote-value census was not performed; retention is evidenced by None/Retain policies and no deletion.
 <!-- SECTION:FINAL_SUMMARY:END -->
