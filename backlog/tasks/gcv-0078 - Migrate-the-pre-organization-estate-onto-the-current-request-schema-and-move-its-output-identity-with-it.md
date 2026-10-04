@@ -6,7 +6,7 @@ title: >-
 status: Parked
 assignee: []
 created_date: '2026-09-16 17:10'
-updated_date: '2026-10-03 13:09'
+updated_date: '2026-10-04 15:21'
 labels: []
 dependencies: []
 documentation:
@@ -113,6 +113,8 @@ Loop25 fix-forward resume amendment admitted from B27 containment under renewed 
 Loop25 resume amendment READY after root corrected two briefing ambiguities: the existing paused-request Application health is distinct from an actual failed operation, and the prior cancelled release validation retains its explicitly authorized successful containing-descendant evidence. The complete preserved graph, original-control provenance and initialization grace were rechecked. Local resume artifact preparation is admitted; historical references and original Automatic controls must not be replaced by current Manual values. Independent ownership review and every fresh in-step runtime witness remain mandatory; no live operation has started and AC6 remains unchecked.
 
 Loop25 BF-1 resume handoff READY, but BF-P-1 production-template gate failed implementation at the replacement containment pause: unpause removed its sole annotation and the containment nested add assumed an annotations parent that no longer existed. Actual API rejection observed; no payload repair or gate weakening. All three phase renders and estate gates passed, but dependent lifecycle/ownership proof was not reached. BF-P-1 consumed with one provider-cache infrastructure retry; BF-P-2 is infrastructure/harness-only and cannot repair this candidate. Independent live review not dispatched, no B mutation, unchanged B27 containment preserved. P10.1 and fallback entry remain closed under goal P10.0. Resume requires a newly granted payload repair, complete private production-template admission/ownership proof and independent B1R-4 ACCEPT; AC6 remains unchecked. Prior design and live counts remain consumed.
+
+Loop27 sole owner-granted payload repair consumed: annotation-less replacement containment passed, preserving collaborator ownership and rejecting stale UID/resourceVersion guards. Full private payload test then failed at the first dependent seed because the inherited reference capture omits managedFields; faithful ownership assertion correctly refused it. Dependent intent/select/unpause/restore, all-four order, final Argo-equivalent SSA and claims operation admission were not reached. Three regenerated phase estate gates passed on current main; steady renders match reviewed baseline. Source-only CodeRabbit failed before coverage because the isolated review baseline lacks HEAD; three source files unreviewed. No live write, estate publication, replacement, reader cutover or pin performed. Explicit goal R1-failure hold keeps B27 containment and bars fix-forward/fallback; AC6 stays unchecked. Resume requires owner-granted bounded fixture repair using full historical paused/Manual captures, a committed source-only review baseline, complete private proof and independent security acceptance. Attempts: one newly granted implementation attempt consumed, no candidate-gate infrastructure retry, no live attempt or fallback rung consumed.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
