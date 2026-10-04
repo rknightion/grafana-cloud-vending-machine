@@ -416,6 +416,34 @@ target full-stack Composition must never concurrently reconcile the same slug,
 and two `PushSecret` resources using `Replace` must never concurrently write
 the same remote key.
 
+External-object retention does **not** retain the MR-owned in-cluster connection
+Secret. The current provider v2.15.0 pins
+[crossplane-runtime v2.4.0](https://github.com/grafana/crossplane-provider-grafana/blob/v2.15.0/go.mod#L8),
+which [sets the MR controller owner reference on its connection Secret](https://github.com/crossplane/crossplane-runtime/blob/v2.4.0/pkg/resource/resource.go#L94-L105).
+The [local publisher relies on Kubernetes garbage collection](https://github.com/crossplane/crossplane-runtime/blob/v2.4.0/pkg/reconciler/managed/api.go#L158-L194);
+the [no-Delete removal path](https://github.com/crossplane/crossplane-runtime/blob/v2.4.0/pkg/reconciler/managed/reconciler.go#L1029-L1057)
+clears the MR finalizer without detaching that ownership. Policies
+[without Delete](https://github.com/crossplane/crossplane-runtime/blob/v2.4.0/pkg/reconciler/managed/policies.go#L225-L268)
+retain the external object, not its local Secret. Normal garbage collection
+removes the Secret after MR removal in both Retain and controlled-Delete paths.
+A consumer reference or a same-named replacement MR does not prevent this.
+This removal-based handoff is separate from the observed same-identity move
+above, which preserved the original MRs and connection Secrets.
+
+**Before approving any source MR removal**, complete the
+[Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
+Inventory live Secret ownership and consumers before any owner disappears.
+For every credential needed during the handoff, prove a current, readable copy
+survives outside the removed owner's garbage-collection chain, and verify that
+each continuing consumer has switched to and authenticated with that copy.
+Use an independently managed Secret or a verified external document with an
+independently managed reader; another `ExternalSecret` scheduled for removal is
+not such a reader. Rehearse survival after owner removal and verify expiry and
+replacement/rotation coverage, since removing the MR stops its rotation. Record
+references and proof results, never credential values. Stop before removal if
+any required Secret's survival or consumer handoff is unproven. `Retain`,
+`PushSecret: None` and deletion readiness alone do not satisfy this prerequisite.
+
 1. Freeze source and target promotion. Inventory the source request, all
    composed-resource external names, non-secret provider IDs, dependent
    requests, and every remote credential document path. Render the target
@@ -430,14 +458,23 @@ the same remote key.
    procedure above with a distinct profile-owned consumer name and output path.
    Move that consumer to its new document and verify it. Do not point it at, or
    let it replace, the source stack credential document.
-4. Remove the source dependent requests and their writers through reviewed
-   GitOps changes first, after verifying each managed resource uses a
-   non-deleting policy. The Stack request's `Retain` field does not configure
-   independent dependent requests. Wait for their Kubernetes objects and
-   finalizers to disappear, including whole-set and output-document writers.
-   Then remove the source full-stack request, wait for its composite and
-   composed-resource finalizers to disappear, and prove the external Stack
-   still exists. Do not continue while any source writer remains active.
+4. Before removing any source MR, verify the Secret-retention proof above for
+   every required credential, including consumer handoff to its independently
+   surviving copy. Inventory all source credential identities and delivered
+   copies as described in [Retire the source-held credentials](#retire-the-source-held-credentials)
+   before their writers or owners disappear. Remove the source dependent
+   requests and their writers through reviewed GitOps changes first, after
+   verifying each managed resource uses a non-deleting policy. The Stack
+   request's `Retain` field does not configure independent dependent requests.
+   Wait for their Kubernetes objects and finalizers to disappear, including
+   whole-set and output-document writers.
+   Then remove the source full-stack request only after the same Secret proof
+   holds for its children. Wait for its composite and composed-resource
+   finalizers to disappear, and prove the external Stack still exists and each
+   required credential copy remains readable by its continuing consumers.
+   Expect the original MR-owned Secrets to be garbage collected; do not rely
+   on their continued presence. Do not continue while any source writer remains
+   active.
 5. Only after step 4, apply the target `GrafanaCloudStackRequest` with the same
    slug and reviewed organization, region, usage, and lifecycle values. Watch
    the managed Stack's external name and conditions. Stop on any Create event,
@@ -466,12 +503,17 @@ the same remote key.
 Step 8 ends with the target owning the stack. It does not end with the source
 cluster holding nothing. Under `Retain`, removing a Kubernetes object is
 deliberately not a revocation: the external AccessPolicy, its rotating token
-and any delivered secret-store document all survive the cluster that vended
-them, and they survive with their original scopes. Retiring them is a separate,
-ordered step, and it is the last one in the handoff.
+and retained external secret-store documents can outlive the cluster that
+vended them. A retained token can authenticate with its original scopes until
+expiry or revocation; MR removal stops rotation but is not revocation. Its
+MR-owned connection Secret does **not** survive owner removal unless an
+independent retention mechanism was proved before removal. Retiring the
+external identities and any surviving delivered copies is a separate, ordered
+step, and it is the last one in the handoff.
 
-Four classes of retained credential are in scope. The first three carry
-provider-assigned identities that are never derivable from a Kubernetes name;
+Four classes of credential identity or delivered copy are in scope. The first
+three carry provider-assigned identities that are never derivable from a
+Kubernetes name;
 the fourth is the delivered copy of a credential rather than the credential
 itself:
 
@@ -490,7 +532,9 @@ itself:
   none of the others. Track each token and its own consumers separately through
   the replacement proof and the cleanup;
 - the delivered copies: the remote secret-store document the source `PushSecret`
-  wrote, and the in-cluster connection secret it read from.
+  wrote, the original MR-owned connection Secret it read from, and every
+  independently retained copy created for the handoff. The original connection
+  Secret is inventoried before removal, not assumed to remain afterwards.
 
 Inventory the first three from the managed resource external-name annotations
 and provider status before anything is removed. The fourth is not a managed
@@ -499,7 +543,10 @@ itself: its namespace and name, each
 `spec.data[].match.remoteRef.remoteKey` it writes, the `spec.secretStoreRefs`
 entry that key is written through together with the backend and tenant that
 store resolves to, and the namespace and name of the source Secret in
-`spec.selector.secret.name`.
+`spec.selector.secret.name`. Record that Secret's live `ownerReferences` and
+owner UID, its consumers, and the references and ownership of any independently
+surviving copies. Complete this inventory and the Secret-retention proof
+**before** step 4 removes any source MR, not after the transfer is finished.
 
 Record the store identity with every key, and compare on the pair. A
 `remoteKey` is only unique within its store: the same key string in two
@@ -530,8 +577,10 @@ points 1 to 5 read the target cluster and the provider identities it reports,
 while point 6 can only be answered by the consumers themselves and by
 provider-side authentication records. Nothing this repository ships observes any
 of it, so treat the whole list as an operator prerequisite. A target composite
-reporting Ready and Synced says the target minted its own credential; it says
-nothing whatever about whether any consumer has adopted it.
+reporting Ready and Synced does not by itself prove a distinct credential was
+minted or that any consumer has adopted it. This replacement proof precedes
+revocation; it does not replace the earlier Secret-survival and consumer-handoff
+proof required before source MR removal.
 
 1. the target composite reports Ready and Synced;
 2. the target `AccessPolicy` reports a provider-assigned `status.atProvider`
@@ -552,9 +601,14 @@ nothing whatever about whether any consumer has adopted it.
    and Synced and no pair matches;
 4. the target `PushSecret` reports the ESO condition `Ready=True` with reason
    `Synced`. That is ESO's own condition, not the Crossplane `Ready` and
-   `Synced` pair used elsewhere in this guide. Then read the remote document and
-   the source Secret directly and confirm they hold the target credential;
-   neither is a Crossplane resource and neither carries conditions to check;
+   `Synced` pair used elsewhere in this guide. Then securely compare the target
+   remote document with the target token MR's current connection Secret and
+   confirm they hold the same target credential without recording its value.
+   Verify any independently managed reader or handoff copy used by continuing
+   consumers against that credential as well. Do not require the original
+   source connection Secret to exist after its MR was removed; it is normally
+   garbage collected. A Secret has no Ready/Synced conditions to substitute for
+   direct value verification; publication conditions alone are not value proof;
 5. for every retained `StackServiceAccount`, and for **every** rotating token
    inventoried against it, the target reports its own provider-assigned
    service-account ID and token IDs, and each of those target IDs differs from
@@ -581,24 +635,32 @@ re-minting whatever you revoke.
    procedure above will normally have removed it already; remove it here if it
    has not, through a reviewed GitOps change. Either way it must have carried
    `spec.deletionPolicy: None` when it was removed, per the inventory check
-   above. Under `None` the remote document survives the removal and still holds
-   a working token, which is what the rest of this procedure assumes. If a
-   writer was removed under `Delete`, stop: the document is already gone and
-   you are recovering a delivery, not retiring a credential.
+   above. Under `None` removal does not delete the remote document; that policy
+   alone proves neither freshness nor token validity nor local Secret survival.
+   Before any remaining writer or MR is removed, verify the earlier independent
+   Secret-survival and consumer-handoff proof still holds. Verify any source
+   credential still required during the handoff remains unexpired and readable
+   through its surviving copy. If a writer was removed under `Delete`, stop and
+   verify the backend outcome: required delivery may have been destroyed, so
+   recovery rather than credential retirement may be needed.
 2. Remove **every** inventoried source rotating token object for that policy,
    then the AccessPolicy object, from the source cluster, still under
    non-deleting policies, and wait for their finalizers to clear. Repeat step 1
    for each token that had a writer of its own. Nothing has been revoked yet at
-   this point.
+   this point. Garbage collection can now remove each token MR's connection
+   Secret. If these owners were already removed during transfer step 4, verify
+   their absence and use the recorded inventory; do not recreate them to make
+   this checklist possible. Stop before any new removal lacking the required
+   independent-copy and consumer-handoff proof.
 3. Revoke at the provider: every inventoried token for that policy first, one at
    a time, and the policy itself only once none remain. Revoking the policy
    invalidates its tokens, so the reverse order leaves a window where the policy
    is gone and each token's failure mode is harder to attribute. A token you
    inventoried from the provider but never saw in the source cluster is revoked
    here like any other; it is the one most likely to be missed.
-4. Delete the stale remote secret-store document and the in-cluster connection
-   secret, using the `remoteKey` and source Secret references recorded in the
-   inventory.
+4. Clean up source-only remote secret-store documents and any surviving
+   source-only local credential copies, using the `remoteKey` and original and
+   independently retained Secret references recorded in the inventory.
 
     **Check ownership of each recorded `remoteKey` first, and delete only the
     source-only ones.** Step 7 of the transfer procedure permits the target to
@@ -611,11 +673,17 @@ re-minting whatever you revoke.
     target's `PushSecret` set is the usual second owner but it is not the only
     possible one: a pair still claimed by any writer stays.
 
-    The in-cluster connection Secret needs its **own, separate** check: the
-    `remoteKey` comparison says nothing about it. Before deleting it, look for
-    any remaining local owner or consumer of that namespace and name, including
-    another `PushSecret` selector and any workload mounting it. Keep the Secret
-    while anything still references it, whatever the remote comparison said.
+    Each recorded local Secret needs its **own, separate** check: the
+    `remoteKey` comparison says nothing about it. The original MR-owned Secret
+    may already be absent through garbage collection; record that outcome and
+    do not recreate it for cleanup. For a Secret that still exists, compare its
+    current UID and ownership with the inventory so a same-named replacement
+    is not mistaken for the stale source copy. Check remaining owners and
+    consumers, including `PushSecret` selectors and workload mounts, before
+    deleting any source-only survivor. Do not delete a live replacement or a
+    copy still required by a consumer; stop and resolve that consumer's handoff.
+    Merely mounting or selecting the original Secret never prevented its
+    garbage collection: that protection had to be proved before MR removal.
 
     This deletion authenticates with the configured `SecretStore`'s own workload
     identity for the selected backend, never with the Grafana token just
@@ -633,14 +701,18 @@ re-minting whatever you revoke.
       the source-only ownership comparison in point 4 below has cleared it;
    2. remove every inventoried `StackServiceAccountRotatingToken` for it, then
       the `StackServiceAccount` itself, from the source cluster under
-      non-deleting policies, and wait for the finalizers to clear. Nothing is
-      revoked yet;
+      non-deleting policies only after independently surviving required copies
+      and consumer handoff are proved, and wait for the finalizers to clear.
+      Already-removed owners are checked for absence, not recreated. Their
+      MR-owned Secrets are normally garbage collected. Nothing is revoked yet;
    3. revoke at the provider: every one of its tokens first, one at a time, then
       the service account once none remain;
-   4. delete each of those tokens' delivered copies, remote and in-cluster,
-      using their own recorded references and the same source-only ownership
-      comparison as step 4 above. A service-account token path the target
-      adopted is the target's document now.
+   4. clean up each token's source-only remote document and any surviving
+      source-only local copies using their own recorded references and the
+      same UID, ownership and consumer checks as step 4 above. Record an
+      already-GCed original Secret as absent rather than recreating it.
+      A service-account token path the target adopted is the target's document
+      now.
 
    Do not batch these across service accounts and do not carry the access
    policy's replacement evidence across to any of them. Each one is a separate
@@ -657,8 +729,10 @@ checklist to fill in afterwards.
 outlives the cluster that vended it, the GitOps repository that described it and
 the reviewers who approved its scopes. Because the source Kubernetes objects are
 gone, it appears in no cluster inventory at all: only the Grafana Cloud
-organization still knows it exists. A handoff that stops at step 8 leaves a
-full-scope standing credential behind on every migration, permanently.
+organization still knows it exists. A handoff that stops at step 8 leaves
+retained credential-bearing state behind. A bounded token eventually expires,
+but that is not evidence of deliberate revocation or complete copy cleanup;
+external policies and service accounts can remain until explicitly retired.
 
 **Operator prerequisites.** This repository makes no live Grafana Cloud, cluster
 or source-environment contact, so none of the following is exercised or proven
@@ -696,7 +770,7 @@ A safe adoption rehearsal should:
 5. verify that the Stack external name resolves to the intended existing identity;
 6. confirm no unrelated service account, token, SSO provider, plugin, role, or dashboard would be claimed;
 7. hand over one resource family at a time;
-8. retain a tested rollback that removes Kubernetes ownership without deleting external resources.
+8. retain a tested rollback that removes Kubernetes ownership without deleting external resources; before any MR removal, prove independently surviving required credential copies and consumer handoff using the [Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
 
 The inert `examples/catalog/stack-inventory` catalog is the migration entry point. Copy and adapt it
 into the deliberate live-request path only after the referenced stack and its per-stack
@@ -718,7 +792,12 @@ The provider imports external objects through the crossplane.io/external-name an
 
 Do not infer the remaining import keys from Kubernetes names, display names, list order, or another resource's UID. Inventory them from the existing managed resource annotation and provider status or from the supported Grafana inventory API. The pinned provider uses keys such as stackSlug:serviceAccountID for StackServiceAccount, region:policyID for AccessPolicy, orgID:teamID for Team, region:tokenID for AccessPolicyRotatingToken, and orgID for OrganizationPreferences. A rotating service-account token and any resource without a documented importer must be recorded verbatim and rehearsed against the pinned provider; do not manufacture an ID. Whole-set content permissions that target another managed resource by reference also require the resolved target UID to be inventoried.
 
-For a non-destructive orphan-and-adopt transition:
+For a non-destructive orphan-and-adopt transition, "non-destructive" refers to
+external objects, not MR-owned local Secrets. Before authorizing any MR removal
+in the transition or rollback, prove independently surviving required credential
+copies and consumer handoff using the
+[Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
+Do not assume an external orphan retains its connection Secret.
 
 1. pause automated promotion and confirm Delete is absent from every external managed resource involved;
 2. export a mapping of logical composed-resource name, kind, external-name annotation, relevant non-secret status IDs, and external object URL or UID;

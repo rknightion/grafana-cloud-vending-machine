@@ -25,6 +25,11 @@ Read [Getting started](docs/getting-started.md) for prerequisites and the copy-e
 path to a first request. Use [Installation](docs/installation.md) first when the controllers,
 provider, secret store, and organization `ProviderConfig` objects are not already healthy.
 
+`Retain` protects external objects, not MR-owned in-cluster connection Secrets. Kubernetes garbage
+collection removes those Secrets when their managed-resource owners are removed. Before authorizing
+any MR removal, operators must prove required Secret retention and consumer handoff; see
+[the pinned-runtime explanation and removal-approval checklist](docs/secrets.md#connection-secret-lifetime-and-removal-approval).
+
 ## Documentation map
 
 | Page | Covers |

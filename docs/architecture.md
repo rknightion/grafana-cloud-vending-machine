@@ -182,7 +182,11 @@ deletion; it does not delete anything. Wait for `status.deletionArmed=true` and 
 and `GrafanaContentAccessPolicy` objects. Merge or sync that change and wait until their Kubernetes
 objects and finalizers are gone while the Stack and request still exist. Stage 3 removes the request
 from Git only after the claims and finalizers are gone. The stack endpoint stays available until the
-access claims clear.
+access claims clear. Before approving any MR removal, including Retain pruning or optional-child
+withdrawal, complete the [Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
+MR-owned connection Secrets are garbage collected with their owners in both lifecycles; retaining
+external objects or documents does not retain these in-cluster Secrets. `status.deletionReady=true`
+is not proof of Secret survival or consumer handoff.
 
 <iframe title="Reviewed decommission lifecycle" src="diagrams/decommission-lifecycle.html" width="100%" height="640" loading="lazy"></iframe>
 

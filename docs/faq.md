@@ -42,6 +42,12 @@ credential documents are orphaned, not destroyed. Stack-local Grafana content re
 retain/orphan because deleting the Stack destroys it. `Delete` is accepted only for an exact
 request namespace/name/UID/profile tuple in platform-owned `deletionAuthorizations`, which is empty by default.
 
+The retained documents are **external secret-store copies**, not in-cluster connection Secrets.
+MR-owned connection Secrets are garbage collected when the MR is removed, even without external
+Delete. Before approving any MR removal, prove required copies survive independently and consumers
+use them; see the [pinned-source explanation and Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
+`status.deletionReady=true` does not prove Secret retention.
+
 Decommissioning has three reviewed stages: first set `externalResources: Delete` and wait for
 `status.deletionArmed=true` followed by `status.deletionReady=true` (observed Stack
 `deleteProtection=false`, deletion-managed rotating tokens, plus finalized and currently synced

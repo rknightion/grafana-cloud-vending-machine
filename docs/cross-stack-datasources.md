@@ -12,7 +12,12 @@ The credential belongs to project content, independently of the project stack's
 lifetime. It uses the existing StackConsumer credential machinery and platform
 maximum lifetime. This feature adds no rotation mechanism or interval change.
 Deleting a claim retains external resources, following the existing consumer
-contract; deleting a project stack does not revoke its central credential.
+contract; deleting a project stack does not revoke its central credential. External retention does
+not retain the MR-owned connection Secret: Kubernetes garbage collection removes that Secret
+when its token MR is removed. An `ExternalSecret` also owns the project-side credential
+materialization; it is not an independently retained copy when that owner is removed. Before
+approving any MR removal, prove required Secret survival and consumer handoff using the
+[Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
 
 Revocation is an explicit platform operation: pause reconciliation of the owned
 access policy and rotating token before revoking them in the central stack, then

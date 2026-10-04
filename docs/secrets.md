@@ -106,6 +106,54 @@ Static `StackServiceAccountToken`, `AccessPolicyToken`, and `ServiceAccountToken
 remain available in the upstream provider but are deliberately not used here — their rotating
 counterparts avoid creating a permanent credential lifecycle outside the control plane.
 
+## Connection Secret lifetime and removal approval
+
+External-object retention is not in-cluster Secret retention. Provider v2.15.0 pins
+[crossplane-runtime v2.4.0](https://github.com/grafana/crossplane-provider-grafana/blob/v2.15.0/go.mod#L8).
+That runtime creates each namespaced connection Secret with a controller owner reference to its
+managed resource (MR), including the MR's UID
+([Secret construction](https://github.com/crossplane/crossplane-runtime/blob/v2.4.0/pkg/resource/resource.go#L94-L105)).
+The [local Secret publisher](https://github.com/crossplane/crossplane-runtime/blob/v2.4.0/pkg/reconciler/managed/api.go#L158-L194)
+explicitly relies on Kubernetes garbage collection when the MR is deleted. The
+[no-Delete removal path](https://github.com/crossplane/crossplane-runtime/blob/v2.4.0/pkg/reconciler/managed/reconciler.go#L1029-L1057)
+unpublishes connection details and clears the MR finalizer without deleting the external object;
+it does not detach the Secret's owner reference. Neither `Retain`, legacy `deletionPolicy: Orphan`,
+nor [management policies without Delete](https://github.com/crossplane/crossplane-runtime/blob/v2.4.0/pkg/reconciler/managed/policies.go#L225-L268)
+keeps an MR-owned connection Secret after MR removal. Normal Kubernetes garbage collection removes
+that Secret in both retained and controlled-Delete lifecycles. A new MR with the same name has a
+new UID; it is not evidence that the old Secret or credential value survived.
+
+A `PushSecret` with `deletionPolicy: None` retains its **external secret-store document**, not
+its selected Kubernetes Secret. These are different objects and lifetimes. Likewise, the rendered
+`ExternalSecret` targets use `creationPolicy: Owner`: `deletionPolicy: Retain` is not a promise
+that their Kubernetes Secrets survive removal of the owning `ExternalSecret`.
+
+Before authorizing **any** MR removal (request pruning, optional-child withdrawal, migration or
+Stage 3 of controlled Delete), the operator must:
+
+1. Inventory each connection Secret's namespace, name and live `ownerReferences`, including owner
+   UID, its credential consumers, and the external documents and writers that depend on it. Record
+   references and non-secret evidence only; do not copy credential values into Git or review logs.
+2. Decide which credentials must remain available, for how long, and which copies should be
+   destroyed. For every required credential, prove a current, readable copy exists outside the
+   removing owner's garbage-collection chain: either a verified external document with an
+   independently managed reader, or an independently owned Secret created through the approved
+   secret-management workflow. Merely specifying `Retain`, seeing a Secret before removal, or
+   seeing a previous `PushSecret` sync is not this proof. Verify current credential equivalence
+   securely and record the check result without exposing values.
+3. Verify each continuing consumer actually uses that surviving copy and can authenticate with it;
+   check its expiry and replacement/rotation plan. MR removal also stops that MR's rotation.
+   Rehearse the proposed removal/retention mechanism in an isolated environment and prove the
+   required Secret remains readable after the old owner and finalizers are gone. Do not assume
+   stripping an owner reference alone is durable while its controller is still publishing.
+4. Withhold removal approval if any required Secret's survival or consumer handoff is unproven.
+   For controlled Delete, record intentional destruction separately; `status.deletionReady=true`
+   proves the renderer's deletion prerequisites, **not** Secret retention or consumer handoff.
+
+For a deliberately destroyed credential, verify the in-cluster Secret outcome as well as the
+external object/document outcome. Retained bytes do not imply an unexpired or unrevoked credential,
+and retained external credentials do not imply recoverable in-cluster bytes.
+
 ## SSO and incident profile secrets
 
 `deploy/aws/optional-profile-secrets.yaml` provides the `ExternalSecret` shape for OAuth client
@@ -171,7 +219,9 @@ function itself only emits `SecretStore` references, so another ESO provider can
 if it supports `ExternalSecret` and `PushSecret` with the required structured-value behaviour.
 
 `PushSecret` uses retain behaviour by default. Removing an unarmed request therefore does not
-delete its external credential documents. With an authorized
+delete its external credential documents, but its MR-owned connection Secrets are garbage
+collected. Complete the [Secret-retention proof](#connection-secret-lifetime-and-removal-approval)
+before approving any MR removal. With an authorized
 `spec.lifecycle.externalResources: Delete`, the first reviewed stage only arms deletion; after
 `status.deletionReady=true` confirms the rotating tokens are deletion-managed and ESO has finalized
 and currently synced each enabled credential PushSecret. Stage 2 removes the dependent access claims and waits for their

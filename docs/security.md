@@ -135,7 +135,10 @@ Do not put long-lived AWS keys in SecretStore. The controller should obtain shor
 The example uses AWS Secrets Manager, not Systems Manager Parameter Store. The function itself only emits SecretStore references, so another ESO provider can be substituted if it supports ExternalSecret and PushSecret with the required structured-value behavior.
 
 `PushSecret` uses retain behaviour by default, so removing an unarmed request does not delete its
-external credential documents. When an authorized request is armed with
+external credential documents. This does not retain the selected MR-owned connection Secret;
+Kubernetes garbage collection removes it when its MR owner is removed. Complete the
+[Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval) before approving
+any MR removal. When an authorized request is armed with
 `spec.lifecycle.externalResources: Delete`, the administrator and telemetry `PushSecret` documents
 are deleted during Stage 3 of the separately reviewed request-removal sequence, after Stage 2 has
 cleared the access claims. With AWS Secrets Manager, ESO's
@@ -149,7 +152,10 @@ deletion defaults to a 30-day recovery window; the supplied IAM policy includes 
 This reference contains no one-command destructive path. The request field
 `spec.lifecycle.externalResources` defaults to `Retain`: ordinary pruning removes the Kubernetes
 composite and composed objects but **orphans** external resources. Stack-local Grafana content
-remains retain/orphan because deleting the Stack destroys that content.
+remains retain/orphan because deleting the Stack destroys that content. External retention does
+not preserve MR-owned in-cluster connection Secrets, in either lifecycle. The
+[pinned-runtime ownership and removal paths](secrets.md#connection-secret-lifetime-and-removal-approval)
+explain why and define the required operator proof.
 
 The platform-owned Composition input controls the exceptional `Delete` mode:
 
@@ -182,10 +188,19 @@ for the ordered procedure.
 
 ## Decommission runbook
 
-The default `spec.lifecycle.externalResources: Retain` is safe for ordinary pruning: removing an
-unarmed request from Git or pruning it from Argo orphans external resources. Stack-local Grafana
-content is safe to orphan because deleting the Stack destroys it; credential-bearing state that can
-outlive the Stack is the state covered by the optional Delete path.
+The default `spec.lifecycle.externalResources: Retain` prevents external deletion during ordinary
+pruning: removing an unarmed request from Git or pruning it from Argo orphans external resources.
+It does **not** preserve MR-owned in-cluster connection Secrets: Kubernetes garbage collection
+removes them when their managed-resource owners disappear. Stack-local Grafana content is safe to
+orphan because deleting the Stack destroys it; external credential-bearing state that can outlive
+the Stack is the state covered by the optional Delete path.
+
+Before approving any MR removal, including Retain pruning or migration, complete the
+[Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval): inventory live
+Secret ownership, prove any required copy survives outside the removed owner's garbage-collection
+chain, verify consumer handoff and expiry/rotation, and rehearse survival after owner removal.
+Stop if required retention is unproven. The same proof applies before Stage 3 of controlled Delete;
+record intentionally destroyed copies separately. `status.deletionReady=true` is not that proof.
 
 An actual deletion has three reviewed Git stages. It is not a one-command path. Approved sandbox expiry can delay Stage 1 arming until the effective deadline; it never executes Stages 2 or 3. See [Governance](governance.md#sandbox-expiry-uses-the-reviewed-deletion-path).
 
@@ -194,7 +209,8 @@ An actual deletion has three reviewed Git stages. It is not a one-command path. 
 1. Inventory and record the exact stack identity (`status.stack.id`, slug, and URL), dependants,
    access claims, credential consumers, and data-retention requirements. Verify the creation-time
    `spec.retention.class` decision and actual receipt at its durable fan-out sink; decommission cannot
-   recover telemetry that was never forwarded.
+   recover telemetry that was never forwarded. Inventory connection Secret ownership and required
+   credential copies using the [Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
 2. Have the platform owner add this request's exact namespace, name, Kubernetes UID, and immutable profile to the
    platform-owned `deletionAuthorizations` list. If there is no exact match, stop; the request must
    remain `Retain`.
@@ -218,12 +234,14 @@ An actual deletion has three reviewed Git stages. It is not a one-command path. 
 ### Review 3: remove the stack request
 
 1. In a third reviewed change, remove the `GrafanaCloudStackRequest` from Git only after the
-   dependent access claims and their finalizers have cleared.
+   dependent access claims and their finalizers have cleared and the required Secret-retention and
+   consumer-handoff evidence has been reviewed. Without that evidence, stop before removing any MR.
 2. Let Crossplane and ESO reconcile the armed deletion. The Delete mode covers only the Stack, its
    administrator service account and token, the telemetry access policy and token, and the
    administrator and telemetry `PushSecret` documents. Stack-local Grafana content remains
    retain/orphan because Stack deletion destroys it.
-3. Verify the external deletion result and the credential-document outcome. AWS Secrets Manager
+3. Verify the external deletion result, external credential-document outcome, and in-cluster Secret
+   outcome (required copies retained, intentionally destroyed copies absent). AWS Secrets Manager
    deletion defaults to a 30-day recovery window, and the supplied IAM policy includes
    tag-conditioned `DeleteSecret` on the output prefix. A platform operator using another secret backend must
    verify its `PushSecret` Delete support before enabling this workflow.

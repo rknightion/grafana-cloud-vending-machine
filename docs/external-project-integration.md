@@ -232,7 +232,11 @@ source CR disappears. A generated request remains in Git until a separate
 reviewed change removes or changes it.
 
 The request XRD defaults `spec.lifecycle.externalResources` to `Retain`.
-Removing an unarmed request from Git therefore orphans external resources. The
+Removing an unarmed request from Git therefore orphans external resources, but
+not MR-owned in-cluster connection Secrets: garbage collection removes those
+with their managed-resource owners. Before approving any MR removal, complete
+the [Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
+External retention and deletion readiness are not proof of Secret survival. The
 only destructive route is the existing owner-authorised decommission path in
 [`docs/governance.md`](governance.md#decommission-runbook):
 

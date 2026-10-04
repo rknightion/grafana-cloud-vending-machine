@@ -95,7 +95,11 @@ for the complete mode table, and [SSO](sso.md) for the handoff semantics.
 **Cause.** This is intentional in the default mode, not a bug. Unless the request was armed with
 an authorized `spec.lifecycle.externalResources: Delete`, pruning a `GrafanaCloudStackRequest`
 uses `Retain`: the Kubernetes composite and composed objects disappear, while the Stack, credential
-resources, and generated documents are orphaned. Stack-local content is also retain/orphan because
+resources, and external secret-store documents are orphaned. MR-owned in-cluster connection Secrets
+are not retained: Kubernetes garbage collection removes them with their owners. Before approving
+any MR removal, complete the [Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
+Do not treat a surviving external token or document as evidence that its local Secret survived.
+Stack-local content is also retain/orphan because
 deleting the Stack destroys it. `Delete` is rejected unless the request namespace, name, UID, and
 immutable profile exactly match a platform-owned `deletionAuthorizations` entry; the list is empty by default.
 

@@ -85,7 +85,10 @@ Kubernetes objects and orphans external resources. `Delete` requires an exact re
 namespace/name/UID/profile entry in platform-owned `deletionAuthorizations` (empty by default). The decommission has three
 reviewed stages: arm Delete and reach `status.deletionReady=true`; remove dependent access claims
 and merge/sync until their Kubernetes objects and finalizers are gone while the Stack still exists;
-then remove the request. See the [Governance → decommission runbook](../governance.md#decommission-runbook).
+then remove the request. MR-owned in-cluster connection Secrets are garbage collected in either
+lifecycle when their managed-resource owners are removed; external retention does not retain them.
+Before approving any MR removal, complete the [Secret-retention proof](../secrets.md#connection-secret-lifetime-and-removal-approval).
+See the [Governance → decommission runbook](../governance.md#decommission-runbook).
 
 ## Governance catalog bases
 

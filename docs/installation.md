@@ -297,6 +297,11 @@ Delete removes only the Stack, administrator service account/token, telemetry
 access policy/token, and administrator/telemetry `PushSecret` documents. See the
 [decommission runbook](governance.md#decommission-runbook).
 
+External retention does **not** retain MR-owned Kubernetes connection Secrets: garbage collection
+removes them when their managed resources are removed, even in Retain mode. Before approving any
+pruning or other MR removal, complete the [Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
+Deletion readiness and external-document retention are not proof of in-cluster Secret survival.
+
 ## Upgrade runbook
 
 For a provider upgrade:

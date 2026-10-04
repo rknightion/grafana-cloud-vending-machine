@@ -314,7 +314,11 @@ documents orphaned. A stack belongs to one organization; an installation may reg
 decommission intent, not a consumer-only switch: the exact request namespace, name, UID, and immutable profile
 must be present in `deletionAuthorizations`, whose default is empty. Arming the intent does not delete resources; wait
 for `status.deletionReady=true` before Stage 2 removes access claims and waits for their finalizers.
-Stage 3 removes the request only after those objects are gone.
+Stage 3 removes the request only after those objects are gone and required Secret-retention and
+consumer-handoff evidence has been reviewed. In both lifecycles, MR-owned connection Secrets are
+garbage collected when their owners are removed; external retention does not preserve them.
+Before approving any MR removal, complete the [Secret-retention proof](../secrets.md#connection-secret-lifetime-and-removal-approval).
+`status.deletionReady` does not attest to that proof.
 
 ### Status fields
 

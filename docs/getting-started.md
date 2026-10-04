@@ -109,7 +109,10 @@ spec:
 
 See [Request Schema Reference](reference/request-schema.md) for what every field does.
 
-The example omits `spec.lifecycle.externalResources`, so it uses the safe `Retain` default. An
+The example omits `spec.lifecycle.externalResources`, so it uses the external-retention `Retain`
+default. This does not keep MR-owned connection Secrets after their managed resources are removed.
+Before approving any MR removal, complete the [Secret-retention proof](secrets.md#connection-secret-lifetime-and-removal-approval).
+An
 authorized `Delete` value is a decommission intent only: it requires an exact platform-owned
 authorization for the request namespace, name, Kubernetes UID, and immutable profile,
 the first reviewed request change, and a wait for `status.deletionReady=true`. Stage 2 removes
