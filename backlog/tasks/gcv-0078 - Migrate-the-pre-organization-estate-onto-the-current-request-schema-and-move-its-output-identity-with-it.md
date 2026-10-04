@@ -3,10 +3,10 @@ id: GCV-0078
 title: >-
   Migrate the pre-organization estate onto the current request schema and move
   its output identity with it
-status: Parked
+status: In Progress
 assignee: []
 created_date: '2026-09-16 17:10'
-updated_date: '2026-10-04 15:21'
+updated_date: '2026-10-04 18:05'
 labels: []
 dependencies: []
 documentation:
@@ -49,6 +49,8 @@ The version gap will be larger by the time this is picked up, and the schema may
 
 <!-- SECTION:PLAN:BEGIN -->
 Wave 14: settle in-place organization migration on the pinned ephemeral API server and produce the AC1-AC5 cutover plan; keep AC6 open for the human-operated live cutover.
+
+Loop28 owner supersedes earlier payload-proof hold: root executes independently challenged Kubernetes fallback with retained external Stack, then exclusively scoped external fallback only if required; release and estate pin follow their exact gates. Earlier budgets remain historical; no GCV code changes.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
