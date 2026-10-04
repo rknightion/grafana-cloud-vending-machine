@@ -3,9 +3,10 @@ id: GCV-0102
 title: >-
   Record and document what happens to a vended connection Secret when its
   managed resource is removed
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-10-04 20:18'
+updated_date: '2026-10-04 20:21'
 labels:
   - docs
   - security
@@ -34,3 +35,9 @@ During GCV-0078 (migrate the pre-organization estate onto the current request sc
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Inventory retention claims against exact pinned runtime source, correct misleading documentation only, and stop on a renderer contradiction; validate offline.
+<!-- SECTION:PLAN:END -->

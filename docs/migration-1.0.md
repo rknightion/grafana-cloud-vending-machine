@@ -161,8 +161,24 @@ The guide uses these outcomes precisely:
    mapping APIs instead.
 4. Decide whether the old stack must be replaced to gain retention or expiry.
    Those choices cannot be added after creation.
-5. Apply the new XRDs, then re-apply each migrated request and check the
-   resulting output-document location. It is now organization-segmented.
+5. Rehearse the same-identity organization move in a disposable environment
+   first. Freeze automated promotion and inventory the request, existing
+   managed children, their external identities, connection Secrets, provider
+   configuration, output writers and readers. Keep external deletion protection
+   on throughout; this move is not the cross-cluster ownership transfer below.
+6. Apply the new XRDs and use a reviewed adoption mapping or dedicated migration
+   Composition to attach the **existing managed children** to the migrated
+   request. A plain re-apply is not the proven route. Preserve the external
+   stack identity and original children: never delete or recreate a managed
+   resource or its connection Secret during the move. Keep ProviderConfigs and
+   ExternalSecrets in place, and do not remove finalizers. Stop on a Create
+   attempt for an inventoried object, identity change or deletion event.
+7. Verify fresh publication at the organization-segmented output path. Retain
+   legacy output documents under their unchanged `None`/`Retain` policies;
+   moving the writer does not authorize deleting the old documents. Cut
+   accessible readers over to the new path before declaring completion.
+8. Collect the completion witness below, then restore automation only after
+   the original children are re-attached and the steady-state checks pass.
 
 This inert shape illustrates the required addition; `example-primary` is a
 placeholder registry key, not a deployable identity.
@@ -261,6 +277,31 @@ rejected compatibility or creation-time-only change remains in the request.
 Keep all examples outside the live-request directory until that review is
 complete.
 
+For the same-identity organization move, collect a dated completion witness:
+
+- The request and its dependents report `Synced=True` and `Ready=True` for
+  their **current generations**, with the original managed children attached
+  and their inventoried external identities unchanged. An old green condition
+  or a successful apply is not enough.
+- The new-path publication status is current-generation and fresh after the
+  move. For a PushSecret, check ESO's `Ready=True` with reason `Synced` and
+  its publication freshness, rather than assuming Crossplane conditions apply.
+  Compare a hash of the delivered credential with the source connection Secret
+  without recording the credential value.
+- An accessible reader census shows no reader configured for the old path;
+  record the census scope and the new path used by each reader. This does not
+  establish the state of readers outside the accessible environment.
+- The in-stack orphan census is empty, and the inventoried original children
+  survived without managed-resource or connection-Secret deletion/recreation,
+  ProviderConfig or ExternalSecret deletion/recreation, or finalizer removal.
+- Legacy documents remain covered by the unchanged `None`/`Retain` policies,
+  and automation has been restored after the checks. Policy evidence is not a
+  direct readback of the legacy remote documents.
+
+This witness proves the scoped move and fresh delivery, not natural credential
+rotation. Do not infer direct legacy remote readback, outside-host reader
+cutover or natural rotation from it.
+
 ## Existing-stack ownership and cross-cluster consumption
 
 This section has two deliberately separate operations. A
@@ -271,7 +312,19 @@ itself transfers ownership and must have no overlapping full-stack writers.
 
 ### Existing-slug result
 
-**Design position from pinned source: adopt and reconcile; do not duplicate.**
+**Observed on one live stack: adoption by external name retained the same
+external identity.** The organization move kept external deletion protection on
+throughout. Original managed children survived and were re-attached; no managed
+resource, connection Secret, ProviderConfig or ExternalSecret was deleted or
+recreated, and no finalizer was removed. New-path publication was
+current-generation and fresh, its credential hash matched the source, the
+accessible reader census had no old-path reader, and the in-stack orphan census
+was empty. Legacy documents were retained under unchanged `None`/`Retain`
+policies, and automation was restored. This observation does not include direct
+legacy remote readback, readers outside the accessible environment or natural
+credential rotation.
+
+**Source-derived mechanism: adopt and reconcile; do not duplicate.**
 A newly reconciled `GrafanaCloudStackRequest` renders a managed `Stack` with
 `crossplane.io/external-name` set to its slug. The pinned Terraform provider
 reads that identity through `GetInstance`, so Crossplane can observe an active
@@ -281,9 +334,12 @@ management policy permits an update. The Terraform resource's direct Create
 path also rejects an already-taken slug, so a Create branch that is reached
 fails as a conflict rather than making a second stack.
 
-This is a source-derived design position and is **unproven against live
-behaviour**. Do not use a production stack to turn it into a test. Validate the
-provider version, provider configuration, and rendered external name in a
+The live observation supports the same-identity route above, not every possible
+adoption or cross-cluster handoff. The observe-before-create mechanism, drift
+update behaviour, and taken-slug Create conflict described here remain
+source-derived claims; those branches were not all exercised by that move.
+Do not use a production stack to test them. Validate the provider version,
+provider configuration, rendered external name and child-attachment plan in a
 disposable environment before a production handoff.
 
 The conclusion depends on the pinned provider version and its enabled

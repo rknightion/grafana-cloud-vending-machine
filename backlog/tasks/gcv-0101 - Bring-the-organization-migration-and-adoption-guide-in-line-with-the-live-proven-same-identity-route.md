@@ -3,9 +3,10 @@ id: GCV-0101
 title: >-
   Bring the organization migration and adoption guide in line with the
   live-proven same-identity route
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-10-04 20:18'
+updated_date: '2026-10-04 20:21'
 labels:
   - docs
 dependencies: []
@@ -33,3 +34,9 @@ docs/migration-1.0.md tells an adopter to apply the new XRDs and then re-apply e
 - [ ] #1 just check passes locally
 - [ ] #2 hosted Validate workflow passes on the completing commit
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Update the migration guide from the generic live witness, preserving the distinction between observed and source-derived behaviour; validate offline.
+<!-- SECTION:PLAN:END -->
