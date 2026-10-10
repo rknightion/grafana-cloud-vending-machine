@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.3.5](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.4...v3.3.5) (2026-10-10)
+
+
+### Documentation
+
+* align organization migration with the observed same-identity route ([d77ec23](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d77ec23e2d181ee07f33e0edd94c50b41452f830))
+* **backlog:** close the same-identity estate migration ([e0da89c](https://github.com/rknightion/grafana-cloud-vending-machine/commit/e0da89c541f7b89510222f9c71a250ddc285ccd5))
+* **backlog:** seed the migration guide and connection Secret lifecycle tasks ([667785a](https://github.com/rknightion/grafana-cloud-vending-machine/commit/667785a7b79cb71f4e27a70d9cd2f5e361655dc7))
+* distinguish external retention from connection Secret survival ([3c0a5d0](https://github.com/rknightion/grafana-cloud-vending-machine/commit/3c0a5d01623b19b7599c0b94b72d1eba24547835))
+* publish canonical agent documents ([ef6d01d](https://github.com/rknightion/grafana-cloud-vending-machine/commit/ef6d01d05f5ce27b16d449c4e83539d3bfa95986))
+
+
+### Miscellaneous Chores
+
+* **deps:** update golang docker tag to v1.27.2 ([#70](https://github.com/rknightion/grafana-cloud-vending-machine/issues/70)) ([ed7f3ee](https://github.com/rknightion/grafana-cloud-vending-machine/commit/ed7f3ee79934129c252e9f72789e0cfb1c7c2d96))
+* **deps:** update golang:1.27.1 docker digest to 162be52 ([#68](https://github.com/rknightion/grafana-cloud-vending-machine/issues/68)) ([5de9c65](https://github.com/rknightion/grafana-cloud-vending-machine/commit/5de9c6516a14f67fbbf565a424c3149156678c47))
+* **deps:** update golang:1.27.1 docker digest to 1e93e00 ([#66](https://github.com/rknightion/grafana-cloud-vending-machine/issues/66)) ([722dd3e](https://github.com/rknightion/grafana-cloud-vending-machine/commit/722dd3e68c647b695bde87c9ef1fc4759c2e4204))
+* **deps:** update golang:1.27.1 docker digest to 23fe807 ([#65](https://github.com/rknightion/grafana-cloud-vending-machine/issues/65)) ([5080c8c](https://github.com/rknightion/grafana-cloud-vending-machine/commit/5080c8c0b7b30b994588473de506f83a43348e6f))
+* **deps:** update step-security/harden-runner action to v2.22.0 ([#67](https://github.com/rknightion/grafana-cloud-vending-machine/issues/67)) ([8915b28](https://github.com/rknightion/grafana-cloud-vending-machine/commit/8915b289ceded9fc1025da3491d05b17af60f242))
+* **deps:** update step-security/harden-runner action to v2.22.1 ([#69](https://github.com/rknightion/grafana-cloud-vending-machine/issues/69)) ([83e6df8](https://github.com/rknightion/grafana-cloud-vending-machine/commit/83e6df87fa59080d9bce77f5adcdbe7163450b3c))
+
 ## [3.3.4](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.3...v3.3.4) (2026-10-04)
 
 
