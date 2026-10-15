@@ -3,7 +3,7 @@ id: doc-0003
 title: Closed GitHub issues (pre-Backlog history index)
 type: other
 created_date: '2026-08-14 16:39'
-updated_date: '2026-08-17 09:02'
+updated_date: '2026-10-15 18:07'
 ---
 All work before 2026-08-14 was tracked as GitHub Issues. Three issues existed, all closed as
 completed. This is the index of them.
@@ -56,7 +56,7 @@ references and generated artifacts for publication risk. Closed once in `3b3e4b0
 when the first external consumer hit a real defect: applying Kustomize patches forces Kustomize
 rendering for *every* selected catalog path, and `examples/catalog/minimal` had no
 `kustomization.yaml`, so it failed before deployment despite validating in isolation. Fixed and
-re-closed in `7f57a56`. That defect is carried forward in the Wave operating model document,
+re-closed in `7f57a56`. That defect is carried forward in `AGENTS.md` (recurring defects),
 because the gate still only renders two catalog directories explicitly.
 
 **Issue 4 — provider-contract hardening.** Closed the gaps the first external GitOps consumer found.
@@ -68,7 +68,7 @@ emit the documented three-segment `roleUID:team:teamID` form rather than an org-
 that would produce an invalid four-segment ID. It also moved the opt-in live boundary from
 `examples/enabled` to top-level `enabled/` and gave every catalog directory a README. Delivered
 across `c478b9f`, `fcd3bc5` and `63e2eab`. Each of those provider contracts is now pinned by tests
-and restated as a recurring defect in the Wave operating model document.
+and restated as a recurring defect in `AGENTS.md`.
 
 ## What the closed set is worth keeping for
 

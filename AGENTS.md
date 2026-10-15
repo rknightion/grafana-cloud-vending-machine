@@ -42,9 +42,9 @@ values.
 ## Task tracking
 
 Work is tracked with Backlog.md in `backlog/`, committed to git. `backlog doc list --plain` shows the
-the operating-model document **Wave operating model**, this project's own lane conventions, recurring
-defects, exclusive publishing resource and run-end. The campaign model is `~/repos/agent-docs/sources/loop/contract.md`.
-Read both before designing a wave.
+durable docs.
+
+Loops: the protocol lives in `~/repos/agent-docs/sources/loop/` (this board's "Loop protocol pointer" doc points there); this repository's loop facts are in `LOOP.md`.
 
 `backlog/` is committed to git and is inside the publication scan, so tasks, docs and decisions must
 never contain refused account identifiers or personal data: no email addresses, handles, usernames,
@@ -56,6 +56,47 @@ timings and structural findings are fine. A leak here fails the scan permanently
 Statuses are `To Do`, `In Progress`, `Parked`, `Done`. `Parked` means attempted, blocked, and left
 with a concrete resume boundary. It is not `To Do`, and flattening it loses the most valuable thing
 a long run produces.
+
+## Scope decisions
+
+- **Grafana Cloud only.** Self-managed Grafana is not supported; preconditions that apply only to
+  self-managed deployments (Grafana feature toggles are the live case) are not blockers here. Preview
+  status is a separate, real caveat.
+- **Live behavioural proof is out of scope.** The publication constraint forbids the contact that
+  would produce it. The stand-ins and their limits: admission against an ephemeral API server proves
+  installation and CEL rejection only; renderer tests prove emission, not provider acceptance;
+  provider CRD readback proves round-trip, not provider-assigned identities; pinned upstream source
+  is the strongest evidence and still a reading.
+- Explicit SCIM null is admitted and persisted with its key present, then refused by the renderer
+  with zero children.
+
+## Recurring defects
+
+- **Deterministic children need an explicit external name** (`crossplane.io/external-name`: stacks by
+  slug, folders `<uid>-folder`, dashboards by uid, roles and assignments by role uid, provider
+  options by name). Omitted, an orphan-and-adopt transition tries to create what exists.
+- **Provider-assigned IDs (StackServiceAccount, AccessPolicy, Team) are observed, never derived.**
+  `renderTeamAccess` emits nothing until `status.atProvider.teamId` is present
+  (`platform/function/roles.go`); copy that wait.
+- **Role assignment items have three segments:** `roleUID + ":team:" + teamID` with the bare
+  observed team ID, not the Team reference.
+- **The pinned provider's Role initializer errors without `autoIncrementVersion`**, so Roles render
+  it as `false` and omit the deprecated `version`. Re-check when the pin moves.
+- **Every catalog directory is a renderable Kustomize base with a README**; the gate discovers
+  directories, so adding one needs no render-list entry.
+- **The ApplicationSet watches only `enabled/*`**; widening the glob turns inert examples live.
+- **Whole-set resources (folder and dashboard ACLs, role assignments) need exactly one declarative
+  owner.** A second writer is a design error.
+- **A fail-closed tightening on an already-released API is breaking.** Before adding a CEL rule,
+  required field or immutability constraint, check whether the kind is released
+  (`git show <latest tag>:platform/apis/<file>`). If so the commit carries `!` or a
+  `BREAKING CHANGE:` footer and a migration section.
+- **Never rename a Kubernetes child whose external identity is recovered from observed state**
+  (the on-call integration child, `platform/function/oncall.go`): the provider would create a second
+  external resource. Only newly selectable values get new identities.
+- **The renderer config map is aliased.** `expiry.go` writes expiry status into the map `fn.go`
+  reads back; a wrapper that rebuilds the map drops it silently. Add keys in place and copy only to
+  strip a key. Four expiry tests catch it.
 
 ## Deeper references
 
