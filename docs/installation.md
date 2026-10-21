@@ -40,7 +40,7 @@ before requests can be admitted.
 | ESO Helm chart | Manifest-pinned | `deploy/argocd/external-secrets.yaml` (`targetRevision:`) | Last release before the open AWS PushSecret creation regression |
 | Cosign verification image | Manifest tag, immutable digest | `platform/function/install.yaml`, `platform/provider/provider-grafana.yaml` (`cosign/cosign:`) | Verifies the Grafana provider and this repository's function package |
 | Composition function SDK | Go module pin | `platform/function/go.mod` (`github.com/crossplane/function-sdk-go v`) | Pinned by the function Go module |
-| Vending composition function | sha256:1968d0f84fa8926fe762ae2976eccc2625770e5bef412cd9d879aeab105cfe5a | `platform/function/install.yaml` (`function-grafana-vending@sha256:1968d0f84fa8926fe762ae2976eccc2625770e5bef412cd9d879aeab105cfe5a`) | Signed amd64/arm64 package |
+| Vending composition function | sha256:8b611e7be4f2d211c025b19f0bb7eedac2b1d0d9767e8a139b98b75c391b1b2d | `platform/function/install.yaml` (`function-grafana-vending@sha256:8b611e7be4f2d211c025b19f0bb7eedac2b1d0d9767e8a139b98b75c391b1b2d`) | Signed amd64/arm64 package |
 
 The Grafana Crossplane provider describes itself as experimental and unsupported. The v2.15.0 tag is
 generated from Terraform provider 4.46.0. It is pinned by digest and Cosign-verified against the
