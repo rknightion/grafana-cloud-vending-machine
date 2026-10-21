@@ -1,6 +1,6 @@
 module github.com/rknightion/grafana-cloud-vending-machine/platform/function
 
-go 1.27.0
+go 1.27.3
 
 require (
 	github.com/crossplane/crossplane-runtime/v2 v2.4.2
