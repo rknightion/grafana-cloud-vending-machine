@@ -3,7 +3,7 @@ module github.com/rknightion/grafana-cloud-vending-machine/platform/function
 go 1.27.3
 
 require (
-	github.com/crossplane/crossplane-runtime/v2 v2.4.2
+	github.com/crossplane/crossplane-runtime/v2 v2.4.3
 	github.com/crossplane/crossplane/apis/v2 v2.4.3
 	github.com/crossplane/function-sdk-go v0.7.1
 	github.com/google/go-cmp v0.7.0
