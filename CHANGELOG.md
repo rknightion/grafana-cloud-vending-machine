@@ -1,5 +1,35 @@
 # Changelog
 
+## [3.3.6](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.5...v3.3.6) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/crossplane/crossplane-runtime/v2 to v2.4.3 ([#96](https://github.com/rknightion/grafana-cloud-vending-machine/issues/96)) ([a47e965](https://github.com/rknightion/grafana-cloud-vending-machine/commit/a47e9655b5231678390d02ffe247d933d325b788))
+* **deps:** update module github.com/crossplane/crossplane/apis/v2 to v2.4.3 ([#97](https://github.com/rknightion/grafana-cloud-vending-machine/issues/97)) ([a140611](https://github.com/rknightion/grafana-cloud-vending-machine/commit/a140611f92bdd40355de5c497bdeb5894f9038e9))
+
+
+### Miscellaneous Chores
+
+* **deps:** update gcr.io/distroless/static-debian13:nonroot docker digest to 18f4cc2 ([#100](https://github.com/rknightion/grafana-cloud-vending-machine/issues/100)) ([d7d43f8](https://github.com/rknightion/grafana-cloud-vending-machine/commit/d7d43f8a201e5550a96cd0fd412aad217aa00729))
+* **deps:** update golang:1.27.3 docker digest to f20d83a ([#81](https://github.com/rknightion/grafana-cloud-vending-machine/issues/81)) ([0feda65](https://github.com/rknightion/grafana-cloud-vending-machine/commit/0feda654a2a59c4b5ab6679711c6619a0b43f557))
+* **deps:** update rknightion/.github action to v1.25.11 ([#83](https://github.com/rknightion/grafana-cloud-vending-machine/issues/83)) ([bd3b8fe](https://github.com/rknightion/grafana-cloud-vending-machine/commit/bd3b8fee228c5ea5bdde7b9c2f758282c2c338f3))
+* **deps:** update rknightion/.github action to v1.25.12 ([#84](https://github.com/rknightion/grafana-cloud-vending-machine/issues/84)) ([b27e2ef](https://github.com/rknightion/grafana-cloud-vending-machine/commit/b27e2ef2a581da44928dab5281bef370131a92f5))
+* **deps:** update rknightion/.github action to v1.25.13 ([#85](https://github.com/rknightion/grafana-cloud-vending-machine/issues/85)) ([50d3dd2](https://github.com/rknightion/grafana-cloud-vending-machine/commit/50d3dd2f73aa1f43905f8b2a042b1de92011f7ce))
+* **deps:** update rknightion/.github action to v1.25.14 ([#86](https://github.com/rknightion/grafana-cloud-vending-machine/issues/86)) ([36ffb10](https://github.com/rknightion/grafana-cloud-vending-machine/commit/36ffb102981fe65efc9c9e8bfc8b01bc657cd41c))
+* **deps:** update rknightion/.github action to v1.25.15 ([#87](https://github.com/rknightion/grafana-cloud-vending-machine/issues/87)) ([76984f7](https://github.com/rknightion/grafana-cloud-vending-machine/commit/76984f7ffbedc3efe0fff16e1a5acf5a3ed75b33))
+* **deps:** update rknightion/.github action to v1.25.16 ([#88](https://github.com/rknightion/grafana-cloud-vending-machine/issues/88)) ([782ebac](https://github.com/rknightion/grafana-cloud-vending-machine/commit/782ebac0054c60e7c20dd08293532483524034b0))
+* **deps:** update rknightion/.github action to v1.25.17 ([#89](https://github.com/rknightion/grafana-cloud-vending-machine/issues/89)) ([2feedf2](https://github.com/rknightion/grafana-cloud-vending-machine/commit/2feedf26968e5357bf920f35a186a49627d7237c))
+* **deps:** update rknightion/.github action to v1.25.18 ([#90](https://github.com/rknightion/grafana-cloud-vending-machine/issues/90)) ([0152b45](https://github.com/rknightion/grafana-cloud-vending-machine/commit/0152b4550751cb8537cfe46cebe138960ec239d6))
+* **deps:** update rknightion/.github action to v1.25.19 ([#91](https://github.com/rknightion/grafana-cloud-vending-machine/issues/91)) ([da8255a](https://github.com/rknightion/grafana-cloud-vending-machine/commit/da8255a4f4f2666b3cb1ccd85d11af5f83f77009))
+* **deps:** update rknightion/.github action to v1.25.20 ([#92](https://github.com/rknightion/grafana-cloud-vending-machine/issues/92)) ([7aa8335](https://github.com/rknightion/grafana-cloud-vending-machine/commit/7aa8335e46c18baa77f5b497070fd4174889a69f))
+* **deps:** update rknightion/.github action to v1.25.21 ([#93](https://github.com/rknightion/grafana-cloud-vending-machine/issues/93)) ([0859065](https://github.com/rknightion/grafana-cloud-vending-machine/commit/08590650b90c855800f5ba90ecc0548c632608c8))
+* **deps:** update rknightion/.github action to v1.25.22 ([#94](https://github.com/rknightion/grafana-cloud-vending-machine/issues/94)) ([de73400](https://github.com/rknightion/grafana-cloud-vending-machine/commit/de73400947f3ff38570eff684973f8728379b0ea))
+* **deps:** update rknightion/.github action to v1.25.24 ([#95](https://github.com/rknightion/grafana-cloud-vending-machine/issues/95)) ([ab8091f](https://github.com/rknightion/grafana-cloud-vending-machine/commit/ab8091fc83b81a690822c36c47a6dabb9bf0ae76))
+* **deps:** update rknightion/.github action to v1.25.25 ([#98](https://github.com/rknightion/grafana-cloud-vending-machine/issues/98)) ([b15e2dc](https://github.com/rknightion/grafana-cloud-vending-machine/commit/b15e2dcd24eeb02b0b3d587a2d379c26d1d6ec3e))
+* **deps:** update rknightion/.github action to v1.25.26 ([#99](https://github.com/rknightion/grafana-cloud-vending-machine/issues/99)) ([6186f05](https://github.com/rknightion/grafana-cloud-vending-machine/commit/6186f0529ddce11577bdaf9cc40b4b7c89c11ded))
+* **deps:** update rknightion/.github action to v1.25.27 ([#101](https://github.com/rknightion/grafana-cloud-vending-machine/issues/101)) ([a914fd8](https://github.com/rknightion/grafana-cloud-vending-machine/commit/a914fd8ef862da789916ecc585c28dbfd7bdcb5c))
+
 ## [3.3.5](https://github.com/rknightion/grafana-cloud-vending-machine/compare/v3.3.4...v3.3.5) (2026-10-21)
 
 
