@@ -1,0 +1,418 @@
+{
+ "held": {},
+ "issues": {
+  "GCV-0001": {
+   "number": 122,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/122"
+  },
+  "GCV-0002": {
+   "number": 123,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/123"
+  },
+  "GCV-0003": {
+   "number": 124,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/124"
+  },
+  "GCV-0004": {
+   "number": 125,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/125"
+  },
+  "GCV-0005": {
+   "number": 126,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/126"
+  },
+  "GCV-0006": {
+   "number": 127,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/127"
+  },
+  "GCV-0007": {
+   "number": 128,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/128"
+  },
+  "GCV-0008": {
+   "number": 129,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/129"
+  },
+  "GCV-0009": {
+   "number": 130,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/130"
+  },
+  "GCV-0010": {
+   "number": 131,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/131"
+  },
+  "GCV-0011": {
+   "number": 132,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/132"
+  },
+  "GCV-0012": {
+   "number": 133,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/133"
+  },
+  "GCV-0013": {
+   "number": 134,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/134"
+  },
+  "GCV-0014": {
+   "number": 135,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/135"
+  },
+  "GCV-0015": {
+   "number": 136,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/136"
+  },
+  "GCV-0016": {
+   "number": 137,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/137"
+  },
+  "GCV-0017": {
+   "number": 138,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/138"
+  },
+  "GCV-0018": {
+   "number": 139,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/139"
+  },
+  "GCV-0019": {
+   "number": 140,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/140"
+  },
+  "GCV-0020": {
+   "number": 141,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/141"
+  },
+  "GCV-0021": {
+   "number": 142,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/142"
+  },
+  "GCV-0022": {
+   "number": 143,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/143"
+  },
+  "GCV-0023": {
+   "number": 144,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/144"
+  },
+  "GCV-0024": {
+   "number": 145,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/145"
+  },
+  "GCV-0025": {
+   "number": 146,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/146"
+  },
+  "GCV-0026": {
+   "number": 147,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/147"
+  },
+  "GCV-0027": {
+   "number": 148,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/148"
+  },
+  "GCV-0028": {
+   "number": 149,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/149"
+  },
+  "GCV-0029": {
+   "number": 150,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/150"
+  },
+  "GCV-0030": {
+   "number": 151,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/151"
+  },
+  "GCV-0031": {
+   "number": 152,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/152"
+  },
+  "GCV-0032": {
+   "number": 153,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/153"
+  },
+  "GCV-0033": {
+   "number": 154,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/154"
+  },
+  "GCV-0034": {
+   "number": 155,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/155"
+  },
+  "GCV-0035": {
+   "number": 156,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/156"
+  },
+  "GCV-0036": {
+   "number": 157,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/157"
+  },
+  "GCV-0037": {
+   "number": 158,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/158"
+  },
+  "GCV-0038": {
+   "number": 159,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/159"
+  },
+  "GCV-0039": {
+   "number": 160,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/160"
+  },
+  "GCV-0040": {
+   "number": 161,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/161"
+  },
+  "GCV-0041": {
+   "number": 162,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/162"
+  },
+  "GCV-0042": {
+   "number": 163,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/163"
+  },
+  "GCV-0043": {
+   "number": 164,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/164"
+  },
+  "GCV-0044": {
+   "number": 165,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/165"
+  },
+  "GCV-0045": {
+   "number": 166,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/166"
+  },
+  "GCV-0046": {
+   "number": 167,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/167"
+  },
+  "GCV-0047": {
+   "number": 168,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/168"
+  },
+  "GCV-0048": {
+   "number": 169,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/169"
+  },
+  "GCV-0049": {
+   "number": 170,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/170"
+  },
+  "GCV-0050": {
+   "number": 171,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/171"
+  },
+  "GCV-0051": {
+   "number": 172,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/172"
+  },
+  "GCV-0052": {
+   "number": 173,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/173"
+  },
+  "GCV-0053": {
+   "number": 174,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/174"
+  },
+  "GCV-0054": {
+   "number": 175,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/175"
+  },
+  "GCV-0055": {
+   "number": 176,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/176"
+  },
+  "GCV-0056": {
+   "number": 177,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/177"
+  },
+  "GCV-0057": {
+   "number": 178,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/178"
+  },
+  "GCV-0058": {
+   "number": 179,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/179"
+  },
+  "GCV-0059": {
+   "number": 180,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/180"
+  },
+  "GCV-0060": {
+   "number": 181,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/181"
+  },
+  "GCV-0061": {
+   "number": 182,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/182"
+  },
+  "GCV-0062": {
+   "number": 183,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/183"
+  },
+  "GCV-0063": {
+   "number": 184,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/184"
+  },
+  "GCV-0064": {
+   "number": 185,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/185"
+  },
+  "GCV-0065": {
+   "number": 186,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/186"
+  },
+  "GCV-0066": {
+   "number": 187,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/187"
+  },
+  "GCV-0067": {
+   "number": 188,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/188"
+  },
+  "GCV-0068": {
+   "number": 189,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/189"
+  },
+  "GCV-0069": {
+   "number": 190,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/190"
+  },
+  "GCV-0070": {
+   "number": 191,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/191"
+  },
+  "GCV-0071": {
+   "number": 192,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/192"
+  },
+  "GCV-0072": {
+   "number": 193,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/193"
+  },
+  "GCV-0073": {
+   "number": 194,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/194"
+  },
+  "GCV-0074": {
+   "number": 118,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/118"
+  },
+  "GCV-0075": {
+   "number": 195,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/195"
+  },
+  "GCV-0076": {
+   "number": 196,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/196"
+  },
+  "GCV-0077": {
+   "number": 197,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/197"
+  },
+  "GCV-0078": {
+   "number": 198,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/198"
+  },
+  "GCV-0079": {
+   "number": 199,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/199"
+  },
+  "GCV-0080": {
+   "number": 200,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/200"
+  },
+  "GCV-0081": {
+   "number": 119,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/119"
+  },
+  "GCV-0082": {
+   "number": 201,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/201"
+  },
+  "GCV-0083": {
+   "number": 202,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/202"
+  },
+  "GCV-0084": {
+   "number": 120,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/120"
+  },
+  "GCV-0085": {
+   "number": 203,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/203"
+  },
+  "GCV-0086": {
+   "number": 204,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/204"
+  },
+  "GCV-0087": {
+   "number": 205,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/205"
+  },
+  "GCV-0088": {
+   "number": 206,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/206"
+  },
+  "GCV-0089": {
+   "number": 207,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/207"
+  },
+  "GCV-0090": {
+   "number": 208,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/208"
+  },
+  "GCV-0091": {
+   "number": 209,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/209"
+  },
+  "GCV-0092": {
+   "number": 210,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/210"
+  },
+  "GCV-0093": {
+   "number": 211,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/211"
+  },
+  "GCV-0094": {
+   "number": 212,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/212"
+  },
+  "GCV-0095": {
+   "number": 213,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/213"
+  },
+  "GCV-0096": {
+   "number": 214,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/214"
+  },
+  "GCV-0097": {
+   "number": 215,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/215"
+  },
+  "GCV-0098": {
+   "number": 216,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/216"
+  },
+  "GCV-0099": {
+   "number": 217,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/217"
+  },
+  "GCV-0100": {
+   "number": 218,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/218"
+  },
+  "GCV-0101": {
+   "number": 219,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/219"
+  },
+  "GCV-0102": {
+   "number": 121,
+   "url": "https://github.com/rknightion/grafana-cloud-vending-machine/issues/121"
+  }
+ },
+ "prefix": "GCV",
+ "repo": "rknightion/grafana-cloud-vending-machine",
+ "schema": 1,
+ "source_sha": "ad683336237fab64728107062c1508e7fa867f19",
+ "synthetic": []
+}
