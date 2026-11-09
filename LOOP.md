@@ -2,9 +2,26 @@
 tier: guarded
 gate: just check
 ci-required: ci-success
+tracker: github
+landing: pr
 release-on-push: yes
 deploy-on-push: no
 grafana-stack: none
+
+Issues are public: no hostname, address, email, numeric Grafana id or private repository name in any
+issue, pull request or doc. The tracker working model is `~/repos/agent-docs/docs/github-tracker.md`
+(maintainers only). Run `just` with stdin from `/dev/null`.
+
+## Queue
+
+- The queue is `just tracker queue`: open issues at Project Status Ready on the rknightion Project.
+- A charter selects work by labels (`type:task`, `type:bug`, `type:feature`, `needs-owner`,
+  `needs-triage`) and Project fields (Status, Priority, Effort, Lane). Never queue a `needs-owner` or
+  `needs-triage` issue, or the Dependency Dashboard.
+- Only the root writes issues and the Project, through `just tracker`. A lane returns the status and
+  the AC ticks it wants.
+- A queue row names the issue as `#N`. A legacy board id (`GCV-0075`) resolves with `just issue <ID>`;
+  `.github/tracker/id-map.json` is the map.
 
 ## Credentials
 - The repo carries no source-environment identity, no credentials and no live requests by design;
@@ -44,13 +61,11 @@ grafana-stack: none
   upstream source at an exact revision is the strongest evidence. Read every frozen GVK out of the
   pinned artefact before coding against it.
 - Completion claims carry the completing SHA and the hosted validation run id.
-- Bare `backlog task edit --notes` / `--plan` replace the whole section; use `--append-notes` /
-  `--append-plan`.
 
 ## Mutexes
 - The host's envtest process table and pinned assets path are shared: a lane needing isolation uses a
   lane-private copy.
-- Publication (commit or push to main, the release merge, tags, releases) is root-only.
+- Publication (a pull request's auto-merge, the release merge, tags, releases) is root-only. Nothing pushes to main.
 - Function package publishing is serialised and single-owner: land the change, let the publish
   workflow sign a multi-platform index, verify against the main publish workflow identity, then pin
   the digest in `platform/function/install.yaml` (twice: the Cosign Job args and the `Function`
