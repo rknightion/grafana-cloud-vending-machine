@@ -39,23 +39,19 @@ internal project or estate names are refused. The scan checks those classes in t
 tree only; published history is not rewritten. Keep future reports scrubbed without restoring those
 values.
 
-## Task tracking
+## Tracking work
 
-Work is tracked with Backlog.md in `backlog/`, committed to git. `backlog doc list --plain` shows the
-durable docs.
+Work is tracked in GitHub issues. A pull request says `Closes #N` with the acceptance evidence table,
+`Refs #N`, or `Task: none, <reason>` on a line of its own. Contributors never need the Project or the
+tracker tool. The old Backlog.md board is frozen history: its ids (`GCV-0075`) stay valid in code,
+docs and commits, and `just issue GCV-0075` prints the issue one became. Loop facts are in `LOOP.md`.
 
-Loops: the protocol lives in `~/repos/agent-docs/sources/loop/` (this board's "Loop protocol pointer" doc points there); this repository's loop facts are in `LOOP.md`.
-
-`backlog/` is committed to git and is inside the publication scan, so tasks, docs and decisions must
-never contain refused account identifiers or personal data: no email addresses, handles, usernames,
-bare numeric organisation, stack or account IDs, private repository names outside the enumerated
+Issues, pull requests and `.github/tracker/` are inside the publication scan, so they must never
+contain refused account identifiers or personal data: no email addresses, handles, usernames, bare
+numeric organisation, stack or account IDs, private repository names outside the enumerated
 allowlist, internal project or estate names, device names, addresses or coordinates. Stack slugs,
-regions and `grafana.net` hostnames are permitted; write refused values as shapes. Aggregate counts,
-timings and structural findings are fine. A leak here fails the scan permanently.
-
-Statuses are `To Do`, `In Progress`, `Parked`, `Done`. `Parked` means attempted, blocked, and left
-with a concrete resume boundary. It is not `To Do`, and flattening it loses the most valuable thing
-a long run produces.
+regions and `grafana.net` hostnames are permitted; write refused values as shapes. A leak in a
+committed file fails the scan permanently.
 
 ## Scope decisions
 
@@ -101,32 +97,9 @@ a long run produces.
 ## Deeper references
 
 - `archive/README.md` - read before citing pre-Backlog history; the closed GitHub issues live there
-  and are indexed by the **Closed GitHub issues (pre-Backlog history index)** Backlog doc.
+  and are indexed by `.github/tracker/history/doc-0003 - Closed-GitHub-issues-pre-Backlog-history-index.md`.
 - `LOOP.md` - read at loop preparation: gates, release rules, environments and credential conventions, standing route exceptions, traps, cross-harness eligibility, resource mutexes and Grafana stacks for this repository's loops.
 
-<!-- BACKLOG.MD GUIDELINES START -->
-<!-- backlog.md-instructions-version: 1.50.1 -->
-<CRITICAL_INSTRUCTION>
-
-## Backlog.md Workflow
-
-This project uses Backlog.md for task and project management.
-
-**For every user request in this project, run `backlog instructions overview` before answering or taking action.**
-
-Use the overview to decide whether to search, read, create, or update Backlog tasks.
-
-Before task lifecycle actions, read the matching detailed guide:
-- `backlog instructions task-creation` before creating or splitting tasks
-- `backlog instructions task-execution` before planning, changing status or assignee, adding a plan or implementation notes, or implementing task work
-- `backlog instructions task-finalization` before checking acceptance criteria, writing final summaries, or moving tasks to terminal statuses
-
-Use `backlog <command> --help` before running unfamiliar commands. Help shows options, fields, and examples.
-
-Do not edit Backlog task, draft, document, decision, or milestone markdown files directly. Use the `backlog` CLI so metadata, relationships, and history stay consistent.
-
-</CRITICAL_INSTRUCTION>
-<!-- BACKLOG.MD GUIDELINES END -->
 
 ## OnCall evolution
 

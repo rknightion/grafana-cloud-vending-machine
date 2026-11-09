@@ -34,9 +34,10 @@ docs/superpowers/
 # Fan-out run artefacts — tracker state remains the durable delivery record.
 /codex/
 
-# The tracker guard hook and its wiring are shared; everything else under .claude/
-# is per-machine state (worktrees, scheduler locks, settings.local.json).
-.claude/
+# .claude/skills/ is tracked: it holds the links to the contributor skills in .agents/skills/.
+# Everything else under .claude/ is per-machine state (worktrees, scheduler locks, settings.local.json).
+.claude/*
+!.claude/skills/
 codex/
 
 # loop-pi (pi-subagents writes .pi/subagents/)
