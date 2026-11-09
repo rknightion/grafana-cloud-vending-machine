@@ -20,6 +20,8 @@ no live requests; examples are inert.
 - `just check` runs `scripts/validate.sh`, the same script the `Validate public reference` workflow
   runs: the public-release scan, YAML and kustomize checks, `go vet`, the race-enabled tests and the
   envtest suite. Pull request CI runs the whole gate and takes about 11 minutes.
+  Editing a pull request description re-runs the whole `Validate public reference` workflow, so the
+  acceptance evidence check reads the new text.
 - `scripts/public-release-scan.sh` scans the working tree and every reachable revision for
   source-environment identifiers, token prefixes, private endpoints and key material. A pull request
   from a fork skips the half of the scan that needs a repository secret; a maintainer runs it.
