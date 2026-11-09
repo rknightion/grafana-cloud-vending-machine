@@ -154,3 +154,18 @@ envtest-process-check max_age_seconds="900":
 [no-exit-message]
 envtest-process-reap max_age_seconds="900":
     ENVTEST_PROCESS_MODE=reap ENVTEST_PROCESS_MAX_AGE_SECONDS={{ quote(max_age_seconds) }} scripts/envtest-processes.sh
+
+# GitHub issues and the rknightion Project; maintainers only (needs the tracker tools and credentials)
+[group('tracker')]
+[positional-arguments]
+tracker *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    export TRACKER_REPO=rknightion/grafana-cloud-vending-machine TRACKER_PROJECT_OWNER=rknightion TRACKER_PROJECT=7
+    export TRACKER_ISSUE_IDENTITY=app TRACKER_PROJECT_IDENTITY=user
+    exec tracker-with-token "$@"
+
+# print the issue a legacy board id (GCV-0001) became
+[group('tracker')]
+issue id:
+    TRACKER_REPO=rknightion/grafana-cloud-vending-machine tracker legacy {{ quote(id) }}
