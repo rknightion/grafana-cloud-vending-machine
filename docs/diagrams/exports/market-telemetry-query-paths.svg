@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1360" role="img" aria-labelledby="13-market-telemetry-title 13-market-telemetry-desc" id="d-13-market-telemetry-root"><title id="13-market-telemetry-title">Market telemetry and query paths</title><desc id="13-market-telemetry-desc">A configured stack needs real workload signals. Separate the telemetry-write path from the operator’s read/query path and from the platform resources used to provision both.</desc><defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #d-13-market-telemetry-root { color: #22252b; }
+      #d-13-market-telemetry-root body.figure main { max-width:none }
+      #d-13-market-telemetry-root .eyebrow, #d-13-market-telemetry-root .meta { font:12px/1.5 "Geist Mono",monospace;letter-spacing:.05em;color:#626871 }
+      #d-13-market-telemetry-root .lead { font-size:19px;max-width:1050px;color:#555c66 }
+      #d-13-market-telemetry-root a { color:#2459a6;text-underline-offset:3px }
+      #d-13-market-telemetry-root a:focus-visible { outline:3px solid #b33b14;outline-offset:4px }
+      #d-13-market-telemetry-root .status { display:inline-block;padding:5px 9px;border:1px solid #b33b14;color:#9e3412;font-size:12px }
+      #d-13-market-telemetry-root .section { padding:44px 0;border-top:1px solid #d7dade;margin-top:24px }
+      #d-13-market-telemetry-root .diagram-container { overflow-x:auto;width:100%;margin:24px 0 18px;border-top:1px solid #d7dade;border-bottom:1px solid #d7dade }
+      #d-13-market-telemetry-root .note { border-left:3px solid #b33b14;padding:10px 18px;max-width:1200px;background:#fff6ef;font-size:14px }
+      #d-13-market-telemetry-root .sources { font-size:13px;color:#626871 }
+      #d-13-market-telemetry-root .toc { display:grid;grid-template-columns:1fr 1.2fr;gap:0 36px;margin:32px 0 }
+      #d-13-market-telemetry-root .toc a { padding:16px 0;border-top:1px solid #d7dade;text-decoration:none;color:#22252b;display:flex;gap:20px }
+      #d-13-market-telemetry-root .toc b { font:15px "Geist Mono",monospace;color:#9e3412 }
+      #d-13-market-telemetry-root .toc small { color:#626871;display:block }
+      #d-13-market-telemetry-root .grid { display:grid;grid-template-columns:1.2fr 1fr;gap:36px }
+      #d-13-market-telemetry-root .table-scroll { overflow-x:auto;margin:24px 0 }
+      #d-13-market-telemetry-root table { border-collapse:collapse;width:100%;font-size:14px }
+      #d-13-market-telemetry-root td, #d-13-market-telemetry-root th { text-align:left;border-bottom:1px solid #d7dade;padding:12px 14px;vertical-align:top }
+      #d-13-market-telemetry-root th { font-size:12px;background:#f3f4f6;color:#555c66 }
+      #d-13-market-telemetry-root code { font:12px "Geist Mono",monospace;background:#f3f4f6;padding:2px 3px }
+      #d-13-market-telemetry-root .table-scroll table { min-width:1180px }
+      #d-13-market-telemetry-root details { padding:16px 0 }
+      #d-13-market-telemetry-root summary { font-weight:600;cursor:pointer }
+      @media(max-width:720px) {
+#d-13-market-telemetry-root .toc, #d-13-market-telemetry-root .grid { grid-template-columns:1fr }
+}
+      @media print {
+#d-13-market-telemetry-root .diagram-container { overflow-x:visible }
+      #d-13-market-telemetry-root .section { break-before:page }
+      #d-13-market-telemetry-root .toc { display:none }
+}</style><marker id="d-13-market-telemetry-13-market-telemetry-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#626871"/></marker><marker id="d-13-market-telemetry-13-market-telemetry-ab" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2459a6"/></marker></defs><rect width="2000" height="1360" fill="#fff"/><text x="48" y="48" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="14" font-weight="600">MARKET SERVICE / DATA PLANE</text>
+<text x="48" y="92" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="32" font-weight="600">From telecom signals to governed queries</text>
+<text x="48" y="152" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">Workload-owned instrumentation</text>
+<text x="1032" y="152" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">One market Grafana Cloud stack</text>
+<rect x="1016" y="176" width="936" height="912" rx="12" fill="#f7f8fa" stroke="#d7dade" stroke-width="1"/>
+<path d="M 104 242 V 268 M 96 268 H 112 M 98 234 Q 90 242 98 250 M 110 234 Q 118 242 110 250 M 90 228 Q 76 242 90 256 M 118 228 Q 132 242 118 256" fill="none" stroke="#22252b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="104" cy="242" r="3" fill="#22252b"/><text x="160" y="240" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">Radio access network</text>
+<text x="160" y="272" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Sites, cell health, handovers</text>
+<path d="M 88 396 H 120 M 88 396 L 104 422 L 120 396" fill="none" stroke="#22252b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="88" cy="396" r="6" fill="#fff" stroke="#22252b" stroke-width="2"/><circle cx="120" cy="396" r="6" fill="#fff" stroke="#22252b" stroke-width="2"/><circle cx="104" cy="422" r="6" fill="#fff" stroke="#22252b" stroke-width="2"/><text x="160" y="400" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">Core network functions</text>
+<text x="160" y="432" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Sessions, signaling and service paths</text>
+<path d="M 88 548 H 120 V 588 H 88 Z M 88 562 H 120 M 88 576 H 120 M 94 555 H 98 M 94 569 H 98 M 94 583 H 98" fill="none" stroke="#22252b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text x="160" y="560" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">Hosts / Kubernetes</text>
+<text x="160" y="592" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Capacity, workload and collector health</text>
+<path d="M 88 708 H 120 V 748 H 88 Z M 88 722 H 120 M 88 736 H 120 M 94 715 H 98 M 94 729 H 98 M 94 743 H 98" fill="none" stroke="#22252b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text x="160" y="720" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">Databases / OSS / BSS</text>
+<text x="160" y="752" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Queries, errors and service latency</text>
+<path d="M 92 866 H 116 V 910 H 92 Z M 92 872 H 116 M 92 902 H 116 M 102 906 H 106" fill="none" stroke="#22252b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text x="160" y="880" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">Digital channels</text>
+<text x="160" y="912" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Customer application experience</text>
+<path d="M 520 248 V 888" fill="none" stroke="#626871" stroke-width="1.4"  />
+<path d="M 464 248 L 520 248" fill="none" stroke="#626871" stroke-width="1.4"  />
+<path d="M 464 408 L 520 408" fill="none" stroke="#626871" stroke-width="1.4"  />
+<path d="M 464 568 L 520 568" fill="none" stroke="#626871" stroke-width="1.4"  />
+<path d="M 464 728 L 520 728" fill="none" stroke="#626871" stroke-width="1.4"  />
+<path d="M 464 888 L 520 888" fill="none" stroke="#626871" stroke-width="1.4"  />
+<path d="M 520 568 L 600 568" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-13-market-telemetry-13-market-telemetry-a)"/>
+<rect x="525.75" y="533" width="68.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="560" y="548" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">COLLECT</text>
+<rect x="600" y="400" width="240" height="336" rx="80" fill="#fff5ee" stroke="#b33b14" stroke-width="1.5"/>
+<path d="M 698 464 H 708 L 716 448 L 724 480 L 732 464 H 742" fill="none" stroke="#b33b14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text x="720" y="528" text-anchor="middle" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="23" font-weight="600">Collectors</text>
+<text x="720" y="562" text-anchor="middle" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="23" font-weight="600">and SDKs</text>
+<text x="720" y="610" text-anchor="middle" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Source-specific pipelines</text>
+<text x="720" y="635" text-anchor="middle" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Labels / resource attributes</text>
+<text x="720" y="660" text-anchor="middle" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Scoped write credentials</text>
+<text x="720" y="685" text-anchor="middle" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Agents remain external</text>
+<path d="M 840 512 H 904 Q 912 512 912 504 V 264 Q 912 256 920 256 H 1080" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-13-market-telemetry-13-market-telemetry-ab)"/>
+<rect x="965.75" y="221" width="68.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1000" y="236" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">METRICS</text>
+<path d="M 1080 216 A 140.0 16 0 0 1 1360 216 V 296 A 140.0 16 0 0 1 1080 296 Z" fill="#fff" stroke="#22252b" stroke-width="1.3"/><ellipse cx="1220.0" cy="216" rx="140.0" ry="16" fill="#eef0f3" stroke="#22252b" stroke-width="1.3"/><text x="1220.0" y="268" text-anchor="middle" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Metrics</text>
+<text x="1080" y="340" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Grafana Cloud Metrics / Mimir</text>
+<path d="M 840 576 H 928 Q 936 576 936 568 V 480 Q 936 472 944 472 H 1080" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-13-market-telemetry-13-market-telemetry-ab)"/>
+<rect x="977.0" y="437" width="46.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1000" y="452" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">LOGS</text>
+<path d="M 1080 432 A 140.0 16 0 0 1 1360 432 V 512 A 140.0 16 0 0 1 1080 512 Z" fill="#fff" stroke="#22252b" stroke-width="1.3"/><ellipse cx="1220.0" cy="432" rx="140.0" ry="16" fill="#eef0f3" stroke="#22252b" stroke-width="1.3"/><text x="1220.0" y="484" text-anchor="middle" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Logs</text>
+<text x="1080" y="556" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Grafana Cloud Logs / Loki</text>
+<path d="M 840 640 H 952 Q 960 640 960 648 V 680 Q 960 688 968 688 H 1080" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-13-market-telemetry-13-market-telemetry-ab)"/>
+<rect x="969.5" y="653" width="61.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1000" y="668" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">TRACES</text>
+<path d="M 1080 648 A 140.0 16 0 0 1 1360 648 V 728 A 140.0 16 0 0 1 1080 728 Z" fill="#fff" stroke="#22252b" stroke-width="1.3"/><ellipse cx="1220.0" cy="648" rx="140.0" ry="16" fill="#eef0f3" stroke="#22252b" stroke-width="1.3"/><text x="1220.0" y="700" text-anchor="middle" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Traces</text>
+<text x="1080" y="772" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Grafana Cloud Traces / Tempo</text>
+<path d="M 824 704 H 976 Q 984 704 984 712 V 896 Q 984 904 992 904 H 1080" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-13-market-telemetry-13-market-telemetry-ab)"/>
+<rect x="962.0" y="869" width="76.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1000" y="884" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">PROFILES</text>
+<path d="M 1080 864 A 140.0 16 0 0 1 1360 864 V 944 A 140.0 16 0 0 1 1080 944 Z" fill="#fff" stroke="#22252b" stroke-width="1.3"/><ellipse cx="1220.0" cy="864" rx="140.0" ry="16" fill="#eef0f3" stroke="#22252b" stroke-width="1.3"/><text x="1220.0" y="916" text-anchor="middle" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Profiles</text>
+<text x="1080" y="988" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Grafana Cloud Profiles / Pyroscope</text>
+<text x="1080" y="1016" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="600">Opt-in: separate write credential</text>
+<rect x="1512" y="352" width="384" height="304" rx="8" fill="#fff" stroke="#22252b" stroke-width="1.3"/>
+<path d="M 1512 384 L 1896 384" fill="none" stroke="#626871" stroke-width="1.4"  />
+<circle cx="1528" cy="368" r="3" fill="#aab1ba"/><circle cx="1544" cy="368" r="3" fill="#aab1ba"/><circle cx="1560" cy="368" r="3" fill="#aab1ba"/><text x="1532" y="420" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="20" font-weight="600">Grafana / data sources</text>
+<path d="M 1536 532 V 448 M 1536 532 H 1862" fill="none" stroke="#626871" stroke-width="1.4"  />
+<path d="M 1544 512 L 1584 494 L 1624 506 L 1664 474 L 1704 482 L 1744 456 L 1784 468 L 1832 444" stroke="#b33b14" fill="none" stroke-width="2"/><text x="1532" y="576" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">SSO, RBAC and content permissions</text>
+<text x="1532" y="602" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Data-source Query grants</text>
+<text x="1532" y="628" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">LBAC on supported query paths</text>
+<path d="M 1512 424 H 1488 Q 1480 424 1480 416 V 264 Q 1480 256 1472 256 H 1360" fill="none" stroke="#2459a6" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#d-13-market-telemetry-13-market-telemetry-ab)"/>
+<path d="M 1512 472 L 1360 472" fill="none" stroke="#2459a6" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#d-13-market-telemetry-13-market-telemetry-ab)"/>
+<path d="M 1512 520 H 1432 Q 1424 520 1424 528 V 680 Q 1424 688 1416 688 H 1360" fill="none" stroke="#2459a6" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#d-13-market-telemetry-13-market-telemetry-ab)"/>
+<path d="M 1512 568 H 1480 Q 1472 568 1472 576 V 896 Q 1472 904 1464 904 H 1360" fill="none" stroke="#2459a6" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#d-13-market-telemetry-13-market-telemetry-ab)"/>
+<path d="M 1704 770 L 1704 656" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-13-market-telemetry-13-market-telemetry-a)"/>
+<rect x="1749.75" y="705" width="68.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1784" y="720" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">QUERIES</text>
+<path d="M 1682 784 Q 1704 758 1726 784 Q 1704 810 1682 784 Z" fill="none" stroke="#22252b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="1704" cy="784" r="7" fill="none" stroke="#22252b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text x="1704" y="840" text-anchor="middle" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">Market teams and operators</text>
+<text x="1704" y="872" text-anchor="middle" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">NOC · RAN · Core · Fixed · Digital · SOC</text>
+<text x="1512" y="956" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="600">Dashboard packs and rule queries</text>
+<text x="1512" y="988" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">use market-owned signals and labels.</text>
+<text x="1512" y="1032" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">LBAC: metrics/logs; traces preview.</text>
+<text x="1512" y="1060" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Profiles need a separate access design.</text>
+<path d="M 48 1128 H 1952" fill="none" stroke="#626871" stroke-width="1.4"  />
+<text x="48" y="1172" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="600">WHAT THE VENDING SERVICE PREPARES</text>
+<text x="48" y="1212" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Stack / endpoints · write policies / rotating tokens · teams / roles · DataSource / Query permissions / LBAC · folders / dashboards · alerting / SLO configuration</text>
+<text x="48" y="1252" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">What it does not install automatically: workload instrumentation, collectors, network trust, telecom metric schemas or the illustrative dashboard packs.</text>
+<path d="M 40 1304 H 1960" stroke="#cdd1d7"/><text x="40" y="1332" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Solid blue: telemetry writes. Dashed blue: backend queries. Grey source rail: multiple external collectors / SDKs.</text>
+</svg>

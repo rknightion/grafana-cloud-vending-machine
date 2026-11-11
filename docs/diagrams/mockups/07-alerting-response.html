@@ -1,0 +1,91 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Alerting and incident response</title><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet"><style>*{box-sizing:border-box}body{margin:0;color:#22252b;background:#fff;font:16px/1.55 Geist,Arial,sans-serif}body.figure main{max-width:none}main{max-width:1880px;margin:auto;padding:44px 36px 72px;min-width:0}h1{font-size:48px;line-height:1.08;font-weight:600;letter-spacing:-.035em;margin:18px 0}h2{font-size:32px;line-height:1.2;font-weight:600;letter-spacing:-.025em;margin:12px 0}h3{font-size:18px;margin:0 0 12px}.eyebrow,.meta{font:12px/1.5 "Geist Mono",monospace;letter-spacing:.05em;color:#626871}.eyebrow{text-transform:uppercase;color:#8c391c}.lead{font-size:19px;max-width:1050px;color:#555c66}a{color:#2459a6;text-underline-offset:3px}a:focus-visible{outline:3px solid #b33b14;outline-offset:4px}.status{display:inline-block;padding:5px 9px;border:1px solid #b33b14;color:#9e3412;font-size:12px}.section{padding:44px 0;border-top:1px solid #d7dade;margin-top:24px}.diagram-container{overflow-x:auto;width:100%;margin:24px 0 18px;border-top:1px solid #d7dade;border-bottom:1px solid #d7dade}svg{display:block;width:100%;min-width:var(--canvas,1600px)}.note{border-left:3px solid #b33b14;padding:10px 18px;max-width:1200px;background:#fff6ef;font-size:14px}.sources{font-size:13px;color:#626871}.toc{display:grid;grid-template-columns:1fr 1.2fr;gap:0 36px;margin:32px 0}.toc a{padding:16px 0;border-top:1px solid #d7dade;text-decoration:none;color:#22252b;display:flex;gap:20px}.toc b{font:15px "Geist Mono",monospace;color:#9e3412}.toc small{color:#626871;display:block}.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:36px}.table-scroll{overflow-x:auto;margin:24px 0}table{border-collapse:collapse;width:100%;font-size:14px}td,th{text-align:left;border-bottom:1px solid #d7dade;padding:12px 14px;vertical-align:top}th{font-size:12px;background:#f3f4f6;color:#555c66}code{font:12px "Geist Mono",monospace;background:#f3f4f6;padding:2px 3px}.table-scroll table{min-width:1180px}footer{border-top:1px solid #d7dade;padding-top:20px;font-size:13px;color:#626871}details{padding:16px 0}summary{font-weight:600;cursor:pointer}@media(max-width:720px){main{padding:24px 16px}h1{font-size:36px}h2{font-size:26px}.toc,.grid{grid-template-columns:1fr}}@media print{main{padding:8px}.diagram-container{overflow-x:visible}svg{min-width:0}.section{break-before:page}.toc{display:none}}</style></head><body class="figure"><main><span class="status">Approval mockup / revision 2</span><p><a href="index.html">All revised mockups</a></p><section class="section" id="07-alerting-response"><div class="eyebrow">Mid level · Routing, escalation and schedule dependencies</div><h2>Alerting and incident response</h2><p class="lead">The market service needs declared rules, one routing authority, delivery receivers and an independently owned responder schedule. Those resources have different lifecycles and ownership.</p><div class="diagram-container" style="--canvas:1920px"><svg viewBox="0 0 1920 1320" role="img" aria-labelledby="07-alerting-response-title 07-alerting-response-desc"><title id="07-alerting-response-title">Alerting and incident response</title><desc id="07-alerting-response-desc">The market service needs declared rules, one routing authority, delivery receivers and an independently owned responder schedule. Those resources have different lifecycles and ownership.</desc><defs><marker id="07-alerting-response-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#626871"/></marker><marker id="07-alerting-response-ab" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2459a6"/></marker></defs><rect width="1920" height="1320" fill="#fff"/><text x="48" y="48" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="14" font-weight="600">MARKET OPERATIONS</text>
+<rect x="48" y="88" width="1112" height="360" rx="8" fill="#fff" stroke="#cdd1d7" stroke-width="1"/>
+<text x="68" y="118" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Grafana Alerting</text>
+<text x="68" y="143" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Choose a routing owner; the two API contracts do not own the same singleton</text>
+<rect x="1224" y="88" width="648" height="1080" rx="8" fill="#f3f4f6" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1244" y="118" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Incident response</text>
+<text x="1244" y="143" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Observed integration / route identities connect alert delivery to escalation</text>
+<rect x="48" y="512" width="1112" height="656" rx="8" fill="#fff" stroke="#cdd1d7" stroke-width="1"/>
+<text x="68" y="542" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Responders and schedule resources</text>
+<text x="68" y="567" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">People are looked up; this reference does not create responder identities</text>
+<path d="M 368 216 L 448 216" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#07-alerting-response-a)"/>
+<rect x="377.5" y="181" width="61.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="408" y="196" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">POLICY</text>
+<path d="M 736 216 L 816 216" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#07-alerting-response-a)"/>
+<rect x="738.0" y="181" width="76.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="776" y="196" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">RECEIVER</text>
+<path d="M 1136 216 L 1248 216" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#07-alerting-response-ab)"/>
+<rect x="1172.75" y="181" width="38.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1192" y="196" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">REF</text>
+<path d="M 368 368 L 816 368" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#07-alerting-response-a)"/>
+<rect x="539.0" y="333" width="106.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="592" y="348" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">DIRECT ROUTE</text>
+<path d="M 1556 272 L 1556 336" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#07-alerting-response-a)"/>
+<rect x="1605.25" y="297" width="53.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1632" y="312" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">ROUTE</text>
+<path d="M 1556 448 L 1556 512" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#07-alerting-response-a)"/>
+<rect x="1594.0" y="473" width="76.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1632" y="488" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">ESCALATE</text>
+<path d="M 1556 624 L 1556 688" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#07-alerting-response-a)"/>
+<path d="M 368 728 L 448 728" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#07-alerting-response-a)"/>
+<rect x="373.75" y="693" width="68.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="408" y="708" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">MEMBERS</text>
+<path d="M 736 728 L 816 728" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#07-alerting-response-a)"/>
+<rect x="745.5" y="693" width="61.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="776" y="708" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">SHIFTS</text>
+<path d="M 1136 728 H 1184 Q 1192 728 1192 736 V 736 Q 1192 744 1200 744 H 1248" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#07-alerting-response-a)"/>
+<rect x="72" y="160" width="296" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="88" y="188" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">RuleGroup</text>
+<text x="88" y="214" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Policy-routed rules</text>
+<rect x="448" y="160" width="288" height="112" rx="4" fill="#fff5ee" stroke="#b33b14" stroke-width="1.5"/>
+<text x="464" y="188" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">NotificationPolicy</text>
+<text x="464" y="214" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">One whole-tree owner</text>
+<rect x="816" y="160" width="320" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="832" y="188" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ContactPoint</text>
+<text x="832" y="214" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Integration reference</text>
+<rect x="72" y="320" width="296" height="96" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="88" y="348" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">RuleGroup</text>
+<text x="88" y="374" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Bundle direct routing</text>
+<rect x="816" y="320" width="320" height="96" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="832" y="348" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ContactPoint</text>
+<text x="832" y="374" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Direct per-rule receiver</text>
+<rect x="1248" y="160" width="600" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1264" y="188" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Integration</text>
+<text x="1264" y="214" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Read observed identity before the Alerting join</text>
+<rect x="1248" y="336" width="600" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1264" y="364" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Route</text>
+<text x="1264" y="390" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Same-stack catch-all receiver route</text>
+<rect x="1248" y="512" width="600" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1264" y="540" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">EscalationChain</text>
+<text x="1264" y="566" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Named market escalation policy</text>
+<rect x="1248" y="688" width="600" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1264" y="716" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Escalation</text>
+<text x="1264" y="742" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Targets a schedule or observed responder</text>
+<text x="1272" y="868" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="19" font-weight="600">Optional transport / migration choices</text>
+<text x="1272" y="908" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">OutgoingWebhook relay where configured</text>
+<text x="1272" y="940" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Observed User / SlackChannel lookups</text>
+<text x="1272" y="972" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Type-specific Integration / Route identities</text>
+<text x="1272" y="1004" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Controller-owned migration journal</text>
+<text x="1272" y="1036" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">No literal bearer URLs in claim or status</text>
+<rect x="72" y="672" width="296" height="112" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 80 680 V 776" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="88" y="700" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">oncall.o.User</text>
+<text x="88" y="726" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Observe-only responders</text>
+<rect x="448" y="672" width="288" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="464" y="700" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">OnCallShift</text>
+<text x="464" y="726" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Explicit rotation entries</text>
+<rect x="816" y="672" width="320" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="832" y="700" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">oncall.Schedule</text>
+<text x="832" y="726" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Named market schedule</text>
+<rect x="72" y="912" width="344" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="88" y="940" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">MuteTiming</text>
+<text x="88" y="966" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Market maintenance windows</text>
+<rect x="440" y="912" width="344" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="456" y="940" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">MessageTemplate</text>
+<text x="456" y="966" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Local message format / language</text>
+<rect x="808" y="912" width="344" height="112" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="824" y="940" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">InhibitionruleV1Beta1</text>
+<text x="824" y="966" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Suppress dependent incidents</text>
+<text x="72" y="1088" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">GrafanaAlertingRouting owns NotificationPolicy; GrafanaAlertingBundle never owns that singleton.</text>
+<path d="M 40 1264 H 1880" stroke="#cdd1d7"/><text x="40" y="1292" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Upper paths: policy-based or direct rule routing. Lower path: observed responders, shifts and schedules used by escalation.</text>
+</svg></div><p class="note">The diagram combines configuration dependencies with the alert-delivery direction; it is not a message trace. A same-stack observed integration is required for the routing join. Schedule ownership and external people, channels and transport prerequisites remain explicit.</p><p class="sources">Sources: <a href="../../../platform/function/alerting.go">alert bundles</a>; <a href="../../../platform/function/alertingrouting.go">routing tree</a>; <a href="../../../platform/function/alertingjoin.go">integration join</a>; <a href="../../../platform/function/oncall.go">OnCall renderer</a>.</p></section><footer>Code-backed where marked. Telecom designs are illustrative. No live resources have been created.</footer></main></body></html>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1120" role="img" aria-labelledby="09-shared-operations-title 09-shared-operations-desc" id="d-09-shared-operations-root"><title id="09-shared-operations-title">Shared operations across markets</title><desc id="09-shared-operations-desc">Sixteen stacks do not automatically produce a group NOC dashboard. Choose how operators gain visibility and make the access, query and data-movement paths explicit.</desc><defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #d-09-shared-operations-root { color: #22252b; }
+      #d-09-shared-operations-root body.figure main { max-width:none }
+      #d-09-shared-operations-root .eyebrow, #d-09-shared-operations-root .meta { font:12px/1.5 "Geist Mono",monospace;letter-spacing:.05em;color:#626871 }
+      #d-09-shared-operations-root .lead { font-size:19px;max-width:1050px;color:#555c66 }
+      #d-09-shared-operations-root a { color:#2459a6;text-underline-offset:3px }
+      #d-09-shared-operations-root a:focus-visible { outline:3px solid #b33b14;outline-offset:4px }
+      #d-09-shared-operations-root .status { display:inline-block;padding:5px 9px;border:1px solid #b33b14;color:#9e3412;font-size:12px }
+      #d-09-shared-operations-root .section { padding:44px 0;border-top:1px solid #d7dade;margin-top:24px }
+      #d-09-shared-operations-root .diagram-container { overflow-x:auto;width:100%;margin:24px 0 18px;border-top:1px solid #d7dade;border-bottom:1px solid #d7dade }
+      #d-09-shared-operations-root .note { border-left:3px solid #b33b14;padding:10px 18px;max-width:1200px;background:#fff6ef;font-size:14px }
+      #d-09-shared-operations-root .sources { font-size:13px;color:#626871 }
+      #d-09-shared-operations-root .toc { display:grid;grid-template-columns:1fr 1.2fr;gap:0 36px;margin:32px 0 }
+      #d-09-shared-operations-root .toc a { padding:16px 0;border-top:1px solid #d7dade;text-decoration:none;color:#22252b;display:flex;gap:20px }
+      #d-09-shared-operations-root .toc b { font:15px "Geist Mono",monospace;color:#9e3412 }
+      #d-09-shared-operations-root .toc small { color:#626871;display:block }
+      #d-09-shared-operations-root .grid { display:grid;grid-template-columns:1.2fr 1fr;gap:36px }
+      #d-09-shared-operations-root .table-scroll { overflow-x:auto;margin:24px 0 }
+      #d-09-shared-operations-root table { border-collapse:collapse;width:100%;font-size:14px }
+      #d-09-shared-operations-root td, #d-09-shared-operations-root th { text-align:left;border-bottom:1px solid #d7dade;padding:12px 14px;vertical-align:top }
+      #d-09-shared-operations-root th { font-size:12px;background:#f3f4f6;color:#555c66 }
+      #d-09-shared-operations-root code { font:12px "Geist Mono",monospace;background:#f3f4f6;padding:2px 3px }
+      #d-09-shared-operations-root .table-scroll table { min-width:1180px }
+      #d-09-shared-operations-root details { padding:16px 0 }
+      #d-09-shared-operations-root summary { font-weight:600;cursor:pointer }
+      @media(max-width:720px) {
+#d-09-shared-operations-root .toc, #d-09-shared-operations-root .grid { grid-template-columns:1fr }
+}
+      @media print {
+#d-09-shared-operations-root .diagram-container { overflow-x:visible }
+      #d-09-shared-operations-root .section { break-before:page }
+      #d-09-shared-operations-root .toc { display:none }
+}</style><marker id="d-09-shared-operations-09-shared-operations-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#626871"/></marker><marker id="d-09-shared-operations-09-shared-operations-ab" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2459a6"/></marker></defs><rect width="1800" height="1120" fill="#fff"/><text x="48" y="48" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="14" font-weight="600">TELECOM FLEET / CROSS-MARKET VISIBILITY</text>
+<text x="48" y="96" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="22" font-weight="600">A. Operators open the market stacks</text>
+<text x="48" y="128" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Central access experience; data remains in each market stack.</text>
+<text x="48" y="400" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="22" font-weight="600">B. A separate operations Grafana queries market data sources</text>
+<text x="48" y="432" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Read-through design; each source needs approved credentials and query policy.</text>
+<text x="48" y="736" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="22" font-weight="600">C. Markets export approved summary signals to a central tenant</text>
+<text x="48" y="768" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Aggregation design; deliberately choose labels, resolution, retention and allowed data movement.</text>
+<rect x="48" y="176" width="280" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="68" y="204" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Group NOC operator</text>
+<text x="68" y="234" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">SSO access per target stack</text>
+<path d="M 188 288 V 328 Q 188 336 196 336 H 1568" fill="none" stroke="#626871" stroke-width="1.4"  />
+<path d="M 704 336 L 704 288" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-09-shared-operations-09-shared-operations-a)"/>
+<rect x="520" y="176" width="368" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="540" y="204" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">UK stack UI</text>
+<text x="540" y="234" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Independent team / role grants</text>
+<path d="M 1136 336 L 1136 288" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-09-shared-operations-09-shared-operations-a)"/>
+<rect x="952" y="176" width="368" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="972" y="204" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">DE stack UI</text>
+<text x="972" y="234" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Independent team / role grants</text>
+<path d="M 1568 336 L 1568 288" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-09-shared-operations-09-shared-operations-a)"/>
+<rect x="1384" y="176" width="368" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1404" y="204" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">FR stack UI</text>
+<text x="1404" y="234" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Independent team / role grants</text>
+<rect x="48" y="480" width="400" height="152" rx="6" fill="#fff5ee" stroke="#b33b14" stroke-width="1.5"/>
+<text x="68" y="508" text-anchor="start" fill="#b33b14" font-family="Geist Mono, monospace" font-size="11" font-weight="500">SEPARATE STACK / PROPOSED</text>
+<text x="68" y="540" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Operations Grafana</text>
+<text x="68" y="570" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Explicit DataSource per target</text>
+<text x="68" y="594" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Query credentials / approved scope</text>
+<rect x="616" y="496" width="320" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="636" y="524" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">UK backend</text>
+<text x="636" y="554" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Market-scoped read endpoint</text>
+<rect x="1024" y="496" width="320" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1044" y="524" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">DE backend</text>
+<text x="1044" y="554" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Market-scoped read endpoint</text>
+<rect x="1432" y="496" width="320" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1452" y="524" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">FR backend</text>
+<text x="1452" y="554" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Market-scoped read endpoint</text>
+<path d="M 248 632 V 668 Q 248 676 256 676 H 1584 Q 1592 676 1592 668 V 608" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-09-shared-operations-09-shared-operations-ab)"/>
+<path d="M 776 676 L 776 608" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-09-shared-operations-09-shared-operations-ab)"/>
+<path d="M 1184 676 L 1184 608" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-09-shared-operations-09-shared-operations-ab)"/>
+<rect x="974.75" y="645" width="98.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1024" y="660" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">QUERY READS</text>
+<rect x="48" y="832" width="352" height="128" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="68" y="860" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">UK summary publisher</text>
+<text x="68" y="890" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Approved KPIs only</text>
+<text x="68" y="914" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Dedicated write credential</text>
+<rect x="480" y="832" width="352" height="128" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="500" y="860" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">DE summary publisher</text>
+<text x="500" y="890" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Approved KPIs only</text>
+<text x="500" y="914" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Dedicated write credential</text>
+<rect x="912" y="832" width="352" height="128" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="932" y="860" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">FR summary publisher</text>
+<text x="932" y="890" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Approved KPIs only</text>
+<text x="932" y="914" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Dedicated write credential</text>
+<rect x="1392" y="832" width="360" height="128" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1412" y="860" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Group summary tenant</text>
+<text x="1412" y="890" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Aggregated availability / usage</text>
+<text x="1412" y="914" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Central dashboard pack</text>
+<path d="M 224 960 V 984 Q 224 992 232 992 H 1560 Q 1568 992 1568 984 V 960" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-09-shared-operations-09-shared-operations-ab)"/>
+<path d="M 656 960 L 656 992" fill="none" stroke="#2459a6" stroke-width="1.4"  />
+<path d="M 1088 960 L 1088 992" fill="none" stroke="#2459a6" stroke-width="1.4"  />
+<path d="M 40 1064 H 1760" stroke="#cdd1d7"/><text x="40" y="1092" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Alternatives, not three cumulative defaults. Representative markets stand for the sixteen-stack fleet.</text>
+</svg>
