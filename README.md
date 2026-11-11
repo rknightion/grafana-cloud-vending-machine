@@ -39,6 +39,7 @@ any MR removal, operators must prove required Secret retention and consumer hand
 | [Getting started](docs/getting-started.md) | Prerequisites and the first request |
 | [Installation](docs/installation.md) | Direct and Argo CD installation, pins, signatures, releases, and upgrades |
 | [Configuration](docs/configuration.md) | Platform policy, profiles, and the organization registry |
+| [Diagram assets](docs/diagrams/exports/index.html) | Editable SVG and high-resolution PNG illustrations, with retained HTML studies |
 | [Architecture](docs/architecture.md) | Composition model, renderer registry, resource graph, reconciliation, and provider ownership |
 | [Request schema](docs/reference/request-schema.md) | Per-API fields, CompositeResourceDefinitions, short names, admission guards, and status |
 | [Catalog](docs/reference/catalog.md) | Every inert catalog example and its adaptation boundary |

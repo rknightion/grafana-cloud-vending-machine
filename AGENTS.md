@@ -189,3 +189,10 @@ release-please cuts releases from Conventional Commits on `main`. Release token 
 short-lived repository-scoped broker token (see the OpenBao CI-secrets runbook). If minting fails,
 check the broker and OpenBao infrastructure rather than treating it as a validation failure or adding
 a long-lived credential.
+
+## Diagram assets
+
+Reusable SVG and PNG illustrations live in `docs/diagrams/exports/`; its HTML index is the
+selection guide. Editable diagram HTML sources and earlier studies remain in
+`docs/diagrams/mockups/` and `docs/diagrams/backups/`. Add new illustrations alongside existing
+assets; preserve their ownership, optional-capability and fictional-example boundaries when exporting.

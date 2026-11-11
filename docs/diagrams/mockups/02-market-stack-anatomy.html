@@ -1,0 +1,124 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>A market stack, opened up</title><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet"><style>*{box-sizing:border-box}body{margin:0;color:#22252b;background:#fff;font:16px/1.55 Geist,Arial,sans-serif}body.figure main{max-width:none}main{max-width:1880px;margin:auto;padding:44px 36px 72px;min-width:0}h1{font-size:48px;line-height:1.08;font-weight:600;letter-spacing:-.035em;margin:18px 0}h2{font-size:32px;line-height:1.2;font-weight:600;letter-spacing:-.025em;margin:12px 0}h3{font-size:18px;margin:0 0 12px}.eyebrow,.meta{font:12px/1.5 "Geist Mono",monospace;letter-spacing:.05em;color:#626871}.eyebrow{text-transform:uppercase;color:#8c391c}.lead{font-size:19px;max-width:1050px;color:#555c66}a{color:#2459a6;text-underline-offset:3px}a:focus-visible{outline:3px solid #b33b14;outline-offset:4px}.status{display:inline-block;padding:5px 9px;border:1px solid #b33b14;color:#9e3412;font-size:12px}.section{padding:44px 0;border-top:1px solid #d7dade;margin-top:24px}.diagram-container{overflow-x:auto;width:100%;margin:24px 0 18px;border-top:1px solid #d7dade;border-bottom:1px solid #d7dade}svg{display:block;width:100%;min-width:var(--canvas,1600px)}.note{border-left:3px solid #b33b14;padding:10px 18px;max-width:1200px;background:#fff6ef;font-size:14px}.sources{font-size:13px;color:#626871}.toc{display:grid;grid-template-columns:1fr 1.2fr;gap:0 36px;margin:32px 0}.toc a{padding:16px 0;border-top:1px solid #d7dade;text-decoration:none;color:#22252b;display:flex;gap:20px}.toc b{font:15px "Geist Mono",monospace;color:#9e3412}.toc small{color:#626871;display:block}.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:36px}.table-scroll{overflow-x:auto;margin:24px 0}table{border-collapse:collapse;width:100%;font-size:14px}td,th{text-align:left;border-bottom:1px solid #d7dade;padding:12px 14px;vertical-align:top}th{font-size:12px;background:#f3f4f6;color:#555c66}code{font:12px "Geist Mono",monospace;background:#f3f4f6;padding:2px 3px}.table-scroll table{min-width:1180px}footer{border-top:1px solid #d7dade;padding-top:20px;font-size:13px;color:#626871}details{padding:16px 0}summary{font-weight:600;cursor:pointer}@media(max-width:720px){main{padding:24px 16px}h1{font-size:36px}h2{font-size:26px}.toc,.grid{grid-template-columns:1fr}}@media print{main{padding:8px}.diagram-container{overflow-x:visible}svg{min-width:0}.section{break-before:page}.toc{display:none}}</style></head><body class="figure"><main><span class="status">Approval mockup / revision 2</span><p><a href="index.html">All revised mockups</a></p><section class="section" id="02-market-stack-anatomy"><div class="eyebrow">Mid level · Resource anatomy</div><h2>A market stack, opened up</h2><p class="lead">The foundation, stack-local resources and external dependencies occupy different scopes. This cutaway names the resources that a market can select instead of treating the stack as an empty destination.</p><div class="diagram-container" style="--canvas:1840px"><svg viewBox="0 0 1840 1544" role="img" aria-labelledby="02-market-stack-anatomy-title 02-market-stack-anatomy-desc"><title id="02-market-stack-anatomy-title">A market stack, opened up</title><desc id="02-market-stack-anatomy-desc">The foundation, stack-local resources and external dependencies occupy different scopes. This cutaway names the resources that a market can select instead of treating the stack as an empty destination.</desc><defs><marker id="02-market-stack-anatomy-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#626871"/></marker><marker id="02-market-stack-anatomy-ab" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2459a6"/></marker></defs><rect width="1840" height="1544" fill="#fff"/><rect x="40" y="40" width="1760" height="1400" rx="8" fill="#f3f4f6" stroke="#cdd1d7" stroke-width="1"/>
+<text x="60" y="70" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Organization / market stack ownership map</text>
+<text x="60" y="95" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">A logical capability anatomy; optional resources are selected, not created for every market.</text>
+<rect x="64" y="120" width="1712" height="200" rx="8" fill="#fff8f3" stroke="#b33b14" stroke-width="1"/>
+<text x="84" y="150" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Organization-plane foundation</text>
+<text x="84" y="175" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Uses organization-scoped provider credentials</text>
+<rect x="88" y="200" width="392" height="76" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="104" y="228" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">cloud.Stack</text>
+<text x="104" y="254" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Identity, URL and regional endpoints</text>
+<rect x="504" y="200" width="392" height="76" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="520" y="228" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">StackServiceAccount</text>
+<text x="520" y="254" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Bootstrap administrator</text>
+<rect x="920" y="200" width="392" height="76" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="936" y="228" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">StackServiceAccountRotatingToken</text>
+<text x="936" y="254" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Rotating admin credential</text>
+<rect x="1336" y="200" width="392" height="76" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1352" y="228" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">AccessPolicy + rotating token</text>
+<text x="1352" y="254" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Separate telemetry and Fleet policies</text>
+<text x="88" y="300" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Cloud-side optional: PluginInstallation · PDC network / token · frontend App · product activation singletons</text>
+<rect x="64" y="352" width="1712" height="936" rx="8" fill="#fff" stroke="#cdd1d7" stroke-width="1"/>
+<text x="84" y="382" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Market and product capabilities</text>
+<text x="84" y="407" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Each domain uses its declared scoped provider: instance, organization or product. Logical ownership, not network placement.</text>
+<rect x="88" y="440" width="392" height="376" rx="4" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="104" y="468" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="13" font-weight="600">IDENTITY / TEAMS</text>
+<rect x="104" y="496" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="120" y="524" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">SsoSettings</text>
+<rect x="104" y="552" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="120" y="580" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Team</text>
+<rect x="104" y="608" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="120" y="636" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Role</text>
+<rect x="104" y="664" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="120" y="692" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">RoleAssignment / Item</text>
+<text x="104" y="752" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Entra ID / Okta / OAuth / SAML</text>
+<text x="104" y="784" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Market IdP and Team Sync inputs</text>
+<rect x="504" y="440" width="392" height="376" rx="4" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="520" y="468" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="13" font-weight="600">CONTENT / ACCESS</text>
+<rect x="520" y="496" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="536" y="524" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Folder → Dashboard</text>
+<rect x="520" y="552" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="536" y="580" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">OrganizationPreferences</text>
+<rect x="520" y="608" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="536" y="636" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">FolderPermission</text>
+<rect x="520" y="664" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="536" y="692" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">DashboardPermission</text>
+<text x="520" y="752" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Shared pack + local content</text>
+<text x="520" y="784" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Create-only or enforced ownership</text>
+<rect x="920" y="440" width="392" height="376" rx="4" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="936" y="468" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="13" font-weight="600">DATA ACCESS</text>
+<rect x="936" y="496" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="952" y="524" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">DataSource</text>
+<rect x="936" y="552" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="952" y="580" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">DataSourcePermission</text>
+<rect x="936" y="608" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="952" y="636" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">DataSourceConfigLbacRules</text>
+<rect x="936" y="664" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="952" y="692" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ServiceAccount + token</text>
+<text x="936" y="752" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Query grants + team label rules</text>
+<text x="936" y="784" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">One writer for the complete rule set</text>
+<rect x="1336" y="440" width="392" height="376" rx="4" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1352" y="468" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="13" font-weight="600">ALERTING</text>
+<rect x="1352" y="496" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1368" y="524" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">RuleGroup</text>
+<rect x="1352" y="552" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1368" y="580" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">NotificationPolicy</text>
+<rect x="1352" y="608" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1368" y="636" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ContactPoint</text>
+<rect x="1352" y="664" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1368" y="692" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">MuteTiming / MessageTemplate</text>
+<text x="1352" y="752" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">InhibitionruleV1Beta1</text>
+<text x="1352" y="784" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Whole-tree routing has one owner</text>
+<rect x="88" y="848" width="392" height="376" rx="4" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="104" y="876" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="13" font-weight="600">INCIDENT RESPONSE</text>
+<rect x="104" y="904" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="120" y="932" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Integration → Route</text>
+<rect x="104" y="960" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="120" y="988" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">EscalationChain → Escalation</text>
+<rect x="104" y="1016" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="120" y="1044" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Schedule → OnCallShift</text>
+<rect x="104" y="1072" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="120" y="1100" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">OutgoingWebhook</text>
+<text x="104" y="1160" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Observed responders / Slack channel</text>
+<text x="104" y="1192" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">People and agents remain external</text>
+<rect x="504" y="848" width="392" height="376" rx="4" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="520" y="876" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="13" font-weight="600">COLLECTION / CONNECTIONS</text>
+<rect x="520" y="904" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="536" y="932" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Pipeline</text>
+<rect x="520" y="960" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="536" y="988" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">CloudIntegration</text>
+<rect x="520" y="1016" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="536" y="1044" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">AwsAccount / AzureCredential</text>
+<rect x="520" y="1072" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="536" y="1100" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">MetricsEndpointScrapeJob</text>
+<text x="520" y="1160" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">AWS scrape jobs + PDC DataSource</text>
+<text x="520" y="1192" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">External trust and collectors required</text>
+<rect x="920" y="848" width="392" height="376" rx="4" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="936" y="876" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="13" font-weight="600">RELIABILITY / EXPERIENCE</text>
+<rect x="936" y="904" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="952" y="932" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">SLO</text>
+<rect x="936" y="960" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="952" y="988" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">sm.Check + CheckAlerts</text>
+<rect x="936" y="1016" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="952" y="1044" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">k6.Project + LoadTest</text>
+<rect x="936" y="1072" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="952" y="1100" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">frontendobservability.App</text>
+<text x="936" y="1160" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Limits, zones, schedules, installations</text>
+<text x="936" y="1192" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Real queries, targets and origins required</text>
+<rect x="1336" y="848" width="392" height="376" rx="4" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1352" y="876" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="13" font-weight="600">ADVANCED / CONTENT ROUTES</text>
+<rect x="1352" y="904" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1368" y="932" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ml.Job / OutlierDetector</text>
+<rect x="1352" y="960" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1368" y="988" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Asserts configuration kinds</text>
+<rect x="1352" y="1016" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1368" y="1044" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Assistant Rule / McpServer</text>
+<rect x="1352" y="1072" width="360" height="44" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1368" y="1100" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">agento11y.Collection / Evaluator</text>
+<text x="1352" y="1160" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Git Connection / Repository (preview)</text>
+<text x="1352" y="1192" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Advanced entitlements and terms apply</text>
+<text x="88" y="1248" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Specialist APIs also cover project content, existing-stack consumption, promotion ladders and observe-only inventory.</text>
+<rect x="64" y="1320" width="1712" height="96" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="84" y="1350" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Outside the stack resource graph</text>
+<text x="84" y="1375" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">IdP registrations · secret manager · cloud trust · PDC agents · collectors · private probes / load zones · workload telemetry</text>
+<path d="M 40 1488 H 1800" stroke="#cdd1d7"/><text x="40" y="1516" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Orange boundary: core organization-plane foundation. Grey compartments: selectable market and product capability families.</text>
+</svg></div><p class="note">This is an available-capability map, not a default object count or a physical deployment map. The managed-kind atlas disambiguates repeated names and lists all activated GVKs. Cloud acceptance is not established by rendering.</p><p class="sources">Sources: <a href="../../../platform/provider/managed-kind-map.json">activated managed kinds</a>; <a href="../../../platform/function/fn.go">renderer registry</a>; <a href="../../reference/catalog.md">catalogue</a>.</p></section><footer>Code-backed where marked. Telecom designs are illustrative. No live resources have been created.</footer></main></body></html>

@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 2144" role="img" aria-labelledby="08-managed-resource-atlas-title 08-managed-resource-atlas-desc" id="d-08-managed-resource-atlas-root"><title id="08-managed-resource-atlas-title">Activated managed-resource atlas</title><desc id="08-managed-resource-atlas-desc">Every resource kind in the checked-in activation map is named here. Family labels disambiguate Stack, Schedule, Rule and Installation; observe-only API groups are separated.</desc><defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #d-08-managed-resource-atlas-root { color: #22252b; }
+      #d-08-managed-resource-atlas-root body.figure main { max-width:none }
+      #d-08-managed-resource-atlas-root .eyebrow, #d-08-managed-resource-atlas-root .meta { font:12px/1.5 "Geist Mono",monospace;letter-spacing:.05em;color:#626871 }
+      #d-08-managed-resource-atlas-root .lead { font-size:19px;max-width:1050px;color:#555c66 }
+      #d-08-managed-resource-atlas-root a { color:#2459a6;text-underline-offset:3px }
+      #d-08-managed-resource-atlas-root a:focus-visible { outline:3px solid #b33b14;outline-offset:4px }
+      #d-08-managed-resource-atlas-root .status { display:inline-block;padding:5px 9px;border:1px solid #b33b14;color:#9e3412;font-size:12px }
+      #d-08-managed-resource-atlas-root .section { padding:44px 0;border-top:1px solid #d7dade;margin-top:24px }
+      #d-08-managed-resource-atlas-root .diagram-container { overflow-x:auto;width:100%;margin:24px 0 18px;border-top:1px solid #d7dade;border-bottom:1px solid #d7dade }
+      #d-08-managed-resource-atlas-root .note { border-left:3px solid #b33b14;padding:10px 18px;max-width:1200px;background:#fff6ef;font-size:14px }
+      #d-08-managed-resource-atlas-root .sources { font-size:13px;color:#626871 }
+      #d-08-managed-resource-atlas-root .toc { display:grid;grid-template-columns:1fr 1.2fr;gap:0 36px;margin:32px 0 }
+      #d-08-managed-resource-atlas-root .toc a { padding:16px 0;border-top:1px solid #d7dade;text-decoration:none;color:#22252b;display:flex;gap:20px }
+      #d-08-managed-resource-atlas-root .toc b { font:15px "Geist Mono",monospace;color:#9e3412 }
+      #d-08-managed-resource-atlas-root .toc small { color:#626871;display:block }
+      #d-08-managed-resource-atlas-root .grid { display:grid;grid-template-columns:1.2fr 1fr;gap:36px }
+      #d-08-managed-resource-atlas-root .table-scroll { overflow-x:auto;margin:24px 0 }
+      #d-08-managed-resource-atlas-root table { border-collapse:collapse;width:100%;font-size:14px }
+      #d-08-managed-resource-atlas-root td, #d-08-managed-resource-atlas-root th { text-align:left;border-bottom:1px solid #d7dade;padding:12px 14px;vertical-align:top }
+      #d-08-managed-resource-atlas-root th { font-size:12px;background:#f3f4f6;color:#555c66 }
+      #d-08-managed-resource-atlas-root code { font:12px "Geist Mono",monospace;background:#f3f4f6;padding:2px 3px }
+      #d-08-managed-resource-atlas-root .table-scroll table { min-width:1180px }
+      #d-08-managed-resource-atlas-root details { padding:16px 0 }
+      #d-08-managed-resource-atlas-root summary { font-weight:600;cursor:pointer }
+      @media(max-width:720px) {
+#d-08-managed-resource-atlas-root .toc, #d-08-managed-resource-atlas-root .grid { grid-template-columns:1fr }
+}
+      @media print {
+#d-08-managed-resource-atlas-root .diagram-container { overflow-x:visible }
+      #d-08-managed-resource-atlas-root .section { break-before:page }
+      #d-08-managed-resource-atlas-root .toc { display:none }
+}</style><marker id="d-08-managed-resource-atlas-08-managed-resource-atlas-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#626871"/></marker><marker id="d-08-managed-resource-atlas-08-managed-resource-atlas-ab" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2459a6"/></marker></defs><rect width="2000" height="2144" fill="#fff"/><text x="48" y="48" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="14" font-weight="600">PINNED PROVIDER / ACTIVATED SUBSET</text>
+<text x="48" y="92" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="30" font-weight="600">92 activated resource kinds, grouped by API family</text>
+<rect x="48" y="136" width="464" height="632" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="68" y="166" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">cloud / MANAGE</text>
+<text x="68" y="191" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">11 activated GVKs</text>
+<rect x="64" y="216" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="244" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">AccessPolicy</text>
+<rect x="64" y="264" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="292" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">AccessPolicyRotatingToken</text>
+<rect x="64" y="312" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="340" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Appo11YconfigV1Alpha1</text>
+<rect x="64" y="360" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="388" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Dbo11YconfigV1Alpha1</text>
+<rect x="64" y="408" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="436" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">K8So11YconfigV1Alpha1</text>
+<rect x="64" y="456" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="484" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">PluginInstallation</text>
+<rect x="64" y="504" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="532" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">PrivateDataSourceConnectNetwork</text>
+<rect x="64" y="552" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="580" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">PrivateDataSourceConnectNetworkToken</text>
+<rect x="64" y="600" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="628" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Stack</text>
+<rect x="64" y="648" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="676" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">StackServiceAccount</text>
+<rect x="64" y="696" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="724" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">StackServiceAccountRotatingToken</text>
+<rect x="536" y="136" width="464" height="728" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="556" y="166" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">oss / MANAGE</text>
+<text x="556" y="191" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">13 activated GVKs</text>
+<rect x="552" y="216" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="244" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ConnectionV0Alpha1</text>
+<rect x="552" y="264" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="292" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Dashboard</text>
+<rect x="552" y="312" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="340" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">DashboardPermission</text>
+<rect x="552" y="360" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="388" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">DataSource</text>
+<rect x="552" y="408" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="436" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Folder</text>
+<rect x="552" y="456" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="484" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">FolderPermission</text>
+<rect x="552" y="504" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="532" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">OrganizationPreferences</text>
+<rect x="552" y="552" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="580" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">RepositoryV0Alpha1</text>
+<rect x="552" y="600" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="628" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ServiceAccount</text>
+<rect x="552" y="648" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="676" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ServiceAccountPermission</text>
+<rect x="552" y="696" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="724" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ServiceAccountRotatingToken</text>
+<rect x="552" y="744" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="772" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">SsoSettings</text>
+<rect x="552" y="792" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="820" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Team</text>
+<rect x="1024" y="136" width="464" height="440" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1044" y="166" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">enterprise / MANAGE</text>
+<text x="1044" y="191" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">7 activated GVKs</text>
+<rect x="1040" y="216" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="244" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">DataSourceConfigLbacRules</text>
+<rect x="1040" y="264" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="292" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">DataSourcePermission</text>
+<rect x="1040" y="312" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="340" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Report</text>
+<rect x="1040" y="360" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="388" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Role</text>
+<rect x="1040" y="408" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="436" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">RoleAssignment</text>
+<rect x="1040" y="456" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="484" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">RoleAssignmentItem</text>
+<rect x="1040" y="504" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="532" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">SecurevalueV1Beta1</text>
+<rect x="1512" y="136" width="464" height="344" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1532" y="166" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">agento11y / MANAGE</text>
+<text x="1532" y="191" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">5 activated GVKs</text>
+<rect x="1528" y="216" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="244" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Collection</text>
+<rect x="1528" y="264" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="292" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">EvaluationRule</text>
+<rect x="1528" y="312" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="340" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Evaluator</text>
+<rect x="1528" y="360" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="388" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">HookRule</text>
+<rect x="1528" y="408" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="436" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">RuleAction</text>
+<rect x="1512" y="508" width="464" height="392" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1532" y="538" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">alerting / MANAGE</text>
+<text x="1532" y="563" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">6 activated GVKs</text>
+<rect x="1528" y="588" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="616" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ContactPoint</text>
+<rect x="1528" y="636" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="664" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">InhibitionruleV1Beta1</text>
+<rect x="1528" y="684" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="712" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">MessageTemplate</text>
+<rect x="1528" y="732" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="760" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">MuteTiming</text>
+<rect x="1528" y="780" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="808" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">NotificationPolicy</text>
+<rect x="1528" y="828" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="856" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">RuleGroup</text>
+<rect x="1024" y="604" width="464" height="536" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1044" y="634" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">asserts / MANAGE</text>
+<text x="1044" y="659" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">9 activated GVKs</text>
+<rect x="1040" y="684" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="712" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">CustomModelRules</text>
+<rect x="1040" y="732" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="760" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">LogConfig</text>
+<rect x="1040" y="780" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="808" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">NotificationAlertsConfig</text>
+<rect x="1040" y="828" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="856" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ProfileConfig</text>
+<rect x="1040" y="876" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="904" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">PromRuleFile</text>
+<rect x="1040" y="924" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="952" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Stack</text>
+<rect x="1040" y="972" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="1000" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">SuppressedAssertionsConfig</text>
+<rect x="1040" y="1020" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="1048" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Thresholds</text>
+<rect x="1040" y="1068" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="1096" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">TraceConfig</text>
+<rect x="48" y="796" width="464" height="248" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="68" y="826" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">assistant / MANAGE</text>
+<text x="68" y="851" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">3 activated GVKs</text>
+<rect x="64" y="876" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="904" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">McpServer</text>
+<rect x="64" y="924" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="952" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Rule</text>
+<rect x="64" y="972" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="1000" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">TermsAcceptance</text>
+<rect x="536" y="892" width="464" height="152" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="556" y="922" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">cloudintegrations / MANAGE</text>
+<text x="556" y="947" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">1 activated GVK</text>
+<rect x="552" y="972" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="1000" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">CloudIntegration</text>
+<rect x="1512" y="928" width="464" height="296" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1532" y="958" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">cloudprovider / MANAGE</text>
+<text x="1532" y="983" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">4 activated GVKs</text>
+<rect x="1528" y="1008" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1036" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">AwsAccount</text>
+<rect x="1528" y="1056" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1084" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">AwsCloudwatchScrapeJob</text>
+<rect x="1528" y="1104" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1132" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">AwsResourceMetadataScrapeJob</text>
+<rect x="1528" y="1152" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1180" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">AzureCredential</text>
+<rect x="48" y="1072" width="464" height="152" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="68" y="1102" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">connections / MANAGE</text>
+<text x="68" y="1127" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">1 activated GVK</text>
+<rect x="64" y="1152" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="1180" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">MetricsEndpointScrapeJob</text>
+<rect x="536" y="1072" width="464" height="152" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="556" y="1102" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">fleetmanagement / MANAGE</text>
+<text x="556" y="1127" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">1 activated GVK</text>
+<rect x="552" y="1152" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="1180" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Pipeline</text>
+<rect x="1024" y="1168" width="464" height="152" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1044" y="1198" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">frontendobservability / MANAGE</text>
+<text x="1044" y="1223" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">1 activated GVK</text>
+<rect x="1040" y="1248" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="1276" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">App</text>
+<rect x="48" y="1252" width="464" height="392" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="68" y="1282" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">k6 / MANAGE</text>
+<text x="68" y="1307" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">6 activated GVKs</text>
+<rect x="64" y="1332" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="1360" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Installation</text>
+<rect x="64" y="1380" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="1408" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">LoadTest</text>
+<rect x="64" y="1428" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="1456" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Project</text>
+<rect x="64" y="1476" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="1504" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ProjectAllowedLoadZones</text>
+<rect x="64" y="1524" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="1552" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ProjectLimits</text>
+<rect x="64" y="1572" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="80" y="1600" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Schedule</text>
+<rect x="536" y="1252" width="464" height="248" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="556" y="1282" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">ml / MANAGE</text>
+<text x="556" y="1307" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">3 activated GVKs</text>
+<rect x="552" y="1332" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="1360" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Holiday</text>
+<rect x="552" y="1380" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="1408" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Job</text>
+<rect x="552" y="1428" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="1456" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">OutlierDetector</text>
+<rect x="1512" y="1252" width="464" height="440" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1532" y="1282" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">oncall / MANAGE</text>
+<text x="1532" y="1307" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">7 activated GVKs</text>
+<rect x="1528" y="1332" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1360" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Escalation</text>
+<rect x="1528" y="1380" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1408" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">EscalationChain</text>
+<rect x="1528" y="1428" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1456" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Integration</text>
+<rect x="1528" y="1476" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1504" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">OnCallShift</text>
+<rect x="1528" y="1524" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1552" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">OutgoingWebhook</text>
+<rect x="1528" y="1572" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1600" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Route</text>
+<rect x="1528" y="1620" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1544" y="1648" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Schedule</text>
+<rect x="1024" y="1348" width="464" height="152" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1044" y="1378" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">slo / MANAGE</text>
+<text x="1044" y="1403" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">1 activated GVK</text>
+<rect x="1040" y="1428" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1056" y="1456" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">SLO</text>
+<rect x="536" y="1528" width="464" height="248" rx="8" fill="#f7f8fa" stroke="#cdd1d7" stroke-width="1"/>
+<text x="556" y="1558" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">sm / MANAGE</text>
+<text x="556" y="1583" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">3 activated GVKs</text>
+<rect x="552" y="1608" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="1636" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Check</text>
+<rect x="552" y="1656" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="1684" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">CheckAlerts</text>
+<rect x="552" y="1704" width="432" height="40" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="568" y="1732" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Installation</text>
+<rect x="1024" y="1528" width="464" height="392" rx="8" fill="#f6f8fb" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1044" y="1558" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">oss / OBSERVE</text>
+<text x="1044" y="1583" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">6 activated GVKs</text>
+<rect x="1040" y="1608" width="432" height="40" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 1048 1616 V 1640" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="1056" y="1636" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">DashboardSet</text>
+<rect x="1040" y="1656" width="432" height="40" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 1048 1664 V 1688" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="1056" y="1684" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">FolderSet</text>
+<rect x="1040" y="1704" width="432" height="40" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 1048 1712 V 1736" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="1056" y="1732" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">LibraryPanelSet</text>
+<rect x="1040" y="1752" width="432" height="40" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 1048 1760 V 1784" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="1056" y="1780" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">OrganizationUser</text>
+<rect x="1040" y="1800" width="432" height="40" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 1048 1808 V 1832" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="1056" y="1828" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">TeamSet</text>
+<rect x="1040" y="1848" width="432" height="40" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 1048 1856 V 1880" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="1056" y="1876" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">UserSet</text>
+<rect x="48" y="1672" width="464" height="152" rx="8" fill="#f6f8fb" stroke="#cdd1d7" stroke-width="1"/>
+<text x="68" y="1702" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">fleetmanagement / OBSERVE</text>
+<text x="68" y="1727" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">1 activated GVK</text>
+<rect x="64" y="1752" width="432" height="40" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 72 1760 V 1784" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="80" y="1780" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">CollectorSet</text>
+<rect x="1512" y="1720" width="464" height="200" rx="8" fill="#f6f8fb" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1532" y="1750" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">oncall / OBSERVE</text>
+<text x="1532" y="1775" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">2 activated GVKs</text>
+<rect x="1528" y="1800" width="432" height="40" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 1536 1808 V 1832" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="1544" y="1828" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">SlackChannel</text>
+<rect x="1528" y="1848" width="432" height="40" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 1536 1856 V 1880" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="1544" y="1876" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">User</text>
+<rect x="536" y="1804" width="464" height="152" rx="8" fill="#f6f8fb" stroke="#cdd1d7" stroke-width="1"/>
+<text x="556" y="1834" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">sm / OBSERVE</text>
+<text x="556" y="1859" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">1 activated GVK</text>
+<rect x="552" y="1884" width="432" height="40" rx="4" fill="#fff" stroke="#2459a6" stroke-width="1"/>
+<path d="M 560 1892 V 1916" stroke="#2459a6" stroke-dasharray="3,3"/>
+<text x="568" y="1912" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">ProbeSet</text>
+<text x="48" y="2032" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Not counted above: ProviderConfig, Secret, ExternalSecret, PushSecret, SecretStore, XRD, Composition, Function, Provider and Argo objects.</text>
+<path d="M 40 2088 H 1960" stroke="#cdd1d7"/><text x="40" y="2116" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">MANAGE: management API family, not permission to create every resource. OBSERVE: data-source / lookup GVKs.</text>
+</svg>

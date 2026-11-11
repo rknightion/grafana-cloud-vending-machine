@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1600" role="img" aria-labelledby="03-telecom-fleet-title 03-telecom-fleet-desc" id="d-03-telecom-fleet-root"><title id="03-telecom-fleet-title">Sixteen-market telecom fleet</title><desc id="03-telecom-fleet-desc">A complete fleet view: every market is visible alongside the identity, team, content and policy choices that make its stack different.</desc><defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #d-03-telecom-fleet-root { color: #22252b; }
+      #d-03-telecom-fleet-root body.figure main { max-width:none }
+      #d-03-telecom-fleet-root .eyebrow, #d-03-telecom-fleet-root .meta { font:12px/1.5 "Geist Mono",monospace;letter-spacing:.05em;color:#626871 }
+      #d-03-telecom-fleet-root .lead { font-size:19px;max-width:1050px;color:#555c66 }
+      #d-03-telecom-fleet-root a { color:#2459a6;text-underline-offset:3px }
+      #d-03-telecom-fleet-root a:focus-visible { outline:3px solid #b33b14;outline-offset:4px }
+      #d-03-telecom-fleet-root .status { display:inline-block;padding:5px 9px;border:1px solid #b33b14;color:#9e3412;font-size:12px }
+      #d-03-telecom-fleet-root .section { padding:44px 0;border-top:1px solid #d7dade;margin-top:24px }
+      #d-03-telecom-fleet-root .diagram-container { overflow-x:auto;width:100%;margin:24px 0 18px;border-top:1px solid #d7dade;border-bottom:1px solid #d7dade }
+      #d-03-telecom-fleet-root .note { border-left:3px solid #b33b14;padding:10px 18px;max-width:1200px;background:#fff6ef;font-size:14px }
+      #d-03-telecom-fleet-root .sources { font-size:13px;color:#626871 }
+      #d-03-telecom-fleet-root .toc { display:grid;grid-template-columns:1fr 1.2fr;gap:0 36px;margin:32px 0 }
+      #d-03-telecom-fleet-root .toc a { padding:16px 0;border-top:1px solid #d7dade;text-decoration:none;color:#22252b;display:flex;gap:20px }
+      #d-03-telecom-fleet-root .toc b { font:15px "Geist Mono",monospace;color:#9e3412 }
+      #d-03-telecom-fleet-root .toc small { color:#626871;display:block }
+      #d-03-telecom-fleet-root .grid { display:grid;grid-template-columns:1.2fr 1fr;gap:36px }
+      #d-03-telecom-fleet-root .table-scroll { overflow-x:auto;margin:24px 0 }
+      #d-03-telecom-fleet-root table { border-collapse:collapse;width:100%;font-size:14px }
+      #d-03-telecom-fleet-root td, #d-03-telecom-fleet-root th { text-align:left;border-bottom:1px solid #d7dade;padding:12px 14px;vertical-align:top }
+      #d-03-telecom-fleet-root th { font-size:12px;background:#f3f4f6;color:#555c66 }
+      #d-03-telecom-fleet-root code { font:12px "Geist Mono",monospace;background:#f3f4f6;padding:2px 3px }
+      #d-03-telecom-fleet-root .table-scroll table { min-width:1180px }
+      #d-03-telecom-fleet-root details { padding:16px 0 }
+      #d-03-telecom-fleet-root summary { font-weight:600;cursor:pointer }
+      @media(max-width:720px) {
+#d-03-telecom-fleet-root .toc, #d-03-telecom-fleet-root .grid { grid-template-columns:1fr }
+}
+      @media print {
+#d-03-telecom-fleet-root .diagram-container { overflow-x:visible }
+      #d-03-telecom-fleet-root .section { break-before:page }
+      #d-03-telecom-fleet-root .toc { display:none }
+}</style><marker id="d-03-telecom-fleet-03-telecom-fleet-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#626871"/></marker><marker id="d-03-telecom-fleet-03-telecom-fleet-ab" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2459a6"/></marker></defs><rect width="2000" height="1600" fill="#fff"/><text x="48" y="56" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="14" font-weight="600">TELECOM GROUP</text>
+<text x="48" y="96" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="32" font-weight="600">Sixteen independent market stacks</text>
+<text x="48" y="132" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="400">Shared definitions are instantiated into each stack. Market and hosting region are separate choices.</text>
+<rect x="48" y="200" width="272" height="1224" rx="6" fill="#fff5ee" stroke="#b33b14" stroke-width="1"/>
+<text x="72" y="240" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="23" font-weight="600">Fleet baseline</text>
+<text x="72" y="284" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Versioned platform recipe</text>
+<text x="72" y="318" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Naming and ownership</text>
+<text x="72" y="352" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Minimum access policy</text>
+<text x="72" y="386" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC starter dashboards</text>
+<text x="72" y="420" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Credential rotation limits</text>
+<text x="72" y="454" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Retention / audit defaults</text>
+<text x="72" y="580" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Market-specific inputs</text>
+<text x="72" y="620" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">SSO provider / app</text>
+<text x="72" y="654" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Group and role claims</text>
+<text x="72" y="688" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Team memberships</text>
+<text x="72" y="722" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Dashboard packs</text>
+<text x="72" y="756" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">RBAC actions / scopes</text>
+<text x="72" y="790" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Data-source Query grants</text>
+<text x="72" y="824" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">LBAC market / domain rules</text>
+<text x="72" y="858" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Alert routes / responders</text>
+<text x="72" y="892" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Actual supported region</text>
+<text x="72" y="1120" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Same baseline version</text>
+<text x="72" y="1152" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">does not imply identical</text>
+<text x="72" y="1184" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">configuration or access.</text>
+<path d="M 344 232 V 1380" fill="none" stroke="#626871" stroke-width="1.4"  />
+<text x="400" y="232" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="600">MARKET STACK</text>
+<text x="684" y="232" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="600">SSO / CONFIG</text>
+<text x="944" y="232" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="600">TEAMS</text>
+<text x="1232" y="232" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="600">DASHBOARD PACKS</text>
+<text x="1516" y="232" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="600">RBAC / LBAC + OPERATIONS</text>
+<path d="M 344 288 L 384 288" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="260" width="1576" height="64" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<rect x="384" y="260" width="4" height="64" rx="0" fill="#b33b14" stroke="none" stroke-width="1"/>
+<text x="400" y="286" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">United Kingdom</text>
+<text x="400" y="309" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-uk</text>
+<text x="684" y="286" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Entra ID</text>
+<text x="684" y="309" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">UK app / claims / secret ref</text>
+<text x="944" y="286" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / RAN / Core</text>
+<text x="944" y="309" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">UK external-group bindings</text>
+<text x="1232" y="286" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">RAN + Core</text>
+<text x="1232" y="309" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="286" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;uk&quot; + domain</text>
+<text x="1516" y="309" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Europe candidate · local data / routing</text>
+<path d="M 344 360 L 384 360" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="332" width="1576" height="64" rx="0" fill="#f7f8fa" stroke="none" stroke-width="1"/>
+<rect x="384" y="332" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="358" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Germany</text>
+<text x="400" y="381" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-de</text>
+<text x="684" y="358" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">SAML</text>
+<text x="684" y="381" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">DE app / claims / secret ref</text>
+<text x="944" y="358" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / Core / SOC</text>
+<text x="944" y="381" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">DE external-group bindings</text>
+<text x="1232" y="358" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Core + Security</text>
+<text x="1232" y="381" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="358" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;de&quot; + domain</text>
+<text x="1516" y="381" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Europe candidate · local data / routing</text>
+<path d="M 344 432 L 384 432" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="404" width="1576" height="64" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<rect x="384" y="404" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="430" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">France</text>
+<text x="400" y="453" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-fr</text>
+<text x="684" y="430" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Okta</text>
+<text x="684" y="453" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">FR app / claims / secret ref</text>
+<text x="944" y="430" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / Fixed / Digital</text>
+<text x="944" y="453" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">FR external-group bindings</text>
+<text x="1232" y="430" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Fixed + Digital</text>
+<text x="1232" y="453" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="430" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;fr&quot; + domain</text>
+<text x="1516" y="453" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Europe candidate · local data / routing</text>
+<path d="M 344 504 L 384 504" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="476" width="1576" height="64" rx="0" fill="#f7f8fa" stroke="none" stroke-width="1"/>
+<rect x="384" y="476" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="502" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Spain</text>
+<text x="400" y="525" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-es</text>
+<text x="684" y="502" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Entra ID</text>
+<text x="684" y="525" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">ES app / claims / secret ref</text>
+<text x="944" y="502" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / RAN / Digital</text>
+<text x="944" y="525" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">ES external-group bindings</text>
+<text x="1232" y="502" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">RAN + Digital</text>
+<text x="1232" y="525" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="502" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;es&quot; + domain</text>
+<text x="1516" y="525" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Europe candidate · local data / routing</text>
+<path d="M 344 576 L 384 576" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="548" width="1576" height="64" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<rect x="384" y="548" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="574" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Italy</text>
+<text x="400" y="597" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-it</text>
+<text x="684" y="574" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">SAML</text>
+<text x="684" y="597" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">IT app / claims / secret ref</text>
+<text x="944" y="574" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / Core / Fixed</text>
+<text x="944" y="597" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">IT external-group bindings</text>
+<text x="1232" y="574" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Core + Fixed</text>
+<text x="1232" y="597" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="574" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;it&quot; + domain</text>
+<text x="1516" y="597" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Europe candidate · local data / routing</text>
+<path d="M 344 648 L 384 648" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="620" width="1576" height="64" rx="0" fill="#f7f8fa" stroke="none" stroke-width="1"/>
+<rect x="384" y="620" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="646" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Netherlands</text>
+<text x="400" y="669" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-nl</text>
+<text x="684" y="646" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Okta</text>
+<text x="684" y="669" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">NL app / claims / secret ref</text>
+<text x="944" y="646" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / Core / SOC</text>
+<text x="944" y="669" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">NL external-group bindings</text>
+<text x="1232" y="646" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Core + Security</text>
+<text x="1232" y="669" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="646" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;nl&quot; + domain</text>
+<text x="1516" y="669" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Europe candidate · local data / routing</text>
+<path d="M 344 720 L 384 720" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="692" width="1576" height="64" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<rect x="384" y="692" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="718" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Sweden</text>
+<text x="400" y="741" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-se</text>
+<text x="684" y="718" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Entra ID</text>
+<text x="684" y="741" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">SE app / claims / secret ref</text>
+<text x="944" y="718" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / RAN / Core</text>
+<text x="944" y="741" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">SE external-group bindings</text>
+<text x="1232" y="718" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">RAN + Core</text>
+<text x="1232" y="741" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="718" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;se&quot; + domain</text>
+<text x="1516" y="741" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Europe candidate · local data / routing</text>
+<path d="M 344 792 L 384 792" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="764" width="1576" height="64" rx="0" fill="#f7f8fa" stroke="none" stroke-width="1"/>
+<rect x="384" y="764" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="790" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Poland</text>
+<text x="400" y="813" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-pl</text>
+<text x="684" y="790" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">OIDC</text>
+<text x="684" y="813" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">PL app / claims / secret ref</text>
+<text x="944" y="790" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / Fixed / Core</text>
+<text x="944" y="813" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">PL external-group bindings</text>
+<text x="1232" y="790" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Fixed + Core</text>
+<text x="1232" y="813" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="790" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;pl&quot; + domain</text>
+<text x="1516" y="813" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Europe candidate · local data / routing</text>
+<path d="M 344 864 L 384 864" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="836" width="1576" height="64" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<rect x="384" y="836" width="4" height="64" rx="0" fill="#b33b14" stroke="none" stroke-width="1"/>
+<text x="400" y="862" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">United States</text>
+<text x="400" y="885" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-us</text>
+<text x="684" y="862" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Okta</text>
+<text x="684" y="885" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">US app / claims / secret ref</text>
+<text x="944" y="862" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / RAN / Digital</text>
+<text x="944" y="885" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">US external-group bindings</text>
+<text x="1232" y="862" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">RAN + Digital</text>
+<text x="1232" y="885" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="862" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;us&quot; + domain</text>
+<text x="1516" y="885" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Americas candidate · local data / routing</text>
+<path d="M 344 936 L 384 936" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="908" width="1576" height="64" rx="0" fill="#f7f8fa" stroke="none" stroke-width="1"/>
+<rect x="384" y="908" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="934" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Canada</text>
+<text x="400" y="957" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-ca</text>
+<text x="684" y="934" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Entra ID</text>
+<text x="684" y="957" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">CA app / claims / secret ref</text>
+<text x="944" y="934" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / Fixed / SOC</text>
+<text x="944" y="957" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">CA external-group bindings</text>
+<text x="1232" y="934" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Fixed + Security</text>
+<text x="1232" y="957" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="934" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;ca&quot; + domain</text>
+<text x="1516" y="957" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Americas candidate · local data / routing</text>
+<path d="M 344 1008 L 384 1008" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="980" width="1576" height="64" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<rect x="384" y="980" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="1006" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Brazil</text>
+<text x="400" y="1029" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-br</text>
+<text x="684" y="1006" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">OIDC</text>
+<text x="684" y="1029" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">BR app / claims / secret ref</text>
+<text x="944" y="1006" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / RAN / Core</text>
+<text x="944" y="1029" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">BR external-group bindings</text>
+<text x="1232" y="1006" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">RAN + Core</text>
+<text x="1232" y="1029" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="1006" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;br&quot; + domain</text>
+<text x="1516" y="1029" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Americas candidate · local data / routing</text>
+<path d="M 344 1080 L 384 1080" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="1052" width="1576" height="64" rx="0" fill="#f7f8fa" stroke="none" stroke-width="1"/>
+<rect x="384" y="1052" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="1078" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Mexico</text>
+<text x="400" y="1101" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-mx</text>
+<text x="684" y="1078" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">SAML</text>
+<text x="684" y="1101" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">MX app / claims / secret ref</text>
+<text x="944" y="1078" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / Fixed / Digital</text>
+<text x="944" y="1101" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">MX external-group bindings</text>
+<text x="1232" y="1078" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Fixed + Digital</text>
+<text x="1232" y="1101" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="1078" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;mx&quot; + domain</text>
+<text x="1516" y="1101" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Americas candidate · local data / routing</text>
+<path d="M 344 1152 L 384 1152" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="1124" width="1576" height="64" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<rect x="384" y="1124" width="4" height="64" rx="0" fill="#b33b14" stroke="none" stroke-width="1"/>
+<text x="400" y="1150" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">India</text>
+<text x="400" y="1173" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-in</text>
+<text x="684" y="1150" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Entra ID</text>
+<text x="684" y="1173" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">IN app / claims / secret ref</text>
+<text x="944" y="1150" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / RAN / Core</text>
+<text x="944" y="1173" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">IN external-group bindings</text>
+<text x="1232" y="1150" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">RAN + Core</text>
+<text x="1232" y="1173" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="1150" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;in&quot; + domain</text>
+<text x="1516" y="1173" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">APAC candidate · local data / routing</text>
+<path d="M 344 1224 L 384 1224" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="1196" width="1576" height="64" rx="0" fill="#f7f8fa" stroke="none" stroke-width="1"/>
+<rect x="384" y="1196" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="1222" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Japan</text>
+<text x="400" y="1245" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-jp</text>
+<text x="684" y="1222" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">SAML</text>
+<text x="684" y="1245" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">JP app / claims / secret ref</text>
+<text x="944" y="1222" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / Core / SOC</text>
+<text x="944" y="1245" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">JP external-group bindings</text>
+<text x="1232" y="1222" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Core + Security</text>
+<text x="1232" y="1245" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="1222" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;jp&quot; + domain</text>
+<text x="1516" y="1245" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">APAC candidate · local data / routing</text>
+<path d="M 344 1296 L 384 1296" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="1268" width="1576" height="64" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<rect x="384" y="1268" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="1294" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Singapore</text>
+<text x="400" y="1317" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-sg</text>
+<text x="684" y="1294" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">Okta</text>
+<text x="684" y="1317" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">SG app / claims / secret ref</text>
+<text x="944" y="1294" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / Core / Digital</text>
+<text x="944" y="1317" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">SG external-group bindings</text>
+<text x="1232" y="1294" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Core + Digital</text>
+<text x="1232" y="1317" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="1294" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;sg&quot; + domain</text>
+<text x="1516" y="1317" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">APAC candidate · local data / routing</text>
+<path d="M 344 1368 L 384 1368" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-03-telecom-fleet-03-telecom-fleet-a)"/>
+<rect x="384" y="1340" width="1576" height="64" rx="0" fill="#f7f8fa" stroke="none" stroke-width="1"/>
+<rect x="384" y="1340" width="4" height="64" rx="0" fill="#b7bdc5" stroke="none" stroke-width="1"/>
+<text x="400" y="1366" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="17" font-weight="600">Australia</text>
+<text x="400" y="1389" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="12" font-weight="400">market-au</text>
+<text x="684" y="1366" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">OIDC</text>
+<text x="684" y="1389" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">AU app / claims / secret ref</text>
+<text x="944" y="1366" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">NOC / RAN / Fixed</text>
+<text x="944" y="1389" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">AU external-group bindings</text>
+<text x="1232" y="1366" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">RAN + Fixed</text>
+<text x="1232" y="1389" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">Common NOC + market folders</text>
+<text x="1516" y="1366" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="14" font-weight="400">Scoped roles; market=&quot;au&quot; + domain</text>
+<text x="1516" y="1389" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="12" font-weight="400">APAC candidate · local data / routing</text>
+<text x="384" y="1472" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">Each row is one stack, with separate credentials, resource identities, policy sets and lifecycle.</text>
+<text x="384" y="1504" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">The fleet rail means repeated configuration delivery. It carries no telemetry and grants no cross-stack access.</text>
+<path d="M 40 1544 H 1960" stroke="#cdd1d7"/><text x="40" y="1572" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Left rail: repeated baseline delivery. Rows: independent stack specifications. Regional labels are planning candidates only.</text>
+</svg>

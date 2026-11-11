@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1840 1280" role="img" aria-labelledby="04-identity-access-title 04-identity-access-desc" id="d-04-identity-access-root"><title id="04-identity-access-title">Market identity and access</title><desc id="04-identity-access-desc">SSO maps identity and claims. Teams participate in role assignments, content ACLs and data-source policies in parallel. A user query then follows the permitted data path.</desc><defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #d-04-identity-access-root { color: #22252b; }
+      #d-04-identity-access-root body.figure main { max-width:none }
+      #d-04-identity-access-root .eyebrow, #d-04-identity-access-root .meta { font:12px/1.5 "Geist Mono",monospace;letter-spacing:.05em;color:#626871 }
+      #d-04-identity-access-root .lead { font-size:19px;max-width:1050px;color:#555c66 }
+      #d-04-identity-access-root a { color:#2459a6;text-underline-offset:3px }
+      #d-04-identity-access-root a:focus-visible { outline:3px solid #b33b14;outline-offset:4px }
+      #d-04-identity-access-root .status { display:inline-block;padding:5px 9px;border:1px solid #b33b14;color:#9e3412;font-size:12px }
+      #d-04-identity-access-root .section { padding:44px 0;border-top:1px solid #d7dade;margin-top:24px }
+      #d-04-identity-access-root .diagram-container { overflow-x:auto;width:100%;margin:24px 0 18px;border-top:1px solid #d7dade;border-bottom:1px solid #d7dade }
+      #d-04-identity-access-root .note { border-left:3px solid #b33b14;padding:10px 18px;max-width:1200px;background:#fff6ef;font-size:14px }
+      #d-04-identity-access-root .sources { font-size:13px;color:#626871 }
+      #d-04-identity-access-root .toc { display:grid;grid-template-columns:1fr 1.2fr;gap:0 36px;margin:32px 0 }
+      #d-04-identity-access-root .toc a { padding:16px 0;border-top:1px solid #d7dade;text-decoration:none;color:#22252b;display:flex;gap:20px }
+      #d-04-identity-access-root .toc b { font:15px "Geist Mono",monospace;color:#9e3412 }
+      #d-04-identity-access-root .toc small { color:#626871;display:block }
+      #d-04-identity-access-root .grid { display:grid;grid-template-columns:1.2fr 1fr;gap:36px }
+      #d-04-identity-access-root .table-scroll { overflow-x:auto;margin:24px 0 }
+      #d-04-identity-access-root table { border-collapse:collapse;width:100%;font-size:14px }
+      #d-04-identity-access-root td, #d-04-identity-access-root th { text-align:left;border-bottom:1px solid #d7dade;padding:12px 14px;vertical-align:top }
+      #d-04-identity-access-root th { font-size:12px;background:#f3f4f6;color:#555c66 }
+      #d-04-identity-access-root code { font:12px "Geist Mono",monospace;background:#f3f4f6;padding:2px 3px }
+      #d-04-identity-access-root .table-scroll table { min-width:1180px }
+      #d-04-identity-access-root details { padding:16px 0 }
+      #d-04-identity-access-root summary { font-weight:600;cursor:pointer }
+      @media(max-width:720px) {
+#d-04-identity-access-root .toc, #d-04-identity-access-root .grid { grid-template-columns:1fr }
+}
+      @media print {
+#d-04-identity-access-root .diagram-container { overflow-x:visible }
+      #d-04-identity-access-root .section { break-before:page }
+      #d-04-identity-access-root .toc { display:none }
+}</style><marker id="d-04-identity-access-04-identity-access-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#626871"/></marker><marker id="d-04-identity-access-04-identity-access-ab" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2459a6"/></marker></defs><rect width="1840" height="1280" fill="#fff"/><text x="48" y="48" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="14" font-weight="600">UK MARKET / IDENTITY AND AUTHORIZATION</text>
+<rect x="48" y="88" width="384" height="848" rx="8" fill="#f3f4f6" stroke="#cdd1d7" stroke-width="1"/>
+<text x="68" y="118" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Identity provider</text>
+<text x="68" y="143" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">External configuration and credentials</text>
+<rect x="496" y="88" width="600" height="848" rx="8" fill="#fff" stroke="#cdd1d7" stroke-width="1"/>
+<text x="516" y="118" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Grafana membership and permissions</text>
+<text x="516" y="143" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Team identity is shared by several permission mechanisms</text>
+<rect x="1160" y="88" width="632" height="848" rx="8" fill="#f3f4f6" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1180" y="118" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Authorized targets</text>
+<text x="1180" y="143" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Content access and data access are separate</text>
+<path d="M 408 240 L 520 240" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-a)"/>
+<rect x="411.0" y="205" width="106.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="464" y="220" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">SSO SETTINGS</text>
+<path d="M 408 500 L 520 500" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-a)"/>
+<rect x="422.25" y="465" width="83.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="464" y="480" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">TEAM SYNC</text>
+<path d="M 800 472 H 816 Q 824 472 824 464 V 368 Q 824 360 832 360 H 848" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-a)"/>
+<path d="M 800 528 L 848 528" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-a)"/>
+<path d="M 800 576 H 808 Q 816 576 816 584 V 752 Q 816 760 824 760 H 848" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-a)"/>
+<path d="M 1072 360 L 1184 360" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-a)"/>
+<rect x="1101.25" y="325" width="53.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1128" y="340" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">GRANT</text>
+<path d="M 1072 528 L 1184 528" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-a)"/>
+<rect x="1108.75" y="493" width="38.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1128" y="508" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">ACL</text>
+<path d="M 1072 760 L 1184 760" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-a)"/>
+<rect x="1101.25" y="725" width="53.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1128" y="740" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">RULES</text>
+<rect x="72" y="168" width="336" height="176" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="92" y="196" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">ENTRA ID EXAMPLE</text>
+<text x="92" y="228" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Market IdP</text>
+<text x="92" y="258" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">UK application / endpoints</text>
+<text x="92" y="282" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Client / metadata secret reference</text>
+<text x="92" y="306" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Strict basic-role mapping</text>
+<rect x="72" y="424" width="336" height="176" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="92" y="452" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">GROUP CLAIMS</text>
+<text x="92" y="484" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">External groups</text>
+<text x="92" y="514" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">UK-NOC · UK-RAN · UK-Core</text>
+<text x="92" y="538" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Claim path and group identifiers</text>
+<text x="92" y="562" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Membership lifecycle owned by IdP</text>
+<text x="80" y="684" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">Other markets can use</text>
+<text x="80" y="724" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">SAML metadata + assertion fields</text>
+<text x="80" y="756" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Okta app + allowed groups</text>
+<text x="80" y="788" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Generic OAuth scopes / claims</text>
+<text x="80" y="820" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Different groups and role mappings</text>
+<rect x="520" y="192" width="552" height="96" rx="4" fill="#fff5ee" stroke="#b33b14" stroke-width="1.5"/>
+<text x="536" y="220" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">SsoSettings</text>
+<text x="536" y="246" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Provider-specific profile selected by the request</text>
+<rect x="520" y="424" width="280" height="200" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="540" y="452" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">TEAM SYNC / MEMBERS</text>
+<text x="540" y="484" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Grafana Teams</text>
+<text x="540" y="514" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">UK-NOC</text>
+<text x="540" y="538" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">UK-RAN</text>
+<text x="540" y="562" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">UK-Core</text>
+<rect x="848" y="312" width="224" height="96" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="864" y="340" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Role / assignment</text>
+<text x="864" y="366" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Action + scope</text>
+<rect x="848" y="480" width="224" height="96" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="864" y="508" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Content ACLs</text>
+<text x="864" y="534" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Folder / dashboard</text>
+<rect x="848" y="712" width="224" height="96" rx="4" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="864" y="740" text-anchor="start" fill="#22252b" font-family="Geist Mono, monospace" font-size="14" font-weight="500">Data access</text>
+<text x="864" y="766" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Query + team rules</text>
+<rect x="1184" y="200" width="584" height="192" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1204" y="228" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">WHAT CAN THE TEAM DO?</text>
+<text x="1204" y="260" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">RBAC actions and scopes</text>
+<text x="1204" y="290" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Role → RoleAssignment or RoleAssignmentItem</text>
+<text x="1204" y="314" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Fixed or custom roles bound to market teams</text>
+<text x="1204" y="338" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Team numeric ID must be observed before item binding</text>
+<rect x="1184" y="432" width="584" height="192" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1204" y="460" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">WHICH CONTENT CAN IT USE?</text>
+<text x="1204" y="492" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Folder and dashboard permissions</text>
+<text x="1204" y="522" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">FolderPermission / DashboardPermission</text>
+<text x="1204" y="546" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">UK NOC folder: View · UK RAN folder: Edit</text>
+<text x="1204" y="570" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Dashboard visibility is not a telemetry-data filter</text>
+<rect x="1184" y="664" width="584" height="224" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1204" y="692" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">WHICH DATA CAN IT QUERY?</text>
+<text x="1204" y="724" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Data-source access and label rules</text>
+<text x="1204" y="754" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">DataSourcePermission: Query grant by Team ID</text>
+<text x="1204" y="778" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">DataSourceConfigLbacRules: rule set by Team UID</text>
+<text x="1204" y="802" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Example: {market=&quot;uk&quot;, domain=&quot;ran&quot;}</text>
+<text x="1204" y="826" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">One declarative owner per full permission / rule set</text>
+<text x="48" y="992" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="13" font-weight="600">QUERY ENFORCEMENT PATH</text>
+<path d="M 360 1080 L 456 1080" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-ab)"/>
+<path d="M 816 1080 L 912 1080" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-ab)"/>
+<path d="M 1272 1080 L 1368 1080" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-04-identity-access-04-identity-access-ab)"/>
+<rect x="48" y="1032" width="312" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="68" y="1060" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Engineer query</text>
+<text x="68" y="1090" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">User / session context</text>
+<rect x="456" y="1032" width="360" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="476" y="1060" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">DataSource Query grant</text>
+<text x="476" y="1090" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Access to the source is required</text>
+<rect x="912" y="1032" width="360" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="932" y="1060" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">LBAC rule evaluation</text>
+<text x="932" y="1090" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Team market / domain restrictions</text>
+<rect x="1368" y="1032" width="424" height="112" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1388" y="1060" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Supported backend</text>
+<text x="1388" y="1090" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Cloud Metrics or Loki; traces differ</text>
+<path d="M 40 1224 H 1800" stroke="#cdd1d7"/><text x="40" y="1252" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Upper graph: configuration joins. Lower ribbon: query enforcement. Source permissions and LBAC solve different problems.</text>
+</svg>

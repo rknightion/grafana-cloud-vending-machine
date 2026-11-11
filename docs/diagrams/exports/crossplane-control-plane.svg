@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1960 1400" role="img" aria-labelledby="05-crossplane-control-plane-title 05-crossplane-control-plane-desc" id="d-05-crossplane-control-plane-root"><title id="05-crossplane-control-plane-title">Crossplane control plane</title><desc id="05-crossplane-control-plane-desc">This implementation has separate delivery, composition, provider and secret controllers. The function emits a complete desired set; it does not call Grafana APIs itself.</desc><defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #d-05-crossplane-control-plane-root { color: #22252b; }
+      #d-05-crossplane-control-plane-root body.figure main { max-width:none }
+      #d-05-crossplane-control-plane-root .eyebrow, #d-05-crossplane-control-plane-root .meta { font:12px/1.5 "Geist Mono",monospace;letter-spacing:.05em;color:#626871 }
+      #d-05-crossplane-control-plane-root .lead { font-size:19px;max-width:1050px;color:#555c66 }
+      #d-05-crossplane-control-plane-root a { color:#2459a6;text-underline-offset:3px }
+      #d-05-crossplane-control-plane-root a:focus-visible { outline:3px solid #b33b14;outline-offset:4px }
+      #d-05-crossplane-control-plane-root .status { display:inline-block;padding:5px 9px;border:1px solid #b33b14;color:#9e3412;font-size:12px }
+      #d-05-crossplane-control-plane-root .section { padding:44px 0;border-top:1px solid #d7dade;margin-top:24px }
+      #d-05-crossplane-control-plane-root .diagram-container { overflow-x:auto;width:100%;margin:24px 0 18px;border-top:1px solid #d7dade;border-bottom:1px solid #d7dade }
+      #d-05-crossplane-control-plane-root .note { border-left:3px solid #b33b14;padding:10px 18px;max-width:1200px;background:#fff6ef;font-size:14px }
+      #d-05-crossplane-control-plane-root .sources { font-size:13px;color:#626871 }
+      #d-05-crossplane-control-plane-root .toc { display:grid;grid-template-columns:1fr 1.2fr;gap:0 36px;margin:32px 0 }
+      #d-05-crossplane-control-plane-root .toc a { padding:16px 0;border-top:1px solid #d7dade;text-decoration:none;color:#22252b;display:flex;gap:20px }
+      #d-05-crossplane-control-plane-root .toc b { font:15px "Geist Mono",monospace;color:#9e3412 }
+      #d-05-crossplane-control-plane-root .toc small { color:#626871;display:block }
+      #d-05-crossplane-control-plane-root .grid { display:grid;grid-template-columns:1.2fr 1fr;gap:36px }
+      #d-05-crossplane-control-plane-root .table-scroll { overflow-x:auto;margin:24px 0 }
+      #d-05-crossplane-control-plane-root table { border-collapse:collapse;width:100%;font-size:14px }
+      #d-05-crossplane-control-plane-root td, #d-05-crossplane-control-plane-root th { text-align:left;border-bottom:1px solid #d7dade;padding:12px 14px;vertical-align:top }
+      #d-05-crossplane-control-plane-root th { font-size:12px;background:#f3f4f6;color:#555c66 }
+      #d-05-crossplane-control-plane-root code { font:12px "Geist Mono",monospace;background:#f3f4f6;padding:2px 3px }
+      #d-05-crossplane-control-plane-root .table-scroll table { min-width:1180px }
+      #d-05-crossplane-control-plane-root details { padding:16px 0 }
+      #d-05-crossplane-control-plane-root summary { font-weight:600;cursor:pointer }
+      @media(max-width:720px) {
+#d-05-crossplane-control-plane-root .toc, #d-05-crossplane-control-plane-root .grid { grid-template-columns:1fr }
+}
+      @media print {
+#d-05-crossplane-control-plane-root .diagram-container { overflow-x:visible }
+      #d-05-crossplane-control-plane-root .section { break-before:page }
+      #d-05-crossplane-control-plane-root .toc { display:none }
+}</style><marker id="d-05-crossplane-control-plane-05-crossplane-control-plane-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#626871"/></marker><marker id="d-05-crossplane-control-plane-05-crossplane-control-plane-ab" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2459a6"/></marker></defs><rect width="1960" height="1400" fill="#fff"/><text x="48" y="48" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="14" font-weight="600">CONTROL-PLANE OWNERSHIP</text>
+<rect x="48" y="88" width="440" height="1160" rx="8" fill="#f3f4f6" stroke="#cdd1d7" stroke-width="1"/>
+<text x="68" y="118" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Git and delivery</text>
+<text x="68" y="143" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Argo CD owns declarations</text>
+<rect x="552" y="88" width="856" height="1160" rx="8" fill="#fff" stroke="#cdd1d7" stroke-width="1"/>
+<text x="572" y="118" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Kubernetes / Crossplane</text>
+<text x="572" y="143" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Crossplane owns composed resource objects</text>
+<rect x="1472" y="88" width="440" height="1160" rx="8" fill="#f3f4f6" stroke="#cdd1d7" stroke-width="1"/>
+<text x="1492" y="118" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="600">Grafana Cloud</text>
+<text x="1492" y="143" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Provider observes and reconciles external APIs</text>
+<path d="M 464 444 L 576 444" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-05-crossplane-control-plane-05-crossplane-control-plane-a)"/>
+<rect x="467.0" y="409" width="106.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="520" y="424" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">SYNC REQUEST</text>
+<path d="M 936 444 L 1024 444" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-05-crossplane-control-plane-05-crossplane-control-plane-a)"/>
+<rect x="945.75" y="409" width="68.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="980" y="424" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">COMPOSE</text>
+<path d="M 1200 532 V 588 Q 1200 596 1192 596 H 784 Q 776 596 776 604 V 656" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-05-crossplane-control-plane-05-crossplane-control-plane-a)"/>
+<rect x="958.75" y="565" width="98.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1008" y="580" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">DESIRED SET</text>
+<path d="M 936 760 L 1024 760" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-05-crossplane-control-plane-05-crossplane-control-plane-a)"/>
+<rect x="953.25" y="725" width="53.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="980" y="740" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">WATCH</text>
+<path d="M 1384 760 L 1496 760" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-05-crossplane-control-plane-05-crossplane-control-plane-ab)"/>
+<rect x="1420.75" y="725" width="38.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1440" y="740" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">API</text>
+<path d="M 1384 704 H 1432 Q 1440 704 1440 696 V 288 Q 1440 280 1448 280 H 1496" fill="none" stroke="#2459a6" stroke-width="1.4"  marker-end="url(#d-05-crossplane-control-plane-05-crossplane-control-plane-ab)"/>
+<rect x="1398.25" y="249" width="83.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1440" y="264" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">CLOUD API</text>
+<path d="M 464 224 L 576 224" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-05-crossplane-control-plane-05-crossplane-control-plane-a)"/>
+<rect x="485.75" y="189" width="68.5" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="520" y="204" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">INSTALL</text>
+<path d="M 776 304 L 776 356" fill="none" stroke="#626871" stroke-width="1.4"  marker-end="url(#d-05-crossplane-control-plane-05-crossplane-control-plane-a)"/>
+<rect x="806.0" y="325" width="76.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="844" y="340" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">VALIDATE</text>
+<path d="M 1704 872 V 1188 Q 1704 1196 1696 1196 H 1456 Q 1448 1196 1448 1188 V 840 Q 1448 832 1440 832 H 1384" fill="none" stroke="#626871" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#d-05-crossplane-control-plane-05-crossplane-control-plane-a)"/>
+<rect x="1411.5" y="1165" width="121.0" height="20" rx="0" fill="#fff" stroke="none" stroke-width="1"/>
+<text x="1472" y="1180" text-anchor="middle" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">OBSERVED STATE</text>
+<rect x="72" y="144" width="392" height="160" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="92" y="172" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">PLATFORM APPLICATION</text>
+<text x="92" y="204" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Platform definitions</text>
+<text x="92" y="234" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Provider / Function packages</text>
+<text x="92" y="258" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">XRDs / Compositions / activation policy</text>
+<text x="92" y="282" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">RBAC and secret-store wiring</text>
+<rect x="72" y="356" width="392" height="176" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="92" y="384" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">APPLICATIONSET / APPLICATION</text>
+<text x="92" y="416" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">enabled/*</text>
+<text x="92" y="446" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">GrafanaCloudStackRequest</text>
+<text x="92" y="470" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Access and specialist API objects</text>
+<text x="92" y="494" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Exactly one enabled directory watch</text>
+<rect x="72" y="656" width="392" height="208" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="92" y="684" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">SYNC CONTROLLER</text>
+<text x="92" y="716" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Argo CD</text>
+<text x="92" y="746" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Applies platform and requests</text>
+<text x="92" y="770" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Crossplane-aware health checks</text>
+<text x="92" y="794" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Annotation resource tracking</text>
+<text x="92" y="818" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Must not declare composed children</text>
+<text x="72" y="952" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="20" font-weight="600">Inert catalogue</text>
+<text x="72" y="986" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">examples/catalog is not watched.</text>
+<text x="72" y="1020" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">External project adapters belong</text>
+<text x="72" y="1052" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">to the consuming platform.</text>
+<rect x="576" y="144" width="360" height="160" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="596" y="172" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">SCHEMA / PACKAGE CONTROL</text>
+<text x="596" y="204" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Installed API surface</text>
+<text x="596" y="234" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">CompositeResourceDefinition</text>
+<text x="596" y="258" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Composition / Function / Provider</text>
+<text x="596" y="282" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">ManagedResourceActivationPolicy</text>
+<rect x="576" y="356" width="360" height="176" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="596" y="384" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">DESIRED SERVICE</text>
+<text x="596" y="416" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Composite request</text>
+<text x="596" y="446" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Namespaced public API object</text>
+<text x="596" y="470" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">CEL / policy validation</text>
+<text x="596" y="494" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Organization + region + usage</text>
+<rect x="1024" y="356" width="360" height="176" rx="6" fill="#fff5ee" stroke="#b33b14" stroke-width="1.5"/>
+<text x="1044" y="384" text-anchor="start" fill="#b33b14" font-family="Geist Mono, monospace" font-size="11" font-weight="500">FUNCTION INVOCATION</text>
+<text x="1044" y="416" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Composition pipeline</text>
+<text x="1044" y="446" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">function-grafana-vending</text>
+<text x="1044" y="470" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">GrafanaVendingConfig input</text>
+<text x="1044" y="494" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Observed resources → desired set</text>
+<rect x="576" y="656" width="360" height="208" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="596" y="684" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">KUBERNETES OBJECTS</text>
+<text x="596" y="716" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Composed resources</text>
+<text x="596" y="746" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Stack and credential chains</text>
+<text x="596" y="770" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Teams / roles / content / policies</text>
+<text x="596" y="794" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Domain-specific managed resources</text>
+<text x="596" y="818" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">ESO objects and ProviderConfigs</text>
+<rect x="1024" y="656" width="360" height="208" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1044" y="684" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">EXTERNAL RECONCILIATION</text>
+<text x="1044" y="716" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Grafana provider</text>
+<text x="1044" y="746" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Watches enabled managed GVKs</text>
+<text x="1044" y="770" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Resolves references / observed IDs</text>
+<text x="1044" y="794" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Uses namespaced ProviderConfig</text>
+<text x="1044" y="818" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Writes status + connection Secrets</text>
+<rect x="576" y="952" width="360" height="176" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="596" y="980" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">SEPARATE CONTROLLER</text>
+<text x="596" y="1012" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">ESO and secret manager</text>
+<text x="596" y="1042" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">ExternalSecret: materialize input</text>
+<text x="596" y="1066" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">PushSecret: publish output</text>
+<text x="596" y="1090" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">SecretStore + access controls</text>
+<rect x="1024" y="952" width="360" height="176" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1044" y="980" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">DEPENDENCY / STATUS</text>
+<text x="1044" y="1012" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Reconciliation gates</text>
+<text x="1044" y="1042" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Stack Ready</text>
+<text x="1044" y="1066" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Credential ExternalSecret Ready</text>
+<text x="1044" y="1090" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Module-specific observed IDs</text>
+<rect x="1496" y="144" width="392" height="232" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1516" y="172" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">CLOUD API</text>
+<text x="1516" y="204" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Organization-plane resources</text>
+<text x="1516" y="234" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">cloud.Stack</text>
+<text x="1516" y="258" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Bootstrap service account + token</text>
+<text x="1516" y="282" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Telemetry / Fleet policies + tokens</text>
+<text x="1516" y="306" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">PDC network / token</text>
+<text x="1516" y="330" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Cloud product / integration settings</text>
+<rect x="1496" y="656" width="392" height="216" rx="6" fill="#fff" stroke="#858c96" stroke-width="1"/>
+<text x="1516" y="684" text-anchor="start" fill="#626871" font-family="Geist Mono, monospace" font-size="11" font-weight="500">STACK AND PRODUCT APIS</text>
+<text x="1516" y="716" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="21" font-weight="600">Stack-local resources</text>
+<text x="1516" y="746" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Teams / roles / SSO / data sources</text>
+<text x="1516" y="770" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Folders / dashboards / permissions</text>
+<text x="1516" y="794" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Alerting / incident configuration</text>
+<text x="1516" y="818" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="400">Opt-in product resources</text>
+<text x="1496" y="976" text-anchor="start" fill="#22252b" font-family="Geist, Arial, sans-serif" font-size="18" font-weight="600">Credentials</text>
+<text x="1496" y="1008" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">and identities</text>
+<text x="1496" y="1040" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">stay out of Git</text>
+<text x="1496" y="1072" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="16" font-weight="400">and requests.</text>
+<path d="M 40 1344 H 1920" stroke="#cdd1d7"/><text x="40" y="1372" text-anchor="start" fill="#626871" font-family="Geist, Arial, sans-serif" font-size="13" font-weight="400">Solid: declarations and reconciliation. Dashed: observed external state. Orange: composition function, not an external API client.</text>
+</svg>
