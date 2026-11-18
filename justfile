@@ -17,6 +17,46 @@ setup:
     @actual_version="$("${KUBEBUILDER_ASSETS}/kube-apiserver" --version)"; expected_version="Kubernetes v${ENVTEST_KUBERNETES_VERSION}"; test "$actual_version" = "$expected_version" || { echo "Expected envtest $expected_version, found $actual_version" >&2; exit 1; }
     cd platform/function && go mod download
 
+# Provision the pinned local toolchain and warm the function's build cache.
+[script('bash')]
+cloud-bootstrap:
+    set -euo pipefail
+    assets_output="$(just envtest </dev/null)"
+    printf '%s\n' "$assets_output"
+    assets_export="${assets_output##*$'\n'}"
+    assets_prefix='export KUBEBUILDER_ASSETS='
+    [[ "$assets_export" == "$assets_prefix"* ]]
+    assets_encoded="${assets_export#"$assets_prefix"}"
+
+    cache="${XDG_CACHE_HOME:-$HOME/.cache}/grafana-cloud-vending-machine"
+    assets_dir=''
+    # Match envtest's quoted output to a real directory without evaluating it.
+    for candidate in "$cache"/envtest/*/controller-tools/envtest; do
+        if [[ -d "$candidate" && "$(printf '%q' "$candidate")" == "$assets_encoded" ]]; then
+            assets_dir="$candidate"
+            break
+        fi
+    done
+    test -d "$assets_dir"
+
+    tools="$cache/cursor"
+    go_version="$(awk '$1 == "go" { print $2 }' platform/function/go.mod)"
+    [[ "$go_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+    go_root="$(GOTOOLCHAIN="go$go_version" go env GOROOT)"
+    mkdir -p "$tools/bin"
+    ln -sfn "$go_root/bin/go" "$tools/bin/go"
+    ln -sfn "$go_root/bin/gofmt" "$tools/bin/gofmt"
+
+    settings="$(mktemp "$tools/environment.bash.XXXXXXXX")"
+    printf 'export PATH=%q:$PATH\nexport GOTOOLCHAIN=local\nexport KUBECONFIG=/dev/null\nexport KUBEBUILDER_ASSETS=%q\n' \
+        "$tools/bin" "$assets_dir" > "$settings"
+    mv -f "$settings" "$tools/environment.bash"
+    source "$tools/environment.bash"
+
+    just setup </dev/null
+    go -C platform/function build -mod=readonly -o /dev/null ./...
+    go -C platform/function test -mod=readonly -race -cover -c -o /dev/null ./...
+
 # format Go source and the justfile in place
 [group('check')]
 fmt:
