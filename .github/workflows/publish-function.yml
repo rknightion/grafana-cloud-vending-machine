@@ -360,23 +360,44 @@ jobs:
           subject-digest: ${{ steps.sign.outputs.digest }}
           push-to-registry: true
 
-      - name: Generate SBOM
+      # Syft reads one platform from a multi-platform index, so each SBOM is built
+      # from and attested to its own platform digest.
+      - name: Generate per-platform SBOMs
+        id: sbom
+        shell: bash
         env:
           DIGEST: ${{ steps.sign.outputs.digest }}
-        run: syft "${XPKG}@${DIGEST}" --output "spdx-json=function-grafana-vending.spdx.json"
+        run: |
+          set -euo pipefail
+          index=$(docker buildx imagetools inspect "${XPKG}@${DIGEST}" --raw)
+          for arch in amd64 arm64; do
+            platform_digest=$(jq --raw-output --arg arch "$arch" \
+              '[.manifests[] | select(.platform.os == "linux" and .platform.architecture == $arch) | .digest]
+               | if length == 1 then .[0] else error("expected one manifest for \($arch)") end' <<<"$index")
+            syft "${XPKG}@${platform_digest}" --output "spdx-json=function-grafana-vending-${arch}.spdx.json"
+            echo "${arch}=${platform_digest}" >> "$GITHUB_OUTPUT"
+          done
 
-      - name: Attest SBOM
+      - name: Attest amd64 SBOM
         uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
         with:
           subject-name: ${{ env.XPKG }}
-          subject-digest: ${{ steps.sign.outputs.digest }}
-          sbom-path: function-grafana-vending.spdx.json
+          subject-digest: ${{ steps.sbom.outputs.amd64 }}
+          sbom-path: function-grafana-vending-amd64.spdx.json
+          push-to-registry: true
+
+      - name: Attest arm64 SBOM
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-name: ${{ env.XPKG }}
+          subject-digest: ${{ steps.sbom.outputs.arm64 }}
+          sbom-path: function-grafana-vending-arm64.spdx.json
           push-to-registry: true
 
       - name: Upload SBOM
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: function-grafana-vending-sbom
-          path: function-grafana-vending.spdx.json
+          path: function-grafana-vending-*.spdx.json
           if-no-files-found: error
           retention-days: 30
