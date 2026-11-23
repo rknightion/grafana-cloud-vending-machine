@@ -206,6 +206,52 @@ jobs:
           cache-to: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && format('type=registry,ref={0}:buildcache-{1},mode=max', env.XPKG, matrix.arch) || '' }}
           outputs: type=docker,dest=${{ github.workspace }}/runtime-${{ matrix.arch }}.tar
 
+      - name: Install verified Trivy release
+        env:
+          RUNNER_ARCH: ${{ runner.arch }}
+        run: |
+          set -euo pipefail
+          version=0.70.0
+          case "$RUNNER_ARCH" in
+            X64) arch=Linux-64bit ;;
+            ARM64) arch=Linux-ARM64 ;;
+            *) echo "Unsupported Trivy runner architecture: $RUNNER_ARCH" >&2; exit 1 ;;
+          esac
+          scratch=$(mktemp -d "$RUNNER_TEMP/trivy-download.XXXXXX")
+          trap 'rm -rf "$scratch"' EXIT
+          asset="trivy_${version}_${arch}.tar.gz"
+          base="https://github.com/aquasecurity/trivy/releases/download/v${version}"
+          for name in "$asset" "trivy_${version}_checksums.txt"; do
+            curl --retry 5 --retry-all-errors --retry-delay 2 --retry-max-time 120 \
+              --connect-timeout 20 --max-time 60 --fail --location --silent --show-error \
+              --proto '=https' --proto-redir '=https' --output "$scratch/$name" "$base/$name"
+          done
+          cd "$scratch"
+          awk -v asset="$asset" '$2 == asset {print}' "trivy_${version}_checksums.txt" > selected.sha256
+          test "$(wc -l < selected.sha256)" -eq 1
+          sha256sum --check --strict selected.sha256
+          tar -xzf "$asset" trivy
+          install -d "$RUNNER_TEMP/trivy-bin"
+          install -m 0755 trivy "$RUNNER_TEMP/trivy-bin/trivy"
+          "$RUNNER_TEMP/trivy-bin/trivy" --version
+          echo "$RUNNER_TEMP/trivy-bin" >> "$GITHUB_PATH"
+
+      # Gate before anything is published: the runtime image tarball that the
+      # package embeds is scanned and a HIGH or CRITICAL finding that has a fix
+      # fails the build. Read-only; it changes neither the image nor the package.
+      - name: Scan runtime image for known vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          skip-setup-trivy: true
+          input: ${{ github.workspace }}/runtime-${{ matrix.arch }}.tar
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+          format: table
+          # The action's cache writes a new dated Actions-cache entry every day.
+          cache: false
+
       - name: Install pinned Crossplane CLI
         shell: bash
         run: |
@@ -243,7 +289,8 @@ jobs:
     runs-on: ubuntu-26.04
     permissions:
       contents: read
-      id-token: write # Keyless Cosign signing through GitHub OIDC.
+      id-token: write # Keyless Cosign signing and attestations through GitHub OIDC.
+      attestations: write # Build-provenance and SBOM attestations.
       packages: write # Publish the Crossplane package to GHCR.
     steps:
       - name: Download packages
@@ -289,14 +336,47 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
 
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+
       - name: Sign immutable package digest
+        id: sign
         shell: bash
         run: |
           digest=$(docker buildx imagetools inspect "${XPKG}:${XPKG_VERSION}" --format '{{json .Manifest}}' | jq --raw-output .digest)
           test "${digest#sha256:}" != "$digest"
           cosign sign --yes "${XPKG}@${digest}"
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
           {
             echo "### Grafana vending function"
             echo
             echo "\`${XPKG}@${digest}\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Generate build-provenance attestation
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ${{ env.XPKG }}
+          subject-digest: ${{ steps.sign.outputs.digest }}
+          push-to-registry: true
+
+      - name: Generate SBOM
+        env:
+          DIGEST: ${{ steps.sign.outputs.digest }}
+        run: syft "${XPKG}@${DIGEST}" --output "spdx-json=function-grafana-vending.spdx.json"
+
+      - name: Attest SBOM
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-name: ${{ env.XPKG }}
+          subject-digest: ${{ steps.sign.outputs.digest }}
+          sbom-path: function-grafana-vending.spdx.json
+          push-to-registry: true
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: function-grafana-vending-sbom
+          path: function-grafana-vending.spdx.json
+          if-no-files-found: error
+          retention-days: 30
