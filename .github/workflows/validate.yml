@@ -2,9 +2,9 @@ name: Validate public reference
 
 on:
   pull_request:
-    # `edited` re-runs the workflow when the pull request body changes, so the acceptance evidence
-    # check reads the new table. Every job runs on it: a skipped job would report success to ci-success.
-    types: [opened, edited, reopened, synchronize, ready_for_review]
+    # The acceptance-evidence check reads the pull request body, so it runs in pr-metadata.yml;
+    # a body edit does not re-run this workflow.
+    types: [opened, reopened, synchronize, ready_for_review]
   push:
     branches:
       - main
@@ -111,17 +111,6 @@ jobs:
     with:
       enforce: true
 
-  # Evidence check. The reusable fails on any event but pull_request, so this job is skipped on a push
-  # to main. Public repository: only a pull request that closes an issue is checked (the default).
-  # Check run: `ac-evidence / Acceptance evidence`.
-  ac-evidence:
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      issues: read
-      pull-requests: read
-    uses: rknightion/.github/.github/workflows/ac-evidence.yml@84486af028f18f4a2d93ee5c4eb954fdd541d800 # v1.31.10
-
   # The lines a pull request adds carry no identifier, email address, public address or credential
   # shape. The reusable fails on any event but pull_request. Check run: `privacy-sweep / Privacy sweep`.
   privacy-sweep:
@@ -174,7 +163,7 @@ jobs:
     name: ci-success
     runs-on: ubuntu-26.04
     if: always()
-    needs: [validate, zizmor, ac-evidence, privacy-sweep, backlog-freeze]
+    needs: [validate, zizmor, privacy-sweep, backlog-freeze]
     steps:
       - name: Fail if any required job did not pass
         if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
@@ -190,7 +179,6 @@ jobs:
           EVENT: ${{ github.event_name }}
           VALIDATE: ${{ needs.validate.result }}
           ZIZMOR: ${{ needs.zizmor.result }}
-          AC_EVIDENCE: ${{ needs.ac-evidence.result }}
           PRIVACY_SWEEP: ${{ needs.privacy-sweep.result }}
           BACKLOG_FREEZE: ${{ needs.backlog-freeze.result }}
         run: |
@@ -199,12 +187,12 @@ jobs:
             exit 1
           fi
           if [[ "$EVENT" == "pull_request" ]]; then
-            if [[ "$AC_EVIDENCE" != "success" || "$PRIVACY_SWEEP" != "success" || "$BACKLOG_FREEZE" != "success" ]]; then
-              echo "ac-evidence: ${AC_EVIDENCE}, privacy-sweep: ${PRIVACY_SWEEP}, backlog-freeze: ${BACKLOG_FREEZE}; all must pass on a pull request"
+            if [[ "$PRIVACY_SWEEP" != "success" || "$BACKLOG_FREEZE" != "success" ]]; then
+              echo "privacy-sweep: ${PRIVACY_SWEEP}, backlog-freeze: ${BACKLOG_FREEZE}; all must pass on a pull request"
               exit 1
             fi
-          elif [[ "$AC_EVIDENCE" != "skipped" || "$PRIVACY_SWEEP" != "skipped" || "$BACKLOG_FREEZE" != "skipped" ]]; then
-            echo "ac-evidence: ${AC_EVIDENCE}, privacy-sweep: ${PRIVACY_SWEEP}, backlog-freeze: ${BACKLOG_FREEZE}; these run on pull requests only"
+          elif [[ "$PRIVACY_SWEEP" != "skipped" || "$BACKLOG_FREEZE" != "skipped" ]]; then
+            echo "privacy-sweep: ${PRIVACY_SWEEP}, backlog-freeze: ${BACKLOG_FREEZE}; these run on pull requests only"
             exit 1
           fi
       - name: All required jobs passed
