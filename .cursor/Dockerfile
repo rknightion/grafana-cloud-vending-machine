@@ -1,4 +1,4 @@
-FROM ghcr.io/rknightion/cursor-cloud-base:1@sha256:57dcc7de6d7fc24b3d6893e1f2d793e4a361b9a6f1d0a6195a93f12a3a737b43
+FROM ghcr.io/rknightion/cursor-cloud-base:1@sha256:d682eea83896694ce529c2035816610edd723c9acbd39ccaf8056743e7ed1756
 
 USER root
 # The repository's manifest validation runs Ruby and kubectl.
