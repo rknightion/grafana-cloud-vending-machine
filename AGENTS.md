@@ -208,16 +208,3 @@ Reusable SVG and PNG illustrations live in `docs/diagrams/exports/`; its HTML in
 selection guide. Editable diagram HTML sources and earlier studies remain in
 `docs/diagrams/mockups/` and `docs/diagrams/backups/`. Add new illustrations alongside existing
 assets; preserve their ownership, optional-capability and fictional-example boundaries when exporting.
-
-## Cursor Cloud specific instructions
-
-Load the pinned Go toolchain and local admission-test assets in each shell with
-`source "${XDG_CACHE_HOME:-$HOME/.cache}/grafana-cloud-vending-machine/cursor/environment.bash"`.
-This sets `KUBECONFIG=/dev/null` for client commands.
-
-- Fast check `just fmt-check </dev/null && just test '^TestEveryImplementedSurfaceHasAnEnforcedComposition$' </dev/null`.
-- Full gate `just check </dev/null`. The publication scan needs the authorized identifier pattern
-  set supplied by hosted CI or the maintainer.
-
-The admission tests start a temporary local API server. Live Grafana Cloud and cluster validation
-are outside this workflow.
