@@ -17,16 +17,26 @@ while IFS= read -r revision; do
   history_revisions+=("$revision")
 done < <(git rev-list --all)
 
+# Any arguments after the pattern are file names this one check skips in every directory, in the
+# working tree and in history alike.
 scan_fixed() {
   local label=$1
   local pattern=$2
-  if rg --hidden --glob '!.git' --glob '!.git/**' --glob '!scripts/public-release-scan.sh' -n -i -F -- "$pattern" .; then
+  shift 2
+  local -a rg_skip=() git_skip=()
+  local skip
+  for skip in "$@"; do
+    rg_skip+=(--glob "!$skip")
+    git_skip+=(":(exclude,glob)**/$skip")
+  done
+  if rg --hidden --glob '!.git' --glob '!.git/**' --glob '!scripts/public-release-scan.sh' \
+    ${rg_skip[@]+"${rg_skip[@]}"} -n -i -F -- "$pattern" .; then
     echo "public-release scan: found $label in the working tree" >&2
     failed=1
   fi
   if (( ${#history_revisions[@]} > 0 )) &&
     git grep -I -n -i -F -- "$pattern" "${history_revisions[@]}" -- . \
-      ':(exclude)scripts/public-release-scan.sh'; then
+      ':(exclude)scripts/public-release-scan.sh' ${git_skip[@]+"${git_skip[@]}"}; then
     echo "public-release scan: found $label in reachable Git history" >&2
     failed=1
   fi
@@ -558,7 +568,11 @@ fi
 # was never needed to stop the control matching itself either - every scan
 # function already excludes this file by path.
 scan_fixed "source proof-of-concept identifier" "crossplaneavm"
-scan_fixed "source architecture acronym" "avm"
+# Three letters matched without case also occur by chance inside base64 module checksums, and
+# the history half reads every branch, Renovate's included: a go.mod bump on 24 Nov 2026 put
+# `juavmQg=` into a go.sum line and failed every pull request. go.sum holds only module paths and
+# checksums, never our own prose, so this one check skips it. The other checks still read it.
+scan_fixed "source architecture acronym" "avm" go.sum
 
 # Matched as prefix PLUS a token body, not as the bare prefix. A real token is
 # the prefix followed by a long base62 body, so this still catches every one of
