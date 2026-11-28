@@ -108,7 +108,7 @@ jobs:
       contents: read
       security-events: write
       actions: read
-    uses: rknightion/.github/.github/workflows/zizmor.yml@a6e7f83c8fd233841120fc14c0412124a445c306 # v1.35.0
+    uses: rknightion/.github/.github/workflows/zizmor.yml@0cc331c4859b1056333df332c7d31d23c9060c4c # v1.36.0
     with:
       enforce: true
 
@@ -118,7 +118,7 @@ jobs:
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
-    uses: rknightion/.github/.github/workflows/privacy-sweep.yml@a6e7f83c8fd233841120fc14c0412124a445c306 # v1.35.0
+    uses: rknightion/.github/.github/workflows/privacy-sweep.yml@0cc331c4859b1056333df332c7d31d23c9060c4c # v1.36.0
 
   # Single aggregator the branch ruleset gates. Keeping the ruleset pinned to one
   # check means the job list above can change without touching branch protection.
