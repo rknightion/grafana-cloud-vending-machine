@@ -40,6 +40,7 @@ jobs:
   test:
     name: Test function
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
     outputs:
       runtime-changed: ${{ steps.runtime-changes.outputs.changed }}
     defaults:
@@ -159,6 +160,7 @@ jobs:
     needs: test
     if: needs.test.outputs.runtime-changed == 'true'
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
     permissions:
       contents: read
       packages: write # Read/write the GHCR registry cache below.
@@ -287,6 +289,7 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-26.04
+    timeout-minutes: 15
     permissions:
       contents: read
       id-token: write # Keyless Cosign signing and attestations through GitHub OIDC.

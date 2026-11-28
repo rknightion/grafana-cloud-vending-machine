@@ -20,6 +20,7 @@ jobs:
   validate:
     name: Validate reference
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -119,19 +120,54 @@ jobs:
       contents: read
     uses: rknightion/.github/.github/workflows/privacy-sweep.yml@a6e7f83c8fd233841120fc14c0412124a445c306 # v1.35.0
 
-  # The Backlog.md board is retired: issues are the queue. A pull request may delete files under
-  # backlog/ or move them out, never add or change one there. Reads the file list from the API, so
-  # no pull request code is checked out.
-  backlog-freeze:
-    name: backlog/ is frozen
-    if: github.event_name == 'pull_request'
+  # Single aggregator the branch ruleset gates. Keeping the ruleset pinned to one
+  # check means the job list above can change without touching branch protection.
+  ci-success:
+    name: ci-success
     runs-on: ubuntu-26.04
+    if: always()
+    needs: [validate, zizmor, privacy-sweep]
     timeout-minutes: 5
+    # contents/pull-requests read: the folded backlog freeze step below lists the pull request's files.
     permissions:
       contents: read
       pull-requests: read
     steps:
+      - name: Fail if any required job did not pass
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        env:
+          RESULTS: ${{ join(needs.*.result, ', ') }}
+        run: |
+          echo "A required job failed or was cancelled: ${RESULTS}"
+          exit 1
+      # A skipped job reports success, so validate and zizmor must have run and passed on every event,
+      # and the pull request checks must have run and passed on a pull request.
+      - name: Fail if a required job did not run
+        env:
+          EVENT: ${{ github.event_name }}
+          VALIDATE: ${{ needs.validate.result }}
+          ZIZMOR: ${{ needs.zizmor.result }}
+          PRIVACY_SWEEP: ${{ needs.privacy-sweep.result }}
+        run: |
+          if [[ "$VALIDATE" != "success" || "$ZIZMOR" != "success" ]]; then
+            echo "validate: ${VALIDATE}, zizmor: ${ZIZMOR}; both must pass"
+            exit 1
+          fi
+          if [[ "$EVENT" == "pull_request" ]]; then
+            if [[ "$PRIVACY_SWEEP" != "success" ]]; then
+              echo "privacy-sweep: ${PRIVACY_SWEEP}; it must pass on a pull request"
+              exit 1
+            fi
+          elif [[ "$PRIVACY_SWEEP" != "skipped" ]]; then
+            echo "privacy-sweep: ${PRIVACY_SWEEP}; it runs on pull requests only"
+            exit 1
+          fi
+      # The Backlog.md board is retired: issues are the queue. A pull request may delete files under
+      # backlog/ or move them out, never add or change one there. Folded in here from its own job (a
+      # few seconds of work that cost a runner start); it still fails ci-success on any offending file.
+      # Reads the file list from the API, so no pull request code is checked out.
       - name: Refuse additions and changes under backlog/
+        if: ${{ always() && github.event_name == 'pull_request' }}
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -156,45 +192,6 @@ jobs:
             exit 1
           fi
           echo "No file under backlog/ is added or changed."
-
-  # Single aggregator the branch ruleset gates. Keeping the ruleset pinned to one
-  # check means the job list above can change without touching branch protection.
-  ci-success:
-    name: ci-success
-    runs-on: ubuntu-26.04
-    if: always()
-    needs: [validate, zizmor, privacy-sweep, backlog-freeze]
-    steps:
-      - name: Fail if any required job did not pass
-        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
-        env:
-          RESULTS: ${{ join(needs.*.result, ', ') }}
-        run: |
-          echo "A required job failed or was cancelled: ${RESULTS}"
-          exit 1
-      # A skipped job reports success, so validate and zizmor must have run and passed on every event,
-      # and the pull request checks must have run and passed on a pull request.
-      - name: Fail if a required job did not run
-        env:
-          EVENT: ${{ github.event_name }}
-          VALIDATE: ${{ needs.validate.result }}
-          ZIZMOR: ${{ needs.zizmor.result }}
-          PRIVACY_SWEEP: ${{ needs.privacy-sweep.result }}
-          BACKLOG_FREEZE: ${{ needs.backlog-freeze.result }}
-        run: |
-          if [[ "$VALIDATE" != "success" || "$ZIZMOR" != "success" ]]; then
-            echo "validate: ${VALIDATE}, zizmor: ${ZIZMOR}; both must pass"
-            exit 1
-          fi
-          if [[ "$EVENT" == "pull_request" ]]; then
-            if [[ "$PRIVACY_SWEEP" != "success" || "$BACKLOG_FREEZE" != "success" ]]; then
-              echo "privacy-sweep: ${PRIVACY_SWEEP}, backlog-freeze: ${BACKLOG_FREEZE}; all must pass on a pull request"
-              exit 1
-            fi
-          elif [[ "$PRIVACY_SWEEP" != "skipped" || "$BACKLOG_FREEZE" != "skipped" ]]; then
-            echo "privacy-sweep: ${PRIVACY_SWEEP}, backlog-freeze: ${BACKLOG_FREEZE}; these run on pull requests only"
-            exit 1
-          fi
       - name: All required jobs passed
         env:
           RESULTS: ${{ join(needs.*.result, ', ') }}
