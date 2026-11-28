@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - main
+    # Fleet CI review (release-skip-deps): a push that only moves CI config (hub pins, Renovate
+    # config) has nothing to release. A release commit always changes CHANGELOG.md, so it is never filtered.
+    paths-ignore:
+      - ".github/**"
+      - "renovate.json"
+      - "renovate.json5"
+      - ".renovaterc"
+      - ".renovaterc.json"
+      - ".renovaterc.json5"
 
 # Minimal default; write scopes are granted per-job only where needed.
 permissions:
