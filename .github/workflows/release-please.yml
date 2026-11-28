@@ -16,16 +16,12 @@ concurrency:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write       # create release + tag
       pull-requests: write  # open/maintain the release PR
       id-token: write       # exchanged for a tailnet identity and an OpenBao token
     steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
-        with:
-          egress-policy: audit
-
       # Mints a short-lived GitHub App installation token scoped to THIS repo,
       # replacing a repository-wide long-lived credential. Nothing durable is stored here to leak.
       # The release PR's author becomes the App, so release automation remains
